@@ -1,4 +1,9 @@
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "apps/mission-control/.next"
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/mission-control/package.json",
+      "use": "@vercel/next"
+    }
+  ]
 }
