@@ -17,7 +17,7 @@ export default function SearchBar({ value, onChange }: SearchBarProps) {
         placeholder="Search documents, concepts, notes..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full pl-10 pr-10 py-2 bg-jade-light text-jade-purple placeholder-opacity-70 rounded-lg focus:outline-none focus:ring-2 focus:ring-jade-cream"
+        className="w-full pl-10 pr-10 py-2 bg-jade-light text-jade-purple placeholder-opacity-70 rounded-lg focus:outline-none focus:ring-2 focus:ring-jade-purple"
       />
       {value && (
         <button

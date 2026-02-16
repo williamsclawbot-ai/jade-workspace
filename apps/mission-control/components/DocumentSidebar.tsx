@@ -12,19 +12,17 @@ interface Document {
   updatedAt: string;
 }
 
-interface SidebarProps {
+interface DocumentSidebarProps {
   documents: Record<string, Document[]>;
   selectedDocId: string;
   onSelectDoc: (id: string) => void;
-  viewMode: 'list' | 'grid';
 }
 
-export default function Sidebar({
+export default function DocumentSidebar({
   documents,
   selectedDocId,
   onSelectDoc,
-  viewMode,
-}: SidebarProps) {
+}: DocumentSidebarProps) {
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({
     Documents: true,
     Concepts: true,
@@ -49,7 +47,7 @@ export default function Sidebar({
   };
 
   return (
-    <aside className="w-80 bg-white shadow-lg flex flex-col border-r border-jade-light max-h-[calc(100vh-80px)] overflow-y-auto">
+    <aside className="w-72 bg-white shadow-sm flex flex-col border-r border-jade-light max-h-full overflow-y-auto">
       <div className="p-4 space-y-4">
         {Object.entries(documents).map(([folder, docs]) => (
           <div key={folder}>

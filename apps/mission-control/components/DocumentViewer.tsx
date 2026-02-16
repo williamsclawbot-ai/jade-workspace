@@ -16,11 +16,11 @@ interface DocumentViewerProps {
   document: Document;
 }
 
-export default function DocumentViewer({ document }: DocumentViewerProps) {
+export default function DocumentViewer({ document: doc }: DocumentViewerProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(document.content);
+    navigator.clipboard.writeText(doc.content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -29,9 +29,9 @@ export default function DocumentViewer({ document }: DocumentViewerProps) {
     const element = document.createElement('a');
     element.setAttribute(
       'href',
-      'data:text/markdown;charset=utf-8,' + encodeURIComponent(document.content)
+      'data:text/markdown;charset=utf-8,' + encodeURIComponent(doc.content)
     );
-    element.setAttribute('download', `${document.title}.md`);
+    element.setAttribute('download', `${doc.title}.md`);
     element.style.display = 'none';
     document.body.appendChild(element);
     element.click();
@@ -79,10 +79,10 @@ export default function DocumentViewer({ document }: DocumentViewerProps) {
         <div className="flex justify-between items-start mb-4">
           <div>
             <h2 className="text-3xl font-bold text-jade-purple mb-2">
-              {document.title}
+              {doc.title}
             </h2>
             <p className="text-gray-600 text-sm">
-              {document.folder} • Updated {new Date(document.updatedAt).toLocaleDateString()}
+              {doc.folder} • Updated {new Date(doc.updatedAt).toLocaleDateString()}
             </p>
           </div>
           <div className="flex items-center space-x-2">
@@ -125,7 +125,7 @@ export default function DocumentViewer({ document }: DocumentViewerProps) {
           <div
             className="markdown-content"
             dangerouslySetInnerHTML={{
-              __html: renderMarkdown(document.content),
+              __html: renderMarkdown(doc.content),
             }}
           />
         </div>
@@ -134,8 +134,8 @@ export default function DocumentViewer({ document }: DocumentViewerProps) {
       {/* Document Footer */}
       <div className="border-t border-jade-light px-8 py-4 bg-jade-cream text-sm text-gray-600">
         <div className="flex justify-between">
-          <div>Created: {new Date(document.createdAt).toLocaleDateString()}</div>
-          <div>Words: {document.content.split(/\s+/).length}</div>
+          <div>Created: {new Date(doc.createdAt).toLocaleDateString()}</div>
+          <div>Words: {doc.content.split(/\s+/).length}</div>
         </div>
       </div>
     </div>

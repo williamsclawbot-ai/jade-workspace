@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Sidebar from '@/components/Sidebar';
-import DocumentViewer from '@/components/DocumentViewer';
-import SearchBar from '@/components/SearchBar';
-import { BookOpen, Grid, Plus } from 'lucide-react';
+import { Plus, BookOpen } from 'lucide-react';
+import SearchBar from './SearchBar';
+import DocumentSidebar from './DocumentSidebar';
+import DocumentViewer from './DocumentViewer';
 
 interface Document {
   id: string;
@@ -172,21 +172,21 @@ To provide comprehensive childcare guidance and support for parents and educator
   },
 ];
 
-export default function Home() {
+export default function Memory() {
   const [selectedDocId, setSelectedDocId] = useState<string>('1');
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   const selectedDocument = SAMPLE_DOCUMENTS.find(doc => doc.id === selectedDocId);
 
   const filteredDocuments = useMemo(() => {
     if (!searchQuery) return SAMPLE_DOCUMENTS;
-    
+
     const query = searchQuery.toLowerCase();
-    return SAMPLE_DOCUMENTS.filter(doc =>
-      doc.title.toLowerCase().includes(query) ||
-      doc.content.toLowerCase().includes(query) ||
-      doc.folder.toLowerCase().includes(query)
+    return SAMPLE_DOCUMENTS.filter(
+      doc =>
+        doc.title.toLowerCase().includes(query) ||
+        doc.content.toLowerCase().includes(query) ||
+        doc.folder.toLowerCase().includes(query)
     );
   }, [searchQuery]);
 
@@ -202,33 +202,32 @@ export default function Home() {
   }, [filteredDocuments]);
 
   return (
-    <div className="min-h-screen bg-jade-cream flex flex-col">
+    <div className="h-full flex flex-col bg-white">
       {/* Header */}
-      <header className="bg-jade-purple text-jade-cream shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-2">
-              <span className="text-2xl">🧠</span>
-              <h1 className="text-2xl font-bold">2nd Brain</h1>
-              <span className="text-sm text-jade-light ml-2">Knowledge Base</span>
+      <div className="border-b border-jade-light px-6 py-4">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <span className="text-2xl">🧠</span>
+            <div>
+              <h2 className="text-2xl font-bold text-jade-purple">Memory</h2>
+              <p className="text-sm text-gray-600">Your 2nd Brain Knowledge Base</p>
             </div>
-            <button className="flex items-center space-x-2 bg-jade-cream text-jade-purple px-4 py-2 rounded-lg hover:bg-jade-light transition-colors">
-              <Plus size={20} />
-              <span className="hidden sm:inline">New Document</span>
-            </button>
           </div>
-          <SearchBar value={searchQuery} onChange={setSearchQuery} />
+          <button className="flex items-center space-x-2 bg-jade-purple text-jade-cream px-4 py-2 rounded-lg hover:bg-jade-light hover:text-jade-purple transition-colors">
+            <Plus size={20} />
+            <span className="hidden sm:inline">New Document</span>
+          </button>
         </div>
-      </header>
+        <SearchBar value={searchQuery} onChange={setSearchQuery} />
+      </div>
 
       {/* Main Content */}
-      <main className="flex-1 flex overflow-hidden">
-        {/* Sidebar */}
-        <Sidebar
+      <div className="flex-1 flex overflow-hidden">
+        {/* Document Sidebar */}
+        <DocumentSidebar
           documents={documentsByFolder}
           selectedDocId={selectedDocId}
           onSelectDoc={setSelectedDocId}
-          viewMode={viewMode}
         />
 
         {/* Document Viewer */}
@@ -242,7 +241,7 @@ export default function Home() {
             </div>
           </div>
         )}
-      </main>
+      </div>
     </div>
   );
 }

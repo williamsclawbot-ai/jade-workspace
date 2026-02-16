@@ -1,0 +1,107 @@
+2026-02-16T20:03:40.806171Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo/cookies/.turbo-cookie"), AnchoredSystemPathBuf(".turbo/cookies/1.cookie")}
+2026-02-16T20:03:40.806185Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-02-16T20:03:57.507691Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("turbo.json")}
+2026-02-16T20:03:57.507705Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(All)
+2026-02-16T20:04:12.508041Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo/cookies/2.cookie")}
+2026-02-16T20:04:12.508048Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-02-16T20:04:13.107687Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/.next"), AnchoredSystemPathBuf("apps/second-brain/.next")}
+2026-02-16T20:04:13.107694Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("second-brain"), path: AnchoredSystemPathBuf("apps/second-brain") }, WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:04:14.407722Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/tsconfig.json"), AnchoredSystemPathBuf("apps/second-brain/next-env.d.ts"), AnchoredSystemPathBuf("apps/second-brain/tsconfig.json"), AnchoredSystemPathBuf("apps/mission-control/next-env.d.ts")}
+2026-02-16T20:04:14.407730Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }, WorkspacePackage { name: Other("second-brain"), path: AnchoredSystemPathBuf("apps/second-brain") }}))
+2026-02-16T20:08:28.213472Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Sidebar.tsx")}
+2026-02-16T20:08:28.213482Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:08:44.914011Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Memory.tsx")}
+2026-02-16T20:08:44.914026Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:08:52.114797Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/DocumentSidebar.tsx")}
+2026-02-16T20:08:52.114818Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:09:00.515227Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/DocumentViewer.tsx")}
+2026-02-16T20:09:00.515243Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:09:04.115059Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/SearchBar.tsx")}
+2026-02-16T20:09:04.115074Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:09:07.615621Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Tasks.tsx")}
+2026-02-16T20:09:07.615637Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:09:11.815006Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Content.tsx")}
+2026-02-16T20:09:11.815018Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:09:14.815216Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Approvals.tsx")}
+2026-02-16T20:09:14.815227Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:09:17.715600Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Council.tsx")}
+2026-02-16T20:09:17.715622Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:09:20.514991Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Calendar.tsx")}
+2026-02-16T20:09:20.515002Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:09:23.514521Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Projects.tsx")}
+2026-02-16T20:09:23.514544Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:09:26.715786Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/DocsTab.tsx")}
+2026-02-16T20:09:26.715795Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:09:29.614599Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/People.tsx")}
+2026-02-16T20:09:29.614617Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:09:33.216188Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Team.tsx")}
+2026-02-16T20:09:33.216200Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:09:35.815561Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Office.tsx")}
+2026-02-16T20:09:35.815576Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:09:40.916160Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/app/page.tsx")}
+2026-02-16T20:09:40.916176Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:09:43.616514Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/app/layout.tsx")}
+2026-02-16T20:09:43.616524Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:09:45.715357Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Navigation.tsx")}
+2026-02-16T20:09:45.715383Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:09:47.416546Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/second-brain/README.md"), AnchoredSystemPathBuf("apps/second-brain/components/SearchBar.tsx"), AnchoredSystemPathBuf("apps/second-brain/components/Sidebar.tsx"), AnchoredSystemPathBuf("apps/second-brain/next.config.js"), AnchoredSystemPathBuf("apps/second-brain/components/DocumentViewer.tsx"), AnchoredSystemPathBuf("apps/second-brain/app"), AnchoredSystemPathBuf("apps/second-brain/package.json"), AnchoredSystemPathBuf("apps/second-brain/next-env.d.ts"), AnchoredSystemPathBuf("apps/second-brain/postcss.config.js"), AnchoredSystemPathBuf("apps/second-brain/tailwind.config.js"), AnchoredSystemPathBuf("apps/second-brain/tsconfig.json"), AnchoredSystemPathBuf("apps/second-brain/.next"), AnchoredSystemPathBuf("apps/second-brain/components"), AnchoredSystemPathBuf("apps/second-brain/app/globals.css"), AnchoredSystemPathBuf("apps/second-brain"), AnchoredSystemPathBuf("apps/second-brain/app/layout.tsx"), AnchoredSystemPathBuf("apps/second-brain/app/page.tsx")}
+2026-02-16T20:09:47.416571Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("second-brain"), path: AnchoredSystemPathBuf("apps/second-brain") }}))
+2026-02-16T20:09:47.515536Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/second-brain"), AnchoredSystemPathBuf("apps/second-brain/.next")}
+2026-02-16T20:09:47.515545Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("second-brain"), path: AnchoredSystemPathBuf("apps/second-brain") }}))
+2026-02-16T20:09:51.916447Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/second-brain"), AnchoredSystemPathBuf("apps/second-brain/.next")}
+2026-02-16T20:09:51.916459Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("second-brain"), path: AnchoredSystemPathBuf("apps/second-brain") }}))
+2026-02-16T20:10:21.215953Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/next.config.js")}
+2026-02-16T20:10:21.215965Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:10:22.817049Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/second-brain"), AnchoredSystemPathBuf("apps/second-brain/.next")}
+2026-02-16T20:10:22.817057Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("second-brain"), path: AnchoredSystemPathBuf("apps/second-brain") }}))
+2026-02-16T20:10:54.518300Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Sidebar.tsx")}
+2026-02-16T20:10:54.518322Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:10:56.417660Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Sidebar.tsx")}
+2026-02-16T20:10:56.417679Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:11:10.817479Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Sidebar.tsx")}
+2026-02-16T20:11:10.817493Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:11:13.018104Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Sidebar.tsx")}
+2026-02-16T20:11:13.018132Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:12:11.620129Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/second-brain/.next"), AnchoredSystemPathBuf("apps/second-brain")}
+2026-02-16T20:12:11.620144Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("second-brain"), path: AnchoredSystemPathBuf("apps/second-brain") }}))
+2026-02-16T20:12:21.520234Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/DocumentViewer.tsx")}
+2026-02-16T20:12:21.520259Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:12:25.419488Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/DocumentViewer.tsx")}
+2026-02-16T20:12:25.419499Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:12:29.119889Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/DocumentViewer.tsx")}
+2026-02-16T20:12:29.119913Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:12:41.020372Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Metrics.tsx")}
+2026-02-16T20:12:41.020393Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:13:10.021203Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("REFACTOR_SUMMARY.md")}
+2026-02-16T20:13:10.021226Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-02-16T20:13:43.321232Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo/cookies/3.cookie")}
+2026-02-16T20:13:43.321239Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-02-16T20:19:35.420394Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/MealPlanning.tsx")}
+2026-02-16T20:19:35.420430Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:19:39.120156Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Sidebar.tsx")}
+2026-02-16T20:19:39.120168Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:19:43.819673Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Sidebar.tsx")}
+2026-02-16T20:19:43.819695Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:19:47.420185Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/app/page.tsx")}
+2026-02-16T20:19:47.420199Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:19:51.219834Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/app/page.tsx")}
+2026-02-16T20:19:51.219845Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:19:54.220207Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/.turbo")}
+2026-02-16T20:19:54.220225Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:19:54.220270Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2026-02-16T20:21:31.221723Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo/cookies/4.cookie")}
+2026-02-16T20:21:31.221731Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2026-02-16T20:24:47.226439Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/ContentDashboard.tsx")}
+2026-02-16T20:24:47.226451Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:25:17.625984Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/HLSTasks.tsx")}
+2026-02-16T20:25:17.625994Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:25:21.427030Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Sidebar.tsx")}
+2026-02-16T20:25:21.427049Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:25:26.827728Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/Sidebar.tsx")}
+2026-02-16T20:25:26.827744Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:25:32.627708Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/app/page.tsx")}
+2026-02-16T20:25:32.627730Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:25:36.827681Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/app/page.tsx")}
+2026-02-16T20:25:36.827700Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))
+2026-02-16T20:25:47.127468Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("apps/mission-control/components/HLSTasks.tsx")}
+2026-02-16T20:25:47.127509Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("mission-control"), path: AnchoredSystemPathBuf("apps/mission-control") }}))

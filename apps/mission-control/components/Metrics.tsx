@@ -158,7 +158,8 @@ export default function Metrics() {
             <tbody>
               {metrics.map((m, idx) => {
                 const prevSubs = idx > 0 ? metrics[idx - 1].subscribers : m.subscribers;
-                const growth = ((m.subscribers - prevSubs) / prevSubs * 100).toFixed(2);
+                const growthNum = (m.subscribers - prevSubs) / prevSubs * 100;
+                const growth = growthNum.toFixed(2);
                 return (
                   <tr key={m.date} className="border-b border-gray-200 hover:bg-gray-50">
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">{m.date}</td>
@@ -166,8 +167,8 @@ export default function Metrics() {
                     <td className="px-6 py-4 text-sm text-right text-gray-700">${m.revenue.toLocaleString()}</td>
                     <td className="px-6 py-4 text-sm text-right text-gray-700">{m.completedTasks}</td>
                     <td className="px-6 py-4 text-sm text-right">
-                      <span className={`font-semibold ${growth > 0 ? 'text-green-600' : 'text-gray-600'}`}>
-                        {growth > 0 ? '+' : ''}{growth}%
+                      <span className={`font-semibold ${growthNum > 0 ? 'text-green-600' : 'text-gray-600'}`}>
+                        {growthNum > 0 ? '+' : ''}{growth}%
                       </span>
                     </td>
                   </tr>

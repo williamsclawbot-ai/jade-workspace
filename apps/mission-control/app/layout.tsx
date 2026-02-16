@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Jade Workspace - Mission Control + 2nd Brain',
-  description: 'Unified dashboard for project management and knowledge base',
+  title: 'Jade Workspace - Unified Control Center',
+  description: 'Unified workspace with sidebar navigation for project management, tasks, content, and knowledge base',
   icons: {
     icon: '🎯',
   },
