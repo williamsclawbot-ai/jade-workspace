@@ -1,4 +1,0 @@
-{
-  "buildCommand": "cd ../.. && npm run build && echo 'Build complete'",
-  "outputDirectory": ".next"
-}

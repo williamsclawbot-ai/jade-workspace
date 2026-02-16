@@ -3,15 +3,8 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import Dashboard from '@/components/Dashboard';
-import TodayDashboard from '@/components/TodayDashboard';
-import GuidePipeline from '@/components/GuidePipeline';
-import ContentDashboard from '@/components/ContentDashboard';
-import Campaigns from '@/components/Campaigns';
-import GoHighLevel from '@/components/GoHighLevel';
-import HLSTasks from '@/components/HLSTasks';
 import Tasks from '@/components/Tasks';
 import Calendar from '@/components/Calendar';
-import MealPlanning from '@/components/MealPlanning';
 import Memory from '@/components/Memory';
 import Office from '@/components/Office';
 
@@ -29,24 +22,10 @@ export default function Home() {
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard />;
-      case 'today':
-        return <TodayDashboard />;
-      case 'guides':
-        return <GuidePipeline />;
-      case 'content':
-        return <ContentDashboard />;
-      case 'campaigns':
-        return <Campaigns />;
-      case 'ghl':
-        return <GoHighLevel />;
-      case 'hls-tasks':
-        return <HLSTasks />;
       case 'tasks':
         return <Tasks />;
       case 'calendar':
         return <Calendar />;
-      case 'meal-planning':
-        return <MealPlanning />;
       case 'memory':
         return <Memory />;
       case 'office':

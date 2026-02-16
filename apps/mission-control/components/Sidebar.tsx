@@ -3,17 +3,12 @@
 import { useState } from 'react';
 import {
   LayoutGrid,
-  BookOpen,
   FileText,
   CheckSquare,
   Calendar,
-  Users,
   Brain,
   Settings,
   UtensilsCrossed,
-  Target,
-  Zap,
-  TrendingUp,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -26,21 +21,11 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
 
   const navSections = [
     {
-      name: 'Business Hub',
-      section: 'business',
+      name: 'Main',
+      section: 'main',
       items: [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
-        { id: 'guides', label: 'Guides', icon: BookOpen },
         { id: 'content', label: 'Content', icon: FileText },
-        { id: 'campaigns', label: 'Campaigns', icon: Target },
-        { id: 'ghl', label: 'GHL', icon: TrendingUp },
-      ],
-    },
-    {
-      name: 'Operational',
-      section: 'operational',
-      items: [
-        { id: 'today', label: 'Today', icon: Zap },
         { id: 'hls-tasks', label: 'HLS Tasks', icon: CheckSquare },
         { id: 'tasks', label: 'Tasks', icon: CheckSquare },
         { id: 'meal-planning', label: 'Meal Planning', icon: UtensilsCrossed },
