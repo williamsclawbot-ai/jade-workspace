@@ -3,19 +3,17 @@
 import { useState } from 'react';
 import {
   LayoutGrid,
-  Trello,
+  BookOpen,
   FileText,
   CheckSquare,
-  Users,
   Calendar,
-  FolderOpen,
+  Users,
   Brain,
-  BookOpen,
-  User,
   Settings,
   UtensilsCrossed,
-  CheckCircle2,
+  Target,
   Zap,
+  TrendingUp,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -26,25 +24,44 @@ interface SidebarProps {
 export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid, section: 'main' },
-    { id: 'tasks', label: 'Tasks', icon: CheckSquare, section: 'main' },
-    { id: 'content', label: 'Content Board', icon: FileText, section: 'main' },
-    { id: 'hls-tasks', label: 'HLS Tasks', icon: CheckCircle2, section: 'main' },
-    { id: 'approvals', label: 'Approvals', icon: CheckSquare, section: 'main' },
-    { id: 'council', label: 'Council', icon: Users, section: 'main' },
-    { id: 'calendar', label: 'Calendar', icon: Calendar, section: 'main' },
-    { id: 'projects', label: 'Projects', icon: FolderOpen, section: 'main' },
-    { id: 'meal-planning', label: 'Meal Planning', icon: UtensilsCrossed, section: 'main' },
-    { id: 'memory', label: 'Memory', icon: Brain, section: 'secondary' },
-    { id: 'docs', label: 'Docs', icon: BookOpen, section: 'secondary' },
-    { id: 'people', label: 'People', icon: User, section: 'secondary' },
-    { id: 'office', label: 'Office', icon: Settings, section: 'secondary' },
-    { id: 'team', label: 'Team', icon: Users, section: 'secondary' },
+  const navSections = [
+    {
+      name: 'Business Hub',
+      section: 'business',
+      items: [
+        { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
+        { id: 'guides', label: 'Guides', icon: BookOpen },
+        { id: 'content', label: 'Content', icon: FileText },
+        { id: 'campaigns', label: 'Campaigns', icon: Target },
+        { id: 'ghl', label: 'GHL', icon: TrendingUp },
+      ],
+    },
+    {
+      name: 'Operational',
+      section: 'operational',
+      items: [
+        { id: 'today', label: 'Today', icon: Zap },
+        { id: 'hls-tasks', label: 'HLS Tasks', icon: CheckSquare },
+        { id: 'tasks', label: 'Tasks', icon: CheckSquare },
+        { id: 'meal-planning', label: 'Meal Planning', icon: UtensilsCrossed },
+        { id: 'calendar', label: 'Calendar', icon: Calendar },
+      ],
+    },
+    {
+      name: 'Knowledge',
+      section: 'knowledge',
+      items: [
+        { id: 'memory', label: 'Memory', icon: Brain },
+      ],
+    },
+    {
+      name: 'Settings',
+      section: 'settings',
+      items: [
+        { id: 'office', label: 'Office', icon: Settings },
+      ],
+    },
   ];
-
-  const mainItems = navItems.filter((item) => item.section === 'main');
-  const secondaryItems = navItems.filter((item) => item.section === 'secondary');
 
   return (
     <aside
@@ -57,7 +74,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         {!isCollapsed && (
           <div className="flex items-center space-x-2">
             <span className="text-2xl">🎯</span>
-            <h1 className="text-lg font-bold text-jade-purple">Jade</h1>
+            <h1 className="text-lg font-bold text-jade-purple">Mission Control</h1>
           </div>
         )}
         <button
@@ -71,15 +88,14 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
 
       {/* Navigation Content */}
       <div className="flex flex-col h-[calc(100vh-64px)] overflow-y-auto">
-        {/* Main Navigation */}
-        <nav className="flex-1 px-2 py-4 space-y-1">
-          <div className="mb-4">
+        {navSections.map((section) => (
+          <nav key={section.section} className="px-2 py-4 space-y-1 border-b border-jade-light">
             {!isCollapsed && (
               <p className="text-xs font-semibold text-gray-500 uppercase px-4 mb-2">
-                Workspace
+                {section.name}
               </p>
             )}
-            {mainItems.map((item) => {
+            {section.items.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
               return (
@@ -100,42 +116,12 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
                 </button>
               );
             })}
-          </div>
-        </nav>
-
-        {/* Secondary Navigation */}
-        <nav className="px-2 py-4 space-y-1 border-t border-jade-light">
-          {!isCollapsed && (
-            <p className="text-xs font-semibold text-gray-500 uppercase px-4 mb-2">
-              Knowledge
-            </p>
-          )}
-          {secondaryItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => onTabChange(item.id)}
-                title={isCollapsed ? item.label : ''}
-                className={`w-full flex items-center ${
-                  isCollapsed ? 'justify-center' : 'justify-start'
-                } space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                  isActive
-                    ? 'bg-jade-purple text-jade-cream'
-                    : 'text-gray-700 hover:bg-jade-cream'
-                }`}
-              >
-                <Icon size={20} />
-                {!isCollapsed && <span className="text-sm font-medium">{item.label}</span>}
-              </button>
-            );
-          })}
-        </nav>
+          </nav>
+        ))}
 
         {/* Footer */}
         {!isCollapsed && (
-          <div className="border-t border-jade-light p-4 text-xs text-gray-600">
+          <div className="border-t border-jade-light p-4 text-xs text-gray-600 mt-auto">
             <p className="mb-2">💾 Auto-saving</p>
             <p>🔄 Last synced: now</p>
           </div>

@@ -12,6 +12,9 @@ dist/
 .next/
 out/
 
+# Turbo
+.turbo/
+
 # Misc
 .DS_Store
 *.pem
