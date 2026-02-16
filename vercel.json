@@ -1,13 +1,4 @@
 {
-  "version": 2,
-  "projects": [
-    {
-      "name": "mission-control-jade",
-      "rootDirectory": "apps/mission-control"
-    },
-    {
-      "name": "second-brain-jade",
-      "rootDirectory": "apps/second-brain"
-    }
-  ]
+  "buildCommand": "npm run build",
+  "outputDirectory": "apps/mission-control/.next"
 }
