@@ -1,6 +1,7 @@
 'use client';
 
 import { parseScriptSections, extractOnScreenText, extractCaption, hasStructuredSections } from '@/lib/scriptSectionParser';
+// Force rebuild
 
 interface ContentItem6ColumnProps {
   script?: string;
