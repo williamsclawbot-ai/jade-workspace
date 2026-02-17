@@ -22,7 +22,7 @@ interface WeeklyContentItem {
 
 type StatusFilter = 'all' | 'Ready to Film' | 'Ready to Schedule' | 'In Progress' | 'Scheduled' | 'Due for Review';
 
-// Sample data from existing component
+// Real content pipeline data
 const THIS_WEEK_CONTENT: WeeklyContentItem[] = [
   {
     id: '1',
@@ -33,6 +33,7 @@ const THIS_WEEK_CONTENT: WeeklyContentItem[] = [
     status: 'Ready to Film',
     duration: '45 seconds',
     setting: 'Home - nursery room',
+    script: 'Hook: "Does your toddler refuse to use a pillow?"\n\nContent: "Here\'s the thing - toddlers under 2 shouldn\'t have pillows at all. It\'s a safety thing. But I know what you\'re thinking - my kid\'s thrashing around and looks super uncomfortable.\n\nHere\'s the safe sleep setup:\n- Under 2 years: NO pillows, NO blankets, just a fitted sheet\n- 2-3 years: You can introduce a pillow NOW, but keep it FLAT and FIRM\n- Over 3: Regular pillow, but keep it simple\n\nWhat helps comfort instead? A lovey or stuffed animal they can snuggle."\n\nCTA: "What\'s your toddler sleep hack? Drop it below!"',
     reviewStatus: 'needs-review',
     reviewDueDate: '2026-02-18'
   },
@@ -41,9 +42,11 @@ const THIS_WEEK_CONTENT: WeeklyContentItem[] = [
     day: 'Tuesday',
     title: 'Educational Carousel',
     type: 'Carousel',
-    description: 'Sleep myths debunked - 5 common misconceptions',
+    description: '5 sleep myths debunked with science-backed facts',
     status: 'Ready to Schedule',
     duration: '5 slides',
+    setting: 'Graphic design',
+    script: 'Slide 1: 5 Sleep Myths That Are Keeping You Stuck\n\nSlide 2: MYTH: More tired = better sleep\nFACT: Overtired babies sleep WORSE\n\nSlide 3: MYTH: Skip naps so they sleep at night\nFACT: Naps regulate cortisol (stress hormone)\n\nSlide 4: MYTH: Feed more at night = longer sleep\nFACT: Sleep is about circadian rhythm, not calories\n\nSlide 5: MYTH: Later bedtime = sleeping in\nFACT: Kids wake at natural times regardless\n\nSlide 6: MYTH: Some babies just don\'t sleep\nFACT: All babies have sleep potential - something\'s fixable',
     reviewStatus: 'needs-review',
     reviewDueDate: '2026-02-19'
   },
@@ -52,8 +55,12 @@ const THIS_WEEK_CONTENT: WeeklyContentItem[] = [
     day: 'Wednesday',
     title: 'Harvey Turning 2',
     type: 'Static',
-    description: 'Harvey\'s 2nd birthday - personal milestone + sleep tips',
+    description: 'Harvey\'s 2nd birthday - personal milestone + sleep journey',
     status: 'Ready to Film',
+    setting: 'Home - with Harvey',
+    postTime: '5:00 PM',
+    script: 'Harvey is TWO and I honestly can\'t believe it.\n\nTwo years ago, I was sleep-deprived, questioning everything, wondering if I was doing it right.\n\nFrom a newborn who woke every 2 hours to a toddler who sleeps 11-12 hours solid at night? That\'s not luck. That\'s consistency, patience, and understanding that sleep is a skill.\n\nTo the parents in the thick of it: You\'ve got this. It doesn\'t feel like it now, but two years goes fast. 🤍',
+    caption: 'Harvey is TWO! 🎂\n\nFrom waking every 2 hours to sleeping 11-12 hours solid. That\'s not luck - that\'s consistency and understanding sleep as a skill.',
     reviewStatus: 'approved',
     reviewDueDate: '2026-02-18'
   },
@@ -62,28 +69,59 @@ const THIS_WEEK_CONTENT: WeeklyContentItem[] = [
     day: 'Thursday',
     title: 'Myth-Busting Reel',
     type: 'Reel',
-    description: 'Challenging the "cry it out" misconception',
+    description: 'Challenging the "cry it out" misconception - gentle alternatives',
     status: 'In Progress',
+    duration: '50 seconds',
+    setting: 'Home - bedroom / nursery',
+    script: 'Hook (0-3 sec): "Your pediatrician said let them cry? Here\'s what she probably meant..."\n\nContent: "There\'s a HUGE difference between:\n\n❌ Ignoring your baby for hours\n✅ Teaching them to fall asleep independently while you\'re present and responsive\n\nYou can be gentle AND set boundaries. You can be responsive AND help them learn.\n\nMethod matters WAY more than belief."\n\nCTA: "What scares you most about sleep independence?"',
+    postTime: '7:30 PM',
     reviewStatus: 'changes-requested',
     reviewDueDate: '2026-02-20'
   },
   {
     id: '5',
     day: 'Friday',
-    title: 'Weekly Roundup',
-    type: 'Newsletter',
-    description: 'Best of the week - curated sleep tips',
-    status: 'Scheduled',
-    reviewStatus: 'approved',
+    title: 'Monthly Sleep Guidelines',
+    type: 'Static',
+    description: 'Age-specific sleep needs and schedules by month',
+    status: 'In Progress',
+    duration: 'Reference infographic',
+    setting: 'Detailed reference design',
+    postTime: '10:00 AM',
+    script: 'HOW MUCH SLEEP DOES YOUR BABY ACTUALLY NEED?\n\n0-3 MONTHS: 16-17 hours (fragmented, all night)\n4-6 MONTHS: 15-16 hours (patterns emerging)\n7-12 MONTHS: 14-15 hours (consolidation)\n1-2 YEARS: 13-14 hours (schedule developing)\n2-3 YEARS: 12-13 hours (nap + night)\n\nMost important: Watch YOUR BABY\'s mood and energy - that tells you more than any chart. Overtired babies sleep WORSE.',
+    caption: 'HOW MUCH SLEEP DOES YOUR BABY ACTUALLY NEED? 📌 SAVE THIS.',
+    reviewStatus: 'needs-review',
+    reviewDueDate: '2026-02-21'
   },
   {
     id: '6',
     day: 'Saturday',
-    title: 'Parent Win Celebration',
+    title: 'Sample Schedule Static',
+    type: 'Static',
+    description: 'Real example: What a realistic 6-month-old schedule looks like',
+    status: 'Ready to Schedule',
+    duration: 'Sample schedule post',
+    setting: 'Daily routine visual',
+    postTime: '6:00 PM',
+    script: 'WHAT A REALISTIC 6-MONTH-OLD SCHEDULE LOOKS LIKE\n\n6:00 AM - Wake & feed\n7:00-8:30 AM - NAP #1 (90 min)\n10:30-12:00 PM - NAP #2 (90 min)\n2:00-3:30 PM - NAP #3 (90 min)\n6:00-7:00 PM - Bedtime routine\n7:00 PM - Lights out\n\nTotal: 11 hours nighttime + 4.5 hours naps = 15.5 hours\n\nKey: Wake windows matter more than clock times.',
+    caption: 'THIS IS WHAT A REALISTIC 6-MONTH-OLD SCHEDULE LOOKS LIKE ✨',
+    reviewStatus: 'approved',
+    reviewDueDate: '2026-02-20'
+  },
+  {
+    id: '7',
+    day: 'Sunday',
+    title: 'Soft Sell: 3 Options',
     type: 'Reel',
-    description: 'Celebrate small parenting wins from community',
-    status: 'Due for Review',
-    reviewStatus: 'pending',
+    description: 'Community connection - ask followers about their biggest sleep struggle',
+    status: 'Ready to Film',
+    duration: '45 seconds',
+    setting: 'Home - casual',
+    postTime: '7:30 PM',
+    script: 'Option 1: "Real talk - what\'s ACTUALLY harder for you? Bedtime battles? Or night wakings? The solution is SO different."\n\nOption 2: "Between schedule stress and actual behavior problems... which one keeps you up at night?"\n\nOption 3: "First month survival mode? Or first year frustration?"\n\nCTA: "Comment below. Tell me which one is YOU."',
+    caption: 'Real talk: What\'s YOUR biggest sleep challenge right now? 🤔',
+    reviewStatus: 'changes-requested',
+    reviewDueDate: '2026-02-22'
   },
 ];
 
