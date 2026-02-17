@@ -191,6 +191,15 @@ export default function WeeklyNewsletter() {
     saveData(updated);
   };
 
+  const resetTopicSelection = (weekIndex: number) => {
+    // Reset the selection so options appear again
+    const updated = [...newsletters];
+    updated[weekIndex].selectedTopic = null;
+    updated[weekIndex].topic = '';
+    setNewsletters(updated);
+    saveData(updated);
+  };
+
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Header */}
@@ -273,38 +282,69 @@ export default function WeeklyNewsletter() {
                     </div>
                   </div>
 
-                  {/* Topic Ideas Section */}
-                  {!newsletter.selectedTopic && (
-                    <div className="p-6 bg-jade-cream/20 border-b border-jade-light">
+                  {/* Topic Ideas Section - Now always visible */}
+                  <div className={`p-6 border-b border-jade-light ${newsletter.selectedTopic ? 'bg-green-50' : 'bg-jade-cream/20'}`}>
+                    {newsletter.selectedTopic ? (
+                      <div>
+                        <div className="mb-4 p-4 bg-white border-2 border-green-500 rounded-lg">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <p className="text-xs font-bold text-green-700 uppercase mb-1">✅ Topic Selected</p>
+                              <h4 className="text-lg font-bold text-green-700">{newsletter.selectedTopic}</h4>
+                            </div>
+                            <button
+                              onClick={() => resetTopicSelection(weekIndex)}
+                              className="px-4 py-2 bg-yellow-600 text-white rounded font-medium text-sm hover:bg-yellow-700 whitespace-nowrap transition-colors"
+                            >
+                              🔄 Change Topic
+                            </button>
+                          </div>
+                        </div>
+                        
+                        <p className="text-sm text-gray-700 mb-4 font-medium">Want to pick something different? Below are other topic ideas:</p>
+                      </div>
+                    ) : (
                       <h3 className="text-lg font-bold text-jade-purple mb-4 flex items-center space-x-2">
                         <span>📚</span>
                         <span>Topic Ideas for This Week</span>
                       </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {topicData?.topicIdeas.map((idea) => (
-                          <div key={idea.id} className="bg-white rounded-lg border-2 border-jade-light hover:border-jade-purple hover:shadow-md transition-all p-4">
-                            <h4 className="font-bold text-jade-purple mb-2 text-sm leading-tight">{idea.title}</h4>
-                            <div className="space-y-2 mb-4">
-                              <div>
-                                <p className="text-xs font-semibold text-gray-600 uppercase">Relevance</p>
-                                <p className="text-sm text-gray-700">{idea.relevance}</p>
-                              </div>
-                              <div>
-                                <p className="text-xs font-semibold text-gray-600 uppercase">Suggested Angle</p>
-                                <p className="text-sm text-gray-700">{idea.angle}</p>
-                              </div>
+                    )}
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {topicData?.topicIdeas.map((idea) => (
+                        <div 
+                          key={idea.id} 
+                          className={`rounded-lg border-2 p-4 transition-all ${
+                            newsletter.selectedTopic === idea.title 
+                              ? 'border-green-500 bg-green-50' 
+                              : 'bg-white border-jade-light hover:border-jade-purple hover:shadow-md'
+                          }`}
+                        >
+                          <h4 className="font-bold text-jade-purple mb-2 text-sm leading-tight">{idea.title}</h4>
+                          <div className="space-y-2 mb-4">
+                            <div>
+                              <p className="text-xs font-semibold text-gray-600 uppercase">Relevance</p>
+                              <p className="text-sm text-gray-700">{idea.relevance}</p>
                             </div>
-                            <button
-                              onClick={() => pickTopic(weekIndex, idea)}
-                              className="w-full bg-jade-purple text-jade-cream py-2 rounded font-medium text-sm hover:bg-jade-light hover:text-jade-purple transition-colors"
-                            >
-                              Pick This Topic
-                            </button>
+                            <div>
+                              <p className="text-xs font-semibold text-gray-600 uppercase">Suggested Angle</p>
+                              <p className="text-sm text-gray-700">{idea.angle}</p>
+                            </div>
                           </div>
-                        ))}
-                      </div>
+                          <button
+                            onClick={() => pickTopic(weekIndex, idea)}
+                            className={`w-full py-2 rounded font-medium text-sm transition-colors ${
+                              newsletter.selectedTopic === idea.title
+                                ? 'bg-green-600 text-white hover:bg-green-700'
+                                : 'bg-jade-purple text-jade-cream hover:bg-jade-light hover:text-jade-purple'
+                            }`}
+                          >
+                            {newsletter.selectedTopic === idea.title ? '✅ Selected' : 'Pick This Topic'}
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                  )}
+                  </div>
 
                   {/* Stages */}
                   <div className="p-6 space-y-4">
