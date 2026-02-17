@@ -458,14 +458,14 @@ export default function TodayExpanded() {
             It's Tuesday! Select your topic for this week's newsletter now.
           </p>
 
-          {topicData?.selectedTopic ? (
+          {topicData && topicData.selectedTopic ? (
             <div className="bg-white rounded-lg p-6 border-2 border-indigo-500">
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle2 size={24} className="text-green-600" />
                 <h3 className="text-xl font-bold text-indigo-900">Topic Selected ✓</h3>
               </div>
               <p className="text-indigo-700">
-                {topicData?.topicIdeas.find((t) => t.id === topicData.selectedTopic)?.title}
+                {topicData.topicIdeas.find((t) => t.id === topicData.selectedTopic)?.title}
               </p>
               <button
                 onClick={handleTopicDeselectionClick}
@@ -474,9 +474,9 @@ export default function TodayExpanded() {
                 Change topic
               </button>
             </div>
-          ) : (
+          ) : topicData ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {topicData?.topicIdeas.map((idea) => (
+              {topicData.topicIdeas.map((idea) => (
                 <button
                   key={idea.id}
                   onClick={() => handleTopicSelection(idea.id)}
@@ -488,6 +488,8 @@ export default function TodayExpanded() {
                 </button>
               ))}
             </div>
+          ) : (
+            <p className="text-indigo-700">Loading topics...</p>
           )}
         </div>
       )}
