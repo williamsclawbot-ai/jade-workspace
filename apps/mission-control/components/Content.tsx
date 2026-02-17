@@ -143,7 +143,89 @@ export default function Content() {
                 </div>
               )}
 
-              {/* Action Buttons */}
+              {/* Quick Action Buttons */}
+              {item.reviewStatus === 'needs-review' && (
+                <div className="flex gap-2 mb-3">
+                  <button
+                    onClick={() => {
+                      const updated = ContentStore.update(item.id, { reviewStatus: 'approved' });
+                      if (updated) {
+                        setItems(ContentStore.getAll());
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition-colors"
+                  >
+                    ✅ Approve
+                  </button>
+                  <button
+                    onClick={() => {
+                      const updated = ContentStore.update(item.id, { reviewStatus: 'changes-requested' });
+                      if (updated) {
+                        setItems(ContentStore.getAll());
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 text-sm font-medium transition-colors"
+                  >
+                    🔄 Changes
+                  </button>
+                  <button
+                    onClick={() => {
+                      const updated = ContentStore.update(item.id, { reviewStatus: 'pending' });
+                      if (updated) {
+                        setItems(ContentStore.getAll());
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm font-medium transition-colors"
+                  >
+                    ⏳ Pending
+                  </button>
+                </div>
+              )}
+
+              {item.reviewStatus === 'changes-requested' && (
+                <div className="flex gap-2 mb-3">
+                  <button
+                    onClick={() => {
+                      const updated = ContentStore.update(item.id, { reviewStatus: 'approved' });
+                      if (updated) {
+                        setItems(ContentStore.getAll());
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition-colors"
+                  >
+                    ✅ Approve
+                  </button>
+                  <button
+                    onClick={() => {
+                      const updated = ContentStore.update(item.id, { reviewStatus: 'needs-review' });
+                      if (updated) {
+                        setItems(ContentStore.getAll());
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors"
+                  >
+                    ⚠️ Review
+                  </button>
+                </div>
+              )}
+
+              {item.reviewStatus === 'approved' && (
+                <div className="flex gap-2 mb-3">
+                  <button
+                    onClick={() => {
+                      const updated = ContentStore.update(item.id, { reviewStatus: 'changes-requested' });
+                      if (updated) {
+                        setItems(ContentStore.getAll());
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 text-sm font-medium transition-colors"
+                  >
+                    🔄 Request Changes
+                  </button>
+                </div>
+              )}
+
+              {/* View/Edit Buttons */}
               <div className="flex gap-2">
                 <button
                   onClick={() => {
