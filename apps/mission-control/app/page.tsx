@@ -10,7 +10,7 @@ import Campaigns from '@/components/Campaigns';
 import MetaAds from '@/components/MetaAds';
 import GoHighLevel from '@/components/GoHighLevel';
 import Today from '@/components/Today';
-import HLSTasks from '@/components/HLSTasks';
+import HLSPipeline from '@/components/HLSPipeline';
 import Tasks from '@/components/Tasks';
 import Decisions from '@/components/Decisions';
 import MealPlanning from '@/components/MealPlanning';
@@ -62,7 +62,7 @@ export default function Home() {
       case 'today':
         return <Today />;
       case 'hls-tasks':
-        return <HLSTasks />;
+        return <HLSPipeline />;
       case 'tasks':
         return <Tasks />;
       case 'decisions':

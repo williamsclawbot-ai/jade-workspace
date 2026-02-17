@@ -69,7 +69,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         { id: 'combined-metrics', label: 'Metrics (All)', icon: BarChart3 },
         // { id: 'ghl-metrics', label: 'Metrics (GHL)', icon: BarChart3 },
         // { id: 'stripe-revenue', label: 'Revenue (Stripe)', icon: CreditCard },
-        { id: 'hls-tasks', label: 'HLS Tasks', icon: CheckSquare },
+        { id: 'hls-tasks', label: 'HLS Pipeline', icon: CheckSquare },
       ],
     },
     {
