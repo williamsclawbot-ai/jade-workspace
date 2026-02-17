@@ -30,6 +30,7 @@ export default function WeeklyNewsletter() {
   const [newsletters, setNewsletters] = useState<WeeklyNewsletter[]>([]);
   const [editingWeek, setEditingWeek] = useState<string | null>(null);
   const [showNewForm, setShowNewForm] = useState(false);
+  const [generatingDraft, setGeneratingDraft] = useState<string | null>(null);
   
   // Use shared newsletter topic hook
   const { topicData, selectTopic: handleSelectTopicUtil } = useNewsletterTopic();
@@ -200,6 +201,50 @@ export default function WeeklyNewsletter() {
     saveData(updated);
   };
 
+  const generateDraft = async (weekIndex: number) => {
+    const newsletter = newsletters[weekIndex];
+    if (!newsletter.selectedTopic) return;
+
+    setGeneratingDraft(`week-${weekIndex}`);
+
+    try {
+      const response = await fetch('/api/newsletter/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ topic: newsletter.selectedTopic }),
+      });
+
+      if (!response.ok) {
+        alert('Failed to generate draft. Make sure API key is configured.');
+        setGeneratingDraft(null);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Update newsletter with generated content
+        const updated = [...newsletters];
+        updated[weekIndex].outline = data.outline;
+        updated[weekIndex].fullCopy = data.fullCopy;
+        
+        // Mark Stage 1 (Topic & Outline) as complete
+        updated[weekIndex].stages[0].completed = true;
+        
+        // Mark Stage 2 (Full Copy Drafted) as complete
+        updated[weekIndex].stages[1].completed = true;
+
+        setNewsletters(updated);
+        saveData(updated);
+      }
+    } catch (error) {
+      console.error('Draft generation error:', error);
+      alert('Error generating draft. Please try again.');
+    } finally {
+      setGeneratingDraft(null);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col bg-white">
       {/* Header */}
@@ -292,12 +337,25 @@ export default function WeeklyNewsletter() {
                               <p className="text-xs font-bold text-green-700 uppercase mb-1">✅ Topic Selected</p>
                               <h4 className="text-lg font-bold text-green-700">{newsletter.selectedTopic}</h4>
                             </div>
-                            <button
-                              onClick={() => resetTopicSelection(weekIndex)}
-                              className="px-4 py-2 bg-yellow-600 text-white rounded font-medium text-sm hover:bg-yellow-700 whitespace-nowrap transition-colors"
-                            >
-                              🔄 Change Topic
-                            </button>
+                            <div className="flex gap-2 whitespace-nowrap">
+                              <button
+                                onClick={() => generateDraft(weekIndex)}
+                                disabled={generatingDraft === `week-${weekIndex}`}
+                                className={`px-4 py-2 rounded font-medium text-sm transition-colors ${
+                                  generatingDraft === `week-${weekIndex}`
+                                    ? 'bg-blue-300 text-white cursor-wait'
+                                    : 'bg-blue-600 text-white hover:bg-blue-700'
+                                }`}
+                              >
+                                {generatingDraft === `week-${weekIndex}` ? '⏳ Generating...' : '📝 Generate Draft'}
+                              </button>
+                              <button
+                                onClick={() => resetTopicSelection(weekIndex)}
+                                className="px-4 py-2 bg-yellow-600 text-white rounded font-medium text-sm hover:bg-yellow-700 transition-colors"
+                              >
+                                🔄 Change
+                              </button>
+                            </div>
                           </div>
                         </div>
                         
