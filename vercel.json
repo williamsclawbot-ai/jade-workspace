@@ -3,6 +3,5 @@
   "buildCommand": "cd apps/mission-control && npm run build",
   "installCommand": "npm install",
   "outputDirectory": "apps/mission-control/.next",
-  "framework": "nextjs",
-  "regions": ["syd"]
+  "framework": "nextjs"
 }
