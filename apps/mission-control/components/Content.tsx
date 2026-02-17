@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FileText, Plus, Trash2, Lightbulb, Calendar, BarChart3, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
+import ContentItem6Column from './ContentItem6Column';
 
 interface ContentPost {
   id: number;
@@ -784,17 +785,14 @@ export default function Content() {
                           )}
 
                           {item.script && (
-                            <div className="bg-white p-3 rounded border border-red-200">
-                              <h5 className="font-semibold text-red-900 mb-1 text-sm">📝 Script</h5>
-                              <p className="text-sm text-gray-700 max-h-32 overflow-y-auto">{item.script}</p>
-                            </div>
-                          )}
-
-                          {item.caption && (
-                            <div className="bg-white p-3 rounded border border-red-200">
-                              <h5 className="font-semibold text-red-900 mb-1 text-sm">💬 Caption</h5>
-                              <p className="text-sm text-gray-700 max-h-24 overflow-y-auto">{item.caption}</p>
-                            </div>
+                            <ContentItem6Column 
+                              script={item.script}
+                              onScreenText={item.onScreenText}
+                              caption={item.caption}
+                              setting={item.setting}
+                              description={item.description}
+                              statusColor="red"
+                            />
                           )}
 
                           <div className="flex gap-2 pt-3 border-t border-red-200">
@@ -906,49 +904,16 @@ export default function Content() {
                           </div>
                         )}
                         
-                        {/* Full Script */}
+                        {/* Full Script - 6-Column Display */}
                         {item.script && (
-                          <div className="bg-white p-3 rounded border border-jade-light">
-                            <h5 className="font-semibold text-jade-purple mb-2 text-sm">📝 Full Script</h5>
-                            <div className="text-sm text-gray-700 whitespace-pre-wrap max-h-64 overflow-y-auto">
-                              {item.script}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* On-Screen Text */}
-                        {item.onScreenText && (
-                          <div className="bg-white p-3 rounded border border-jade-light">
-                            <h5 className="font-semibold text-jade-purple mb-2 text-sm">📺 On-Screen Text & Timing</h5>
-                            <div className="text-sm text-gray-700 whitespace-pre-wrap max-h-48 overflow-y-auto">
-                              {item.onScreenText}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Caption */}
-                        {item.caption && (
-                          <div className="bg-white p-3 rounded border border-jade-light">
-                            <h5 className="font-semibold text-jade-purple mb-2 text-sm">💬 Full Caption</h5>
-                            <div className="text-sm text-gray-700 whitespace-pre-wrap max-h-48 overflow-y-auto">
-                              {item.caption}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Ready to Film/Schedule Details */}
-                        {item.script && (
-                          <div className="bg-white p-3 rounded border border-green-200">
-                            <h5 className="font-semibold text-green-900 mb-1 text-sm">📝 Script</h5>
-                            <p className="text-sm text-gray-700 max-h-24 overflow-y-auto">{item.script}</p>
-                          </div>
-                        )}
-
-                        {item.caption && (
-                          <div className="bg-white p-3 rounded border border-green-200">
-                            <h5 className="font-semibold text-green-900 mb-1 text-sm">💬 Caption</h5>
-                            <p className="text-sm text-gray-700 max-h-24 overflow-y-auto">{item.caption}</p>
-                          </div>
+                          <ContentItem6Column 
+                            script={item.script}
+                            onScreenText={item.onScreenText}
+                            caption={item.caption}
+                            setting={item.setting}
+                            description={item.description}
+                            statusColor="purple"
+                          />
                         )}
 
                         {/* Action Buttons */}

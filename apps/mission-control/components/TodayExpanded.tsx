@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Sun, ChevronDown, ChevronUp, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { getWeekStart } from '@/lib/newsletterTopicUtils';
 import { useNewsletterTopic } from '@/lib/useNewsletterTopic';
+import ContentItem6Column from './ContentItem6Column';
 
 interface TodayTask {
   id: string;
@@ -536,10 +537,13 @@ export default function TodayExpanded() {
                 )}
 
                 {item.script && (
-                  <div className="bg-white rounded p-3 mb-3 border border-red-200">
-                    <p className="text-xs font-semibold text-gray-700 uppercase mb-1">Script:</p>
-                    <p className="text-sm text-gray-800 line-clamp-2">{item.script}</p>
-                  </div>
+                  <ContentItem6Column 
+                    script={item.script}
+                    onScreenText={item.onScreenText}
+                    caption={item.caption}
+                    description={item.description}
+                    statusColor="red"
+                  />
                 )}
 
                 <div className="flex gap-2 flex-wrap">
@@ -608,24 +612,13 @@ export default function TodayExpanded() {
                   )}
 
                   {item.script && (
-                    <div className="bg-white rounded p-3 mb-3 border border-green-200">
-                      <p className="text-xs font-semibold text-gray-700 uppercase mb-1">Script:</p>
-                      <p className="text-sm text-gray-800 line-clamp-2">{item.script}</p>
-                    </div>
-                  )}
-
-                  {item.onScreenText && (
-                    <div className="bg-white rounded p-3 mb-3 border border-green-200">
-                      <p className="text-xs font-semibold text-gray-700 uppercase mb-1">On-Screen Text:</p>
-                      <p className="text-sm text-gray-800 line-clamp-2">{item.onScreenText}</p>
-                    </div>
-                  )}
-
-                  {item.caption && (
-                    <div className="bg-white rounded p-3 mb-3 border border-green-200">
-                      <p className="text-xs font-semibold text-gray-700 uppercase mb-1">Caption:</p>
-                      <p className="text-sm text-gray-800 line-clamp-2">{item.caption}</p>
-                    </div>
+                    <ContentItem6Column 
+                      script={item.script}
+                      onScreenText={item.onScreenText}
+                      caption={item.caption}
+                      description={item.description}
+                      statusColor="green"
+                    />
                   )}
 
                   <div className="flex gap-2 flex-wrap">
