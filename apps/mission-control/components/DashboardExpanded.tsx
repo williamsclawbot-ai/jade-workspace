@@ -280,6 +280,17 @@ export default function DashboardExpanded({ onNavigate }: DashboardProps) {
     return tasks.filter(t => t.dueDate && isDateToday(t.dueDate)).length;
   };
 
+  // Calculate combined HOME count
+  const homeItemCount = personalTasks.filter(t => t.status !== 'done').length + 
+                        householdTasks.filter(t => t.status !== 'done').length + 
+                        reminders.length + 
+                        meals.count + 
+                        cleaning.count + 
+                        appointments.length;
+
+  // Calculate combined AWAITING count
+  const awaitingItemCount = decisions.length + awaitingReview.length;
+
   return (
     <div className="space-y-8 pb-8">
       {/* Welcome Banner */}
@@ -292,9 +303,9 @@ export default function DashboardExpanded({ onNavigate }: DashboardProps) {
           {content.length > 0 && <span className="font-bold">{content.length} content posts</span>}
           {content.length > 0 && hlsTasks.length > 0 && ', '}
           {hlsTasks.length > 0 && <span className="font-bold">{hlsTasks.length} HLS tasks</span>}
-          {(content.length > 0 || hlsTasks.length > 0) && personalTasks.length > 0 && ', '}
-          {personalTasks.length > 0 && <span className="font-bold">{personalTasks.length} personal tasks</span>}
-          {appointments.length > 0 && <span>{appointments.length > 0 ? ', ' : ''}<span className="font-bold">{appointments.length} appointments</span></span>}
+          {(content.length > 0 || hlsTasks.length > 0) && homeItemCount > 0 && ', '}
+          {homeItemCount > 0 && <span className="font-bold">{homeItemCount} home items</span>}
+          {awaitingItemCount > 0 && <span>{awaitingItemCount > 0 ? ', ' : ''}<span className="font-bold">{awaitingItemCount} awaiting</span></span>}
         </p>
       </div>
 
@@ -379,112 +390,45 @@ export default function DashboardExpanded({ onNavigate }: DashboardProps) {
           </div>
         </div>
 
-        {/* COLUMN 2: 📋 TASKS */}
+        {/* COLUMN 2: 📋 HELLO LITTLE SLEEPERS (HLS Pipeline Only) */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-blue-500">
           <div className="bg-blue-50 px-6 py-4 border-b border-blue-200">
             <h2 className="text-lg font-bold text-blue-900 flex items-center gap-2">
               <CheckSquare2 size={20} className="text-blue-600" />
-              📋 TASKS
+              📋 HELLO LITTLE SLEEPERS
             </h2>
-            <div className="text-xs text-blue-700 mt-1 space-y-1">
-              <p>HLS: <span className="font-bold">{hlsTasks.length}</span> total</p>
-              <p>Personal: <span className="font-bold">{personalTasks.length}</span> active</p>
-              <p>Household: <span className="font-bold">{householdTasks.length}</span> due</p>
-            </div>
+            <p className="text-sm text-blue-700 mt-1">
+              <span className="font-bold">{hlsTasks.length}</span> pipeline tasks
+            </p>
           </div>
 
           <div className="p-6 space-y-2 max-h-96 overflow-y-auto">
-            {hlsTasks.length > 0 || personalTasks.length > 0 || householdTasks.length > 0 ? (
+            {hlsTasks.length > 0 ? (
               <>
-                {/* HLS Tasks */}
-                {hlsTasks.length > 0 && (
-                  <>
-                    <p className="text-xs font-semibold text-blue-900 uppercase opacity-70 mt-3 first:mt-0">
-                      🔄 HLS Pipeline
-                    </p>
-                    {hlsTasks.map((task) => {
-                      const isOverdue = task.dueDate && isDateOverdue(task.dueDate);
-                      const isDueToday = task.dueDate && isDateToday(task.dueDate);
-                      return (
-                        <div
-                          key={task.id}
-                          className={`rounded-md p-2 border text-xs hover:bg-blue-100 transition ${
-                            isOverdue
-                              ? 'border-red-300 bg-red-50'
-                              : isDueToday
-                              ? 'border-orange-300 bg-orange-50'
-                              : 'border-blue-200 bg-blue-50'
-                          }`}
-                        >
-                          <p className="text-blue-900 font-medium truncate">{task.title}</p>
-                          {isOverdue && <p className="text-red-600 text-xs font-semibold">🚨 Overdue</p>}
-                          {isDueToday && <p className="text-orange-600 text-xs font-semibold">⚠️ Due Today</p>}
-                        </div>
-                      );
-                    })}
-                  </>
-                )}
-
-                {/* Personal Tasks */}
-                {personalTasks.length > 0 && (
-                  <>
-                    <p className="text-xs font-semibold text-green-900 uppercase opacity-70 mt-3">
-                      ✓ Personal Tasks
-                    </p>
-                    {personalTasks.map((task) => {
-                      const isOverdue = task.dueDate && isDateOverdue(task.dueDate);
-                      const isDueToday = task.dueDate && isDateToday(task.dueDate);
-                      return (
-                        <div
-                          key={task.id}
-                          className={`rounded-md p-2 border text-xs hover:bg-green-100 transition ${
-                            isOverdue
-                              ? 'border-red-300 bg-red-50'
-                              : isDueToday
-                              ? 'border-orange-300 bg-orange-50'
-                              : 'border-green-200 bg-green-50'
-                          }`}
-                        >
-                          <p className="text-green-900 font-medium truncate">{task.title}</p>
-                          {isOverdue && <p className="text-red-600 text-xs font-semibold">🚨 Overdue</p>}
-                          {isDueToday && <p className="text-orange-600 text-xs font-semibold">⚠️ Due Today</p>}
-                        </div>
-                      );
-                    })}
-                  </>
-                )}
-
-                {/* Household Tasks */}
-                {householdTasks.length > 0 && (
-                  <>
-                    <p className="text-xs font-semibold text-amber-900 uppercase opacity-70 mt-3">
-                      🏠 Household To-Dos
-                    </p>
-                    {householdTasks.map((task) => {
-                      const isOverdue = task.dueDate && isDateOverdue(task.dueDate);
-                      const isDueToday = task.dueDate && isDateToday(task.dueDate);
-                      return (
-                        <div
-                          key={task.id}
-                          className={`rounded-md p-2 border text-xs hover:bg-amber-100 transition ${
-                            isOverdue
-                              ? 'border-red-300 bg-red-50'
-                              : isDueToday
-                              ? 'border-orange-300 bg-orange-50'
-                              : 'border-amber-200 bg-amber-50'
-                          }`}
-                        >
-                          <p className="text-amber-900 font-medium truncate">{task.title}</p>
-                          {isOverdue && <p className="text-red-600 text-xs font-semibold">🚨 Overdue</p>}
-                          {isDueToday && <p className="text-orange-600 text-xs font-semibold">⚠️ Due Today</p>}
-                        </div>
-                      );
-                    })}
-                  </>
-                )}
+                {hlsTasks.map((task) => {
+                  const isOverdue = task.dueDate && isDateOverdue(task.dueDate);
+                  const isDueToday = task.dueDate && isDateToday(task.dueDate);
+                  return (
+                    <div
+                      key={task.id}
+                      className={`rounded-md p-2 border text-xs hover:bg-blue-100 transition ${
+                        isOverdue
+                          ? 'border-red-300 bg-red-50'
+                          : isDueToday
+                          ? 'border-orange-300 bg-orange-50'
+                          : 'border-blue-200 bg-blue-50'
+                      }`}
+                    >
+                      <p className="text-blue-900 font-medium truncate">{task.title}</p>
+                      <p className="text-blue-600 text-xs mt-1 capitalize">Status: {task.status}</p>
+                      {isOverdue && <p className="text-red-600 text-xs font-semibold mt-1">🚨 Overdue</p>}
+                      {isDueToday && <p className="text-orange-600 text-xs font-semibold mt-1">⚠️ Due Today</p>}
+                    </div>
+                  );
+                })}
               </>
             ) : (
-              <p className="text-center text-gray-500 text-sm py-8">All caught up! 🎉</p>
+              <p className="text-center text-gray-500 text-sm py-8">All HLS tasks done! 🎬</p>
             )}
           </div>
 
@@ -498,105 +442,51 @@ export default function DashboardExpanded({ onNavigate }: DashboardProps) {
           </div>
         </div>
 
-        {/* COLUMN 3: 🏠 HOME */}
+        {/* COLUMN 3: 🏠 HOME (Expanded) */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-amber-500">
           <div className="bg-amber-50 px-6 py-4 border-b border-amber-200">
             <h2 className="text-lg font-bold text-amber-900 flex items-center gap-2">
               <Home size={20} className="text-amber-600" />
               🏠 HOME
             </h2>
-            <p className="text-sm text-amber-700 mt-1">This week's schedules</p>
-          </div>
-
-          <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
-            {meals.count > 0 || cleaning.count > 0 || appointments.length > 0 ? (
-              <>
-                {/* Meals */}
-                {meals.count > 0 && (
-                  <div className="bg-amber-50 rounded-md p-3 border border-amber-200 hover:border-amber-400 hover:bg-amber-100 transition">
-                    <p className="font-semibold text-amber-900 text-sm">🍽️ Harvey's Meals</p>
-                    <p className="text-xs text-amber-700 mt-1 font-bold">{meals.count} days planned</p>
-                    <div className="text-xs text-amber-600 mt-1 flex flex-wrap gap-1">
-                      {meals.days.map((day, idx) => (
-                        <span key={idx} className="bg-amber-100 px-2 py-1 rounded">
-                          {day}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Cleaning */}
-                {cleaning.count > 0 && (
-                  <div className="bg-blue-50 rounded-md p-3 border border-blue-200 hover:border-blue-400 hover:bg-blue-100 transition">
-                    <p className="font-semibold text-blue-900 text-sm">🧹 Cleaning Tasks</p>
-                    <p className="text-xs text-blue-700 mt-1 font-bold">{cleaning.count} tasks scheduled</p>
-                    <div className="text-xs text-blue-600 mt-1 flex flex-wrap gap-1">
-                      {cleaning.days.slice(0, 5).map((day, idx) => (
-                        <span key={idx} className="bg-blue-100 px-2 py-1 rounded">
-                          {day}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Appointments */}
-                {appointments.length > 0 && (
-                  <div className="bg-purple-50 rounded-md p-3 border border-purple-200 hover:border-purple-400 hover:bg-purple-100 transition">
-                    <p className="font-semibold text-purple-900 text-sm">📅 Appointments</p>
-                    <p className="text-xs text-purple-700 mt-1 font-bold">{appointments.length} this week</p>
-                    {appointments.slice(0, 3).map((appt, idx) => (
-                      <p key={idx} className="text-xs text-purple-600 mt-1">
-                        <span className="font-semibold">{appt.person.toUpperCase()}:</span> {appt.type}
-                      </p>
-                    ))}
-                  </div>
-                )}
-              </>
-            ) : (
-              <p className="text-center text-gray-500 text-sm py-8">Nothing scheduled yet</p>
-            )}
-          </div>
-
-          <div className="bg-gradient-to-t from-amber-50 to-transparent px-6 py-3 border-t border-amber-100">
-            <button
-              onClick={() => onNavigate?.('calendar')}
-              className="w-full text-center text-sm font-semibold text-amber-600 hover:text-amber-800 flex items-center justify-center gap-1 py-2 hover:bg-amber-100 rounded transition"
-            >
-              View All <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
-
-        {/* COLUMN 4: 📝 AWAITING */}
-        <div className="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-red-500">
-          <div className="bg-red-50 px-6 py-4 border-b border-red-200">
-            <h2 className="text-lg font-bold text-red-900 flex items-center gap-2">
-              <AlertCircle size={20} className="text-red-600" />
-              📝 AWAITING
-            </h2>
-            <div className="text-xs text-red-700 mt-1 space-y-1">
-              <p>Decisions: <span className="font-bold">{decisions.length}</span> open</p>
-              <p>Reminders: <span className="font-bold">{reminders.length}</span> unsent</p>
-              <p>Review: <span className="font-bold">{awaitingReview.length}</span> pending</p>
-            </div>
+            <p className="text-sm text-amber-700 mt-1">
+              <span className="font-bold">{homeItemCount}</span> items
+            </p>
           </div>
 
           <div className="p-6 space-y-3 max-h-96 overflow-y-auto">
-            {decisions.length > 0 || reminders.length > 0 || awaitingReview.length > 0 ? (
+            {homeItemCount > 0 ? (
               <>
-                {/* Decisions */}
-                {decisions.length > 0 && (
+                {/* Personal Tasks */}
+                {personalTasks.filter(t => t.status !== 'done').length > 0 && (
                   <>
-                    <p className="text-xs font-semibold text-red-900 uppercase opacity-70">⚖️ Decisions</p>
-                    {decisions.map((decision) => (
+                    <p className="text-xs font-semibold text-green-900 uppercase opacity-70">
+                      ✓ Personal Tasks
+                    </p>
+                    {personalTasks.filter(t => t.status !== 'done').slice(0, 3).map((task) => (
                       <div
-                        key={decision.id}
-                        className="bg-red-50 rounded-md p-3 border border-red-200 hover:border-red-400 hover:bg-red-100 transition"
+                        key={task.id}
+                        className="bg-green-50 rounded-md p-2 border border-green-200 hover:border-green-400 hover:bg-green-100 transition text-xs"
                       >
-                        <p className="text-red-900 font-medium text-xs">{decision.title}</p>
-                        <p className="text-red-700 text-xs mt-1">{decision.question}</p>
+                        <p className="text-green-900 font-medium truncate">{task.title}</p>
+                        <p className="text-green-700 text-xs mt-1">{task.status}</p>
+                      </div>
+                    ))}
+                  </>
+                )}
+
+                {/* Household To-Dos */}
+                {householdTasks.filter(t => t.status !== 'done').length > 0 && (
+                  <>
+                    <p className="text-xs font-semibold text-amber-900 uppercase opacity-70 mt-2">
+                      🏠 Household To-Dos
+                    </p>
+                    {householdTasks.filter(t => t.status !== 'done').slice(0, 3).map((task) => (
+                      <div
+                        key={task.id}
+                        className="bg-amber-50 rounded-md p-2 border border-amber-200 hover:border-amber-400 hover:bg-amber-100 transition text-xs"
+                      >
+                        <p className="text-amber-900 font-medium truncate">{task.title}</p>
                       </div>
                     ))}
                   </>
@@ -605,10 +495,10 @@ export default function DashboardExpanded({ onNavigate }: DashboardProps) {
                 {/* Reminders for John */}
                 {reminders.length > 0 && (
                   <>
-                    <p className="text-xs font-semibold text-orange-900 uppercase opacity-70 mt-3">
+                    <p className="text-xs font-semibold text-orange-900 uppercase opacity-70 mt-2">
                       🔔 Reminders for John
                     </p>
-                    {reminders.map((reminder) => (
+                    {reminders.slice(0, 2).map((reminder) => (
                       <div
                         key={reminder.id}
                         className={`rounded-md p-2 border text-xs ${
@@ -623,26 +513,113 @@ export default function DashboardExpanded({ onNavigate }: DashboardProps) {
                   </>
                 )}
 
+                {/* Meals */}
+                {meals.count > 0 && (
+                  <div className="bg-amber-50 rounded-md p-3 border border-amber-200 hover:border-amber-400 hover:bg-amber-100 transition">
+                    <p className="font-semibold text-amber-900 text-sm">🍽️ Harvey's Meals</p>
+                    <p className="text-xs text-amber-700 mt-1 font-bold">{meals.count} days planned</p>
+                  </div>
+                )}
+
+                {/* Cleaning */}
+                {cleaning.count > 0 && (
+                  <div className="bg-blue-50 rounded-md p-3 border border-blue-200 hover:border-blue-400 hover:bg-blue-100 transition">
+                    <p className="font-semibold text-blue-900 text-sm">🧹 Cleaning Tasks</p>
+                    <p className="text-xs text-blue-700 mt-1 font-bold">{cleaning.count} tasks scheduled</p>
+                  </div>
+                )}
+
+                {/* Appointments */}
+                {appointments.length > 0 && (
+                  <div className="bg-purple-50 rounded-md p-3 border border-purple-200 hover:border-purple-400 hover:bg-purple-100 transition">
+                    <p className="font-semibold text-purple-900 text-sm">📅 Appointments</p>
+                    <p className="text-xs text-purple-700 mt-1 font-bold">{appointments.length} this week</p>
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="text-center text-gray-500 text-sm py-8">Everything on track! 🎯</p>
+            )}
+          </div>
+
+          <div className="bg-gradient-to-t from-amber-50 to-transparent px-6 py-3 border-t border-amber-100">
+            <button
+              onClick={() => onNavigate?.('calendar')}
+              className="w-full text-center text-sm font-semibold text-amber-600 hover:text-amber-800 flex items-center justify-center gap-1 py-2 hover:bg-amber-100 rounded transition"
+            >
+              View All <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+
+        {/* COLUMN 4: 📝 AWAITING (Expanded - Decisions & Reviews) */}
+        <div className="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-red-500">
+          <div className="bg-red-50 px-6 py-4 border-b border-red-200">
+            <h2 className="text-lg font-bold text-red-900 flex items-center gap-2">
+              <AlertCircle size={20} className="text-red-600" />
+              📝 AWAITING
+            </h2>
+            <p className="text-sm text-red-700 mt-1">
+              <span className="font-bold">{awaitingItemCount}</span> items awaiting your decision/approval
+            </p>
+          </div>
+
+          <div className="p-6 space-y-3 max-h-96 overflow-y-auto">
+            {decisions.length > 0 || awaitingReview.length > 0 ? (
+              <>
+                {/* Decisions */}
+                {decisions.length > 0 && (
+                  <>
+                    <p className="text-xs font-semibold text-red-900 uppercase opacity-70">⚖️ Decisions to Make</p>
+                    {decisions.map((decision) => (
+                      <div
+                        key={decision.id}
+                        className="bg-red-50 rounded-md p-3 border border-red-200 hover:border-red-400 hover:bg-red-100 transition"
+                      >
+                        <p className="text-red-900 font-medium text-xs">{decision.title}</p>
+                        <p className="text-red-700 text-xs mt-1">{decision.question}</p>
+                        {decision.dueDate && (
+                          <p className="text-red-600 text-xs mt-1 font-semibold">
+                            Due: {new Date(decision.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </>
+                )}
+
                 {/* Awaiting Review */}
                 {awaitingReview.length > 0 && (
                   <>
                     <p className="text-xs font-semibold text-purple-900 uppercase opacity-70 mt-3">
                       👁️ Awaiting Review
                     </p>
-                    {awaitingReview.slice(0, 3).map((item, idx) => (
-                      <div
-                        key={idx}
-                        className="bg-purple-50 rounded-md p-2 border border-purple-200 text-xs"
-                      >
-                        <p className="text-purple-900 font-medium truncate">{item.title}</p>
-                        <p className="text-purple-700 text-xs">{item.day}</p>
-                      </div>
-                    ))}
+                    {awaitingReview.slice(0, 3).map((item, idx) => {
+                      const isOverdue = isDateOverdue(item.reviewDueDate);
+                      const isDueToday = isDateToday(item.reviewDueDate);
+                      return (
+                        <div
+                          key={idx}
+                          className={`rounded-md p-2 border text-xs ${
+                            isOverdue
+                              ? 'border-red-300 bg-red-50'
+                              : isDueToday
+                              ? 'border-orange-300 bg-orange-50'
+                              : 'border-purple-200 bg-purple-50'
+                          }`}
+                        >
+                          <p className="text-purple-900 font-medium truncate">{item.title}</p>
+                          <p className="text-purple-700 text-xs">{item.day}</p>
+                          {isOverdue && <p className="text-red-600 text-xs font-semibold mt-1">🚨 OVERDUE REVIEW</p>}
+                          {isDueToday && <p className="text-orange-600 text-xs font-semibold mt-1">⚠️ Review Due Today</p>}
+                        </div>
+                      );
+                    })}
                   </>
                 )}
               </>
             ) : (
-              <p className="text-center text-gray-500 text-sm py-8">Nothing to await! 🎯</p>
+              <p className="text-center text-gray-500 text-sm py-8">All clear! No decisions pending 🎯</p>
             )}
           </div>
 
