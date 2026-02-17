@@ -9,11 +9,13 @@ interface PersonalTask {
   status: 'to-do' | 'in-progress' | 'done';
   dateAdded: string;
   completedDate: string | null;
+  dueDate?: string;
 }
 
 export default function PersonalTasks() {
   const [tasks, setTasks] = useState<PersonalTask[]>([]);
   const [newTaskName, setNewTaskName] = useState('');
+  const [newTaskDueDate, setNewTaskDueDate] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   // Load from localStorage on mount
@@ -45,9 +47,11 @@ export default function PersonalTasks() {
         status: 'to-do',
         dateAdded: new Date().toISOString().split('T')[0],
         completedDate: null,
+        dueDate: newTaskDueDate || undefined,
       };
       setTasks([newTask, ...tasks]);
       setNewTaskName('');
+      setNewTaskDueDate('');
     }
   };
 
@@ -202,6 +206,13 @@ export default function PersonalTasks() {
             }}
             className="flex-1 px-4 py-3 border border-jade-light rounded-lg focus:outline-none focus:ring-2 focus:ring-jade-purple transition-all"
           />
+          <input
+            type="date"
+            value={newTaskDueDate}
+            onChange={(e) => setNewTaskDueDate(e.target.value)}
+            className="px-4 py-3 border border-jade-light rounded-lg focus:outline-none focus:ring-2 focus:ring-jade-purple transition-all"
+            title="Due date (optional)"
+          />
           <button
             onClick={addTask}
             disabled={!newTaskName.trim()}
@@ -256,6 +267,7 @@ export default function PersonalTasks() {
                       </p>
                       <p className="text-sm text-gray-500 mt-1">
                         Added: {formatDate(task.dateAdded)}
+                        {task.dueDate && ` • Due: ${formatDate(task.dueDate)}`}
                         {task.completedDate && ` • Completed: ${formatDate(task.completedDate)}`}
                       </p>
                     </div>

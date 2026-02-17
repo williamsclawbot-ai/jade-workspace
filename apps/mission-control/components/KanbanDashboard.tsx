@@ -19,8 +19,9 @@ interface ContentItem {
 interface Task {
   id: string;
   title: string;
-  status: 'backlog' | 'in-progress' | 'in-review' | 'done';
+  status: 'backlog' | 'in-progress' | 'in-review' | 'done' | 'to-do';
   category: 'hls' | 'personal' | 'household';
+  dueDate?: string;
 }
 
 interface Appointment {
@@ -115,20 +116,21 @@ export default function KanbanDashboard({ onNavigate }: DashboardProps) {
       }
     }
 
-    // Load Personal Tasks
-    const personalTasksData = localStorage.getItem('personalTasksData');
+    // Load Personal Tasks (to-do or in-progress)
+    const personalTasksData = localStorage.getItem('personalTasks');
     if (personalTasksData) {
       try {
         const parsed = JSON.parse(personalTasksData);
-        if (parsed.tasks) {
-          const toDoTasks = parsed.tasks.filter((t: any) => t.status === 'to-do');
+        if (Array.isArray(parsed)) {
+          const activeTasks = parsed.filter((t: any) => t.status === 'to-do' || t.status === 'in-progress');
           setTasks((prev) => ({
             ...prev,
-            personalTasks: toDoTasks.map((t: any) => ({
+            personalTasks: activeTasks.map((t: any) => ({
               id: t.id,
-              title: t.title,
-              status: 'in-progress',
+              title: t.name,
+              status: t.status as 'to-do' | 'in-progress',
               category: 'personal',
+              dueDate: t.dueDate,
             })),
           }));
         }
@@ -256,7 +258,7 @@ export default function KanbanDashboard({ onNavigate }: DashboardProps) {
 
     // Listen for storage changes (from other tabs or updates)
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'jadeContentData' || e.key === 'decisionsData') {
+      if (e.key === 'jadeContentData' || e.key === 'decisionsData' || e.key === 'personalTasks') {
         loadAllData();
       }
     };
@@ -375,7 +377,7 @@ export default function KanbanDashboard({ onNavigate }: DashboardProps) {
             </h2>
             <div className="text-xs text-blue-700 mt-1 space-y-1">
               <p>HLS: {tasks.hlsTasks.length} in progress</p>
-              <p>Personal: {tasks.personalTasks.length} to do</p>
+              <p>Personal: {tasks.personalTasks.length} active</p>
               <p>Household: {tasks.householdTasks.length} due</p>
             </div>
           </div>
@@ -398,14 +400,34 @@ export default function KanbanDashboard({ onNavigate }: DashboardProps) {
                 {tasks.personalTasks.length > 0 && (
                   <>
                     <p className="text-xs font-semibold text-green-900 uppercase opacity-70 mt-3">Personal Tasks</p>
-                    {tasks.personalTasks.map((task) => (
-                      <div
-                        key={task.id}
-                        className="bg-green-50 rounded-md p-2 border border-green-200 hover:border-green-400 text-xs hover:bg-green-100 transition"
-                      >
-                        <p className="text-green-900 font-medium truncate">{task.title}</p>
-                      </div>
-                    ))}
+                    {tasks.personalTasks.map((task) => {
+                      const isOverdue = isDateOverdue(task.dueDate);
+                      const isDueToday = isDateToday(task.dueDate);
+                      const borderClass = isOverdue ? 'border-red-300 bg-red-50' : isDueToday ? 'border-orange-300 bg-orange-50' : 'border-green-200 bg-green-50';
+                      const statusColor = task.status === 'in-progress' ? 'text-amber-700' : 'text-green-700';
+                      const statusBg = task.status === 'in-progress' ? 'bg-amber-100' : 'bg-green-100';
+                      
+                      return (
+                        <div
+                          key={task.id}
+                          className={`rounded-md p-2 border text-xs hover:shadow-sm transition ${borderClass}`}
+                        >
+                          <div className="flex items-start justify-between gap-1">
+                            <p className="text-gray-900 font-medium truncate flex-1">{task.title}</p>
+                            <span className={`whitespace-nowrap text-xs px-1.5 py-0.5 rounded ${statusBg} ${statusColor} font-medium`}>
+                              {task.status === 'in-progress' ? '🟡' : '🔴'}
+                            </span>
+                          </div>
+                          {task.dueDate && (
+                            <p className={`text-xs mt-1 ${isOverdue ? 'text-red-600 font-semibold' : isDueToday ? 'text-orange-600 font-semibold' : 'text-gray-600'}`}>
+                              {isOverdue && '🚨 '}
+                              {isDueToday && '⚠️ '}
+                              {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
                   </>
                 )}
                 {tasks.householdTasks.length > 0 && (
