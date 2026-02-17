@@ -4,16 +4,22 @@ import { useState, useEffect } from 'react';
 import { FileText, CheckSquare2, Home, AlertCircle, ChevronRight } from 'lucide-react';
 
 interface ContentItem {
-  id?: string;
-  day: string;
+  id?: number | string;
+  day?: string;
+  date?: string;
+  dateStr?: string;
   title: string;
-  type: 'Reel' | 'Carousel' | 'Static';
-  status: 'Ready to film' | 'Ready to schedule' | 'In progress' | 'Scheduled';
-  reviewStatus?: 'needs-review' | 'approved' | 'changes-requested';
+  type: 'Reel' | 'Carousel' | 'Static' | 'Newsletter' | 'Email';
+  status: 'due-for-review' | 'ready-to-film' | 'ready-to-schedule' | 'posted' | 'Ready to film' | 'Ready to schedule' | 'In progress' | 'Scheduled';
+  reviewStatus?: 'pending' | 'approved' | 'changes-requested' | 'needs-review';
   reviewDueDate?: string;
+  filmsDate?: string;
+  approvalDate?: string | null;
   script?: string;
   onScreenText?: string;
   caption?: string;
+  platform?: string;
+  description?: string;
 }
 
 interface Task {
@@ -113,9 +119,19 @@ export default function DashboardExpanded({ onNavigate }: DashboardProps) {
     if (contentData) {
       try {
         const parsed = JSON.parse(contentData);
+        
+        // Try new weeklyContent structure first
         if (parsed.weeklyContent && Array.isArray(parsed.weeklyContent)) {
           const needsReview = parsed.weeklyContent.filter((item: any) => 
-            item.reviewStatus === 'needs-review'
+            item.status === 'due-for-review' || item.reviewStatus === 'pending'
+          );
+          setContent(needsReview);
+          setAwaitingReview(needsReview);
+        }
+        // Fall back to checking posts array if weeklyContent not found
+        else if (parsed.posts && Array.isArray(parsed.posts)) {
+          const needsReview = parsed.posts.filter((item: any) => 
+            item.status === 'due-for-review' || item.reviewStatus === 'pending'
           );
           setContent(needsReview);
           setAwaitingReview(needsReview);
@@ -328,10 +344,13 @@ export default function DashboardExpanded({ onNavigate }: DashboardProps) {
               content.map((item, idx) => {
                 const isOverdue = isDateOverdue(item.reviewDueDate);
                 const isDueToday = isDateToday(item.reviewDueDate);
-                const borderClass = isOverdue
-                  ? 'border-red-300 bg-red-50'
-                  : isDueToday
-                  ? 'border-orange-300 bg-orange-50'
+                const isDueForReview = item.status === 'due-for-review';
+                const borderClass = isDueForReview
+                  ? isOverdue
+                    ? 'border-red-400 bg-red-50'
+                    : isDueToday
+                    ? 'border-orange-400 bg-orange-50'
+                    : 'border-red-300 bg-red-50'
                   : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50';
 
                 return (
@@ -341,21 +360,24 @@ export default function DashboardExpanded({ onNavigate }: DashboardProps) {
                   >
                     <div className="flex justify-between items-start gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 text-sm">{item.day}</p>
-                        <p className="text-xs text-gray-600 truncate font-medium">{item.title}</p>
+                        <div className="flex items-center gap-1">
+                          {isDueForReview && <span className="text-lg">🚩</span>}
+                          <p className="font-semibold text-gray-900 text-sm">{item.date || item.day || 'Upcoming'}</p>
+                        </div>
+                        <p className="text-xs text-gray-600 truncate font-medium mt-1">{item.title}</p>
                         {item.reviewDueDate && (
                           <p
-                            className={`text-xs mt-1 ${
+                            className={`text-xs mt-2 ${
                               isOverdue
                                 ? 'text-red-600 font-semibold'
                                 : isDueToday
                                 ? 'text-orange-600 font-semibold'
-                                : 'text-gray-500'
+                                : 'text-gray-600'
                             }`}
                           >
-                            {isOverdue && '🚨 OVERDUE: '}
+                            {isOverdue && '🚨 OVERDUE '}
                             {isDueToday && '⚠️ DUE TODAY: '}
-                            Review{' '}
+                            {!isOverdue && !isDueToday && 'Review due: '}
                             {new Date(item.reviewDueDate).toLocaleDateString('en-US', {
                               month: 'short',
                               day: 'numeric',
@@ -366,9 +388,11 @@ export default function DashboardExpanded({ onNavigate }: DashboardProps) {
                           <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-medium">
                             {item.type}
                           </span>
-                          <span className="bg-purple-200 text-purple-800 px-2 py-1 rounded text-xs font-medium">
-                            {item.status}
-                          </span>
+                          {isDueForReview && (
+                            <span className="bg-red-200 text-red-700 px-2 py-1 rounded text-xs font-semibold">
+                              📋 Review
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>

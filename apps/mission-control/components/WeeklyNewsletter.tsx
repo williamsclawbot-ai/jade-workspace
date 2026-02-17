@@ -2,6 +2,8 @@
 
 import { Mail, Plus, CheckCircle2, FileText, Code, AlertCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useNewsletterTopic } from '@/lib/useNewsletterTopic';
+import { type NewsletterTopicIdea } from '@/lib/newsletterTopicUtils';
 
 interface NewsletterStage {
   stage: 1 | 2 | 3 | 4;
@@ -10,13 +12,6 @@ interface NewsletterStage {
   icon: React.ReactNode;
   completed: boolean;
   dueDate?: string;
-}
-
-interface TopicIdea {
-  id: number;
-  title: string;
-  relevance: string;
-  angle: string;
 }
 
 interface WeeklyNewsletter {
@@ -31,37 +26,13 @@ interface WeeklyNewsletter {
   stages: NewsletterStage[];
 }
 
-const topicIdeasBank: TopicIdea[] = [
-  {
-    id: 1,
-    title: "Daylight Saving Time Sleep Adjustments",
-    relevance: "Seasonal",
-    angle: "Tips for transitioning toddlers' sleep schedules during DST changes"
-  },
-  {
-    id: 2,
-    title: "Toddler Sleep Regressions: What's Normal?",
-    relevance: "Evergreen",
-    angle: "Understanding developmental regressions and when to expect them"
-  },
-  {
-    id: 3,
-    title: "Bedtime Connection vs. Control",
-    relevance: "Evergreen",
-    angle: "Building secure attachments while maintaining healthy boundaries at bedtime"
-  },
-  {
-    id: 4,
-    title: "Post-Holiday Sleep Reset",
-    relevance: "Seasonal",
-    angle: "Practical strategies for getting back on schedule after disruptions"
-  }
-];
-
 export default function WeeklyNewsletter() {
   const [newsletters, setNewsletters] = useState<WeeklyNewsletter[]>([]);
   const [editingWeek, setEditingWeek] = useState<string | null>(null);
   const [showNewForm, setShowNewForm] = useState(false);
+  
+  // Use shared newsletter topic hook
+  const { topicData, selectTopic: handleSelectTopicUtil } = useNewsletterTopic();
 
   const [formData, setFormData] = useState({
     topic: '',
@@ -71,6 +42,7 @@ export default function WeeklyNewsletter() {
 
   // Load from localStorage
   useEffect(() => {
+    // Load newsletter data
     const saved = localStorage.getItem('jadeNewsletterData');
     if (saved) {
       try {
@@ -207,7 +179,11 @@ export default function WeeklyNewsletter() {
     }
   };
 
-  const pickTopic = (weekIndex: number, topicIdea: TopicIdea) => {
+  const pickTopic = (weekIndex: number, topicIdea: NewsletterTopicIdea) => {
+    // Update shared topic data
+    handleSelectTopicUtil(topicIdea.id);
+
+    // Update newsletter data
     const updated = [...newsletters];
     updated[weekIndex].selectedTopic = topicIdea.title;
     updated[weekIndex].topic = topicIdea.title;
@@ -305,7 +281,7 @@ export default function WeeklyNewsletter() {
                         <span>Topic Ideas for This Week</span>
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {topicIdeasBank.map((idea) => (
+                        {topicData?.topicIdeas.map((idea) => (
                           <div key={idea.id} className="bg-white rounded-lg border-2 border-jade-light hover:border-jade-purple hover:shadow-md transition-all p-4">
                             <h4 className="font-bold text-jade-purple mb-2 text-sm leading-tight">{idea.title}</h4>
                             <div className="space-y-2 mb-4">

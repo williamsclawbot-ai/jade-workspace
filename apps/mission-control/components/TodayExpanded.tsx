@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Sun, ChevronDown, ChevronUp, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { getWeekStart } from '@/lib/newsletterTopicUtils';
+import { useNewsletterTopic } from '@/lib/useNewsletterTopic';
 
 interface TodayTask {
   id: string;
@@ -14,13 +16,20 @@ interface TodayTask {
 }
 
 interface TodayContent {
-  id: string;
+  id: string | number;
   title: string;
   type: string;
   script?: string;
   onScreenText?: string;
   caption?: string;
   status: string;
+  date?: string;
+  dateStr?: string;
+  reviewStatus?: string;
+  reviewDueDate?: string;
+  filmsDate?: string;
+  description?: string;
+  platform?: string;
 }
 
 interface MealAssignment {
@@ -31,15 +40,9 @@ interface MealAssignment {
   dinner?: string[];
 }
 
-interface NewsletterTopic {
-  id: string;
-  topic: string;
-  description: string;
-  relevance: string;
-}
-
 export default function TodayExpanded() {
   const [todaysContent, setTodaysContent] = useState<TodayContent[]>([]);
+  const [tomorrowsContent, setTomorrowsContent] = useState<TodayContent[]>([]);
   const [todaysTasks, setTodaysTasks] = useState<TodayTask[]>([]);
   const [harveysDay, setHarveysDay] = useState<{
     meals: MealAssignment[];
@@ -48,36 +51,11 @@ export default function TodayExpanded() {
   const [awaitingAttention, setAwaitingAttention] = useState<any[]>([]);
   const [isToday, setIsToday] = useState(false);
   const [dayOfWeek, setDayOfWeek] = useState('');
+  const [tomorrowDayOfWeek, setTomorrowDayOfWeek] = useState('');
 
-  // Newsletter topic selection state
+  // Newsletter topic selection state - using shared hook
+  const { topicData, selectTopic: handleSelectTopic, deselectTopic: handleDeselectTopic } = useNewsletterTopic();
   const [showTopicSelection, setShowTopicSelection] = useState(false);
-  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
-  const [topicIdeas] = useState<NewsletterTopic[]>([
-    {
-      id: 'topic1',
-      topic: 'Content Creation Shortcuts',
-      description: 'Quick tips for creating engaging content without burnout',
-      relevance: 'High - trending topic this month',
-    },
-    {
-      id: 'topic2',
-      topic: 'Building Your Creator Community',
-      description: 'How to nurture loyal followers and turn them into advocates',
-      relevance: 'High - audience engagement focus',
-    },
-    {
-      id: 'topic3',
-      topic: 'Monetization Strategies for Creators',
-      description: 'Different revenue streams beyond brand deals',
-      relevance: 'Medium - timely for business growth',
-    },
-    {
-      id: 'topic4',
-      topic: 'Mental Health & Creator Burnout',
-      description: 'Sustainable practices for long-term success',
-      relevance: 'Medium - seasonal relevance',
-    },
-  ]);
 
   const [collapsedSections, setCollapsedSections] = useState({
     content: false,
@@ -90,33 +68,91 @@ export default function TodayExpanded() {
     const today = new Date();
     const todayString = today.toISOString().split('T')[0];
     const dayOfWeek = today.toLocaleDateString('en-US', { weekday: 'long' });
+    
+    // Tomorrow's date
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowString = tomorrow.toISOString().split('T')[0];
+    const tomorrowDayOfWeek = tomorrow.toLocaleDateString('en-US', { weekday: 'long' });
+    
     const isIsoTuesday = today.getDay() === 2;
 
     setDayOfWeek(dayOfWeek);
+    setTomorrowDayOfWeek(tomorrowDayOfWeek);
     setIsToday(true);
     setShowTopicSelection(isIsoTuesday);
 
-    loadTodaysData(todayString, dayOfWeek);
-    
-    // Check if a topic was already selected this week
-    const selectedTopicKey = `newsletter-topic-${getWeekStart()}`;
-    const stored = localStorage.getItem(selectedTopicKey);
-    if (stored) {
-      setSelectedTopic(stored);
-    }
+    loadTodaysData(todayString, dayOfWeek, tomorrowDayOfWeek);
   }, []);
 
-  const getWeekStart = (): string => {
-    const today = new Date();
-    const day = today.getDay();
-    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(today.setDate(diff));
-    return monday.toISOString().split('T')[0];
-  };
-
-  const loadTodaysData = (todayString: string, dayOfWeek: string) => {
-    // SECTION 1: TODAY'S CONTENT
+  const loadTodaysData = (todayString: string, dayOfWeek: string, tomorrowDayOfWeek: string) => {
+    // SECTION 1: TODAY'S CONTENT (Ready to Film/Schedule) & TOMORROW'S CONTENT (Due for Review)
     const contentData = localStorage.getItem('jadeContentData');
+    
+    // Try to load from jadeContentData first (new structure)
+    if (contentData) {
+      try {
+        const parsed = JSON.parse(contentData);
+        if (parsed.posts && Array.isArray(parsed.posts)) {
+          // Content ready for today (approved and ready to film/schedule)
+          const readyForToday = parsed.posts.filter((item: any) => 
+            (item.date && item.date.toLowerCase().includes(dayOfWeek.toLowerCase())) ||
+            (item.dateStr === todayString)
+          ).filter((item: any) => 
+            item.status === 'ready-to-film' || item.status === 'ready-to-schedule'
+          );
+          
+          // Content due for review tomorrow
+          const dueForTomorrow = parsed.posts.filter((item: any) => 
+            (item.date && item.date.toLowerCase().includes(tomorrowDayOfWeek.toLowerCase())) ||
+            (item.filmsDate === new Date(new Date().getTime() + 24*60*60*1000).toISOString().split('T')[0])
+          ).filter((item: any) => 
+            item.status === 'due-for-review'
+          );
+          
+          setTodaysContent(
+            readyForToday.map((item: any) => ({
+              id: item.id || `content-${item.date}`,
+              title: item.title,
+              type: item.type,
+              script: item.script,
+              onScreenText: item.onScreenText,
+              caption: item.caption,
+              status: item.status,
+              date: item.date,
+              dateStr: item.dateStr,
+              reviewStatus: item.reviewStatus,
+              filmsDate: item.filmsDate,
+              description: item.description,
+              platform: item.platform,
+            }))
+          );
+          
+          setTomorrowsContent(
+            dueForTomorrow.map((item: any) => ({
+              id: item.id || `content-${item.date}`,
+              title: item.title,
+              type: item.type,
+              script: item.script,
+              onScreenText: item.onScreenText,
+              caption: item.caption,
+              status: item.status,
+              date: item.date,
+              dateStr: item.dateStr,
+              reviewStatus: item.reviewStatus,
+              reviewDueDate: item.reviewDueDate,
+              description: item.description,
+              platform: item.platform,
+            }))
+          );
+          return;
+        }
+      } catch (e) {
+        console.log('No new content data structure');
+      }
+    }
+
+    // Fall back to old weeklyContent structure
     if (contentData) {
       try {
         const parsed = JSON.parse(contentData);
@@ -365,9 +401,11 @@ export default function TodayExpanded() {
   };
 
   const handleTopicSelection = (topicId: string) => {
-    setSelectedTopic(topicId);
-    const weekStart = getWeekStart();
-    localStorage.setItem(`newsletter-topic-${weekStart}`, topicId);
+    handleSelectTopic(topicId);
+  };
+
+  const handleTopicDeselectionClick = () => {
+    handleDeselectTopic();
   };
 
   const getStatusColor = (status: string) => {
@@ -420,21 +458,17 @@ export default function TodayExpanded() {
             It's Tuesday! Select your topic for this week's newsletter now.
           </p>
 
-          {selectedTopic ? (
+          {topicData?.selectedTopic ? (
             <div className="bg-white rounded-lg p-6 border-2 border-indigo-500">
               <div className="flex items-center gap-2 mb-2">
                 <CheckCircle2 size={24} className="text-green-600" />
                 <h3 className="text-xl font-bold text-indigo-900">Topic Selected ✓</h3>
               </div>
               <p className="text-indigo-700">
-                {topicIdeas.find((t) => t.id === selectedTopic)?.topic}
+                {topicData?.topicIdeas.find((t) => t.id === topicData.selectedTopic)?.title}
               </p>
               <button
-                onClick={() => {
-                  const weekStart = getWeekStart();
-                  localStorage.removeItem(`newsletter-topic-${weekStart}`);
-                  setSelectedTopic(null);
-                }}
+                onClick={handleTopicDeselectionClick}
                 className="mt-4 text-sm text-indigo-600 hover:text-indigo-800 underline"
               >
                 Change topic
@@ -442,14 +476,14 @@ export default function TodayExpanded() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {topicIdeas.map((idea) => (
+              {topicData?.topicIdeas.map((idea) => (
                 <button
                   key={idea.id}
                   onClick={() => handleTopicSelection(idea.id)}
                   className="bg-white rounded-lg p-4 border-2 border-indigo-200 hover:border-indigo-500 hover:shadow-lg transition text-left"
                 >
-                  <h3 className="font-bold text-indigo-900 mb-1">{idea.topic}</h3>
-                  <p className="text-sm text-gray-600 mb-2">{idea.description}</p>
+                  <h3 className="font-bold text-indigo-900 mb-1">{idea.title}</h3>
+                  <p className="text-sm text-gray-600 mb-2">{idea.angle}</p>
                   <p className="text-xs text-indigo-600 font-semibold">{idea.relevance}</p>
                 </button>
               ))}
@@ -458,14 +492,76 @@ export default function TodayExpanded() {
         </div>
       )}
 
-      {/* SECTION 1: TODAY'S CONTENT */}
+      {/* SECTION 0.5: TOMORROW'S CONTENT - Due for Review */}
+      {tomorrowsContent.length > 0 && (
+        <div className="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-red-500">
+          <div className="bg-red-50 px-6 py-4 border-b border-red-200">
+            <h2 className="text-lg font-bold text-red-900 flex items-center gap-2">
+              📋 TOMORROW'S CONTENT - Due for Review
+              <span className="text-sm font-semibold bg-red-200 text-red-900 px-2 py-1 rounded">
+                {tomorrowsContent.length}
+              </span>
+            </h2>
+            <p className="text-sm text-red-700 mt-2">Review this content for tomorrow's filming/scheduling</p>
+          </div>
+
+          <div className="p-6 space-y-4">
+            {tomorrowsContent.map((item) => (
+              <div
+                key={item.id}
+                className="bg-red-50 rounded-lg p-4 border-2 border-red-300 hover:border-red-500 hover:shadow-md transition"
+              >
+                <div className="flex justify-between items-start gap-4 mb-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-lg">🚩</span>
+                      <h3 className="font-bold text-red-900">{item.title}</h3>
+                    </div>
+                    <p className="text-xs text-red-600 font-semibold">
+                      Review Due: {item.reviewDueDate ? new Date(item.reviewDueDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : 'TBA'}
+                    </p>
+                  </div>
+                  <span className="bg-red-600 text-white px-2 py-1 rounded text-xs font-semibold">
+                    {item.type}
+                  </span>
+                </div>
+
+                {item.description && (
+                  <div className="bg-white rounded p-3 mb-3 border border-red-200">
+                    <p className="text-xs font-semibold text-gray-700 uppercase mb-1">Description:</p>
+                    <p className="text-sm text-gray-800 line-clamp-3">{item.description}</p>
+                  </div>
+                )}
+
+                {item.script && (
+                  <div className="bg-white rounded p-3 mb-3 border border-red-200">
+                    <p className="text-xs font-semibold text-gray-700 uppercase mb-1">Script:</p>
+                    <p className="text-sm text-gray-800 line-clamp-2">{item.script}</p>
+                  </div>
+                )}
+
+                <div className="flex gap-2 flex-wrap">
+                  <span className="bg-red-100 text-red-900 px-3 py-1 rounded text-xs font-semibold">
+                    📋 Review Pending
+                  </span>
+                  <button className="bg-green-600 text-white px-4 py-1 rounded text-xs font-semibold hover:bg-green-700 transition">
+                    Approve for Filming
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* SECTION 1: TODAY'S CONTENT - Ready to Film/Schedule */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-purple-500">
         <button
           onClick={() => toggleSection('content')}
           className="w-full bg-purple-50 px-6 py-4 border-b border-purple-200 flex items-center justify-between hover:bg-purple-100 transition"
         >
           <h2 className="text-lg font-bold text-purple-900 flex items-center gap-2">
-            🎬 TODAY'S CONTENT
+            🎬 TODAY'S CONTENT - Ready to Film/Schedule
             {todaysContent.length > 0 && (
               <span className="text-sm font-semibold bg-purple-200 text-purple-900 px-2 py-1 rounded">
                 {todaysContent.length}
@@ -485,48 +581,63 @@ export default function TodayExpanded() {
               todaysContent.map((item) => (
                 <div
                   key={item.id}
-                  className="bg-purple-50 rounded-lg p-4 border border-purple-200 hover:border-purple-400 hover:shadow-md transition"
+                  className="bg-green-50 rounded-lg p-4 border-2 border-green-300 hover:border-green-500 hover:shadow-md transition"
                 >
-                  <div className="flex justify-between items-start gap-4 mb-2">
-                    <h3 className="font-bold text-purple-900">{item.title}</h3>
-                    <span className="bg-purple-600 text-white px-2 py-1 rounded text-xs font-semibold">
+                  <div className="flex justify-between items-start gap-4 mb-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-lg">{item.status === 'ready-to-film' ? '🎥' : '📅'}</span>
+                        <h3 className="font-bold text-green-900">{item.title}</h3>
+                      </div>
+                      <p className="text-xs text-green-600 font-semibold">
+                        {item.status === 'ready-to-film' ? 'Film this today' : 'Schedule this today'}
+                      </p>
+                    </div>
+                    <span className="bg-green-600 text-white px-2 py-1 rounded text-xs font-semibold">
                       {item.type}
                     </span>
                   </div>
 
+                  {item.description && (
+                    <div className="bg-white rounded p-3 mb-3 border border-green-200">
+                      <p className="text-xs font-semibold text-gray-700 uppercase mb-1">Description:</p>
+                      <p className="text-sm text-gray-800 line-clamp-2">{item.description}</p>
+                    </div>
+                  )}
+
                   {item.script && (
-                    <div className="bg-white rounded p-3 mb-3 border border-purple-200">
+                    <div className="bg-white rounded p-3 mb-3 border border-green-200">
                       <p className="text-xs font-semibold text-gray-700 uppercase mb-1">Script:</p>
-                      <p className="text-sm text-gray-800">{item.script}</p>
+                      <p className="text-sm text-gray-800 line-clamp-2">{item.script}</p>
                     </div>
                   )}
 
                   {item.onScreenText && (
-                    <div className="bg-white rounded p-3 mb-3 border border-purple-200">
+                    <div className="bg-white rounded p-3 mb-3 border border-green-200">
                       <p className="text-xs font-semibold text-gray-700 uppercase mb-1">On-Screen Text:</p>
-                      <p className="text-sm text-gray-800">{item.onScreenText}</p>
+                      <p className="text-sm text-gray-800 line-clamp-2">{item.onScreenText}</p>
                     </div>
                   )}
 
                   {item.caption && (
-                    <div className="bg-white rounded p-3 mb-3 border border-purple-200">
+                    <div className="bg-white rounded p-3 mb-3 border border-green-200">
                       <p className="text-xs font-semibold text-gray-700 uppercase mb-1">Caption:</p>
-                      <p className="text-sm text-gray-800">{item.caption}</p>
+                      <p className="text-sm text-gray-800 line-clamp-2">{item.caption}</p>
                     </div>
                   )}
 
-                  <div className="flex gap-2">
-                    <span className="bg-purple-100 text-purple-900 px-3 py-1 rounded text-xs font-semibold">
-                      {item.status}
+                  <div className="flex gap-2 flex-wrap">
+                    <span className="bg-green-100 text-green-900 px-3 py-1 rounded text-xs font-semibold">
+                      ✅ Approved
                     </span>
-                    <button className="bg-purple-600 text-white px-4 py-1 rounded text-xs font-semibold hover:bg-purple-700 transition">
-                      Review Content
+                    <button className="bg-green-600 text-white px-4 py-1 rounded text-xs font-semibold hover:bg-green-700 transition">
+                      {item.status === 'ready-to-film' ? '🎥 Start Filming' : '📤 Schedule Now'}
                     </button>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-center text-gray-500 py-8">No content scheduled for today ✓</p>
+              <p className="text-center text-gray-500 py-8">No approved content ready for today ✓</p>
             )}
           </div>
         )}

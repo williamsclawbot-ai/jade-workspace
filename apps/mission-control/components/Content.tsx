@@ -39,16 +39,16 @@ type TabType = 'content-flow' | 'ideas' | 'templates' | 'daily' | 'this-week' | 
 interface WeeklyContentItem {
   day: string;
   title: string;
-  type: 'Reel' | 'Carousel' | 'Static';
+  type: 'Reel' | 'Carousel' | 'Static' | 'Newsletter' | 'Email';
   description: string;
-  status: 'Ready to film' | 'Ready to schedule' | 'In progress' | 'Scheduled';
+  status: 'Ready to film' | 'Ready to schedule' | 'In progress' | 'Scheduled' | 'Due for Review';
   script?: string;
   caption?: string;
   duration?: string;
   setting?: string;
   onScreenText?: string;
   postTime?: string;
-  reviewStatus?: 'needs-review' | 'approved' | 'changes-requested';
+  reviewStatus?: 'needs-review' | 'approved' | 'changes-requested' | 'pending';
   reviewDueDate?: string;
 }
 
@@ -276,6 +276,7 @@ export default function Content() {
   const [customIdeas, setCustomIdeas] = useState<ContentIdea[]>([]);
   const [dailyView, setDailyView] = useState<'today' | 'week' | 'upcoming'>('today');
   const [expandedWeeklyItem, setExpandedWeeklyItem] = useState<string | null>(null);
+  const [weeklyContent, setWeeklyContent] = useState<WeeklyContentItem[]>([]);
 
   const [contentTitle, setContentTitle] = useState('');
   const [contentPlatform, setContentPlatform] = useState('');
@@ -286,7 +287,7 @@ export default function Content() {
   const [templateName, setTemplateName] = useState('');
   const [templateContent, setTemplateContent] = useState('');
 
-  // Load from localStorage
+  // Load from localStorage and weekly content data
   useEffect(() => {
     const saved = localStorage.getItem('jadeContentData');
     if (saved) {
@@ -295,6 +296,27 @@ export default function Content() {
         setPosts(data.posts || []);
         setTemplates(data.templates || []);
         setCustomIdeas(data.customIdeas || []);
+        
+        // Load weekly content if available
+        if (data.posts && Array.isArray(data.posts)) {
+          setWeeklyContent(data.posts.map((p: any) => ({
+            day: p.date || p.day || 'TBA',
+            title: p.title,
+            type: p.type,
+            description: p.description,
+            status: p.status === 'due-for-review' ? 'Due for Review' : 
+                    p.status === 'ready-to-film' ? 'Ready to film' :
+                    p.status === 'ready-to-schedule' ? 'Ready to schedule' : p.status,
+            script: p.script,
+            caption: p.caption,
+            duration: p.duration,
+            setting: p.setting,
+            onScreenText: p.onScreenText,
+            postTime: p.postTime,
+            reviewStatus: p.reviewStatus,
+            reviewDueDate: p.reviewDueDate,
+          })));
+        }
       } catch (e) {
         console.log('No saved data');
       }
@@ -349,6 +371,53 @@ export default function Content() {
     );
     setPosts(updated);
     saveData(updated, templates, customIdeas);
+  };
+
+  const handleApproveContent = (itemIndex: number) => {
+    // Find the content item in weeklyContent
+    const contentData = localStorage.getItem('jadeContentData');
+    if (contentData) {
+      try {
+        const data = JSON.parse(contentData);
+        if (data.posts && Array.isArray(data.posts)) {
+          const updated = data.posts.map((p: any, idx: number) => {
+            if (p.id === itemIndex) {
+              return {
+                ...p,
+                status: 'ready-to-film',
+                reviewStatus: 'approved',
+                approvalDate: new Date().toISOString().split('T')[0]
+              };
+            }
+            return p;
+          });
+          
+          const newData = { ...data, posts: updated };
+          localStorage.setItem('jadeContentData', JSON.stringify(newData));
+          
+          // Reload weekly content
+          setWeeklyContent(updated.map((p: any) => ({
+            day: p.date || p.day || 'TBA',
+            title: p.title,
+            type: p.type,
+            description: p.description,
+            status: p.status === 'due-for-review' ? 'Due for Review' : 
+                    p.status === 'ready-to-film' ? 'Ready to film' :
+                    p.status === 'ready-to-schedule' ? 'Ready to schedule' : p.status,
+            script: p.script,
+            caption: p.caption,
+            duration: p.duration,
+            setting: p.setting,
+            onScreenText: p.onScreenText,
+            postTime: p.postTime,
+            reviewStatus: p.reviewStatus,
+            reviewDueDate: p.reviewDueDate,
+          })));
+        }
+      } catch (e) {
+        console.log('Error approving content');
+      }
+    }
   };
 
   // Ideas Management
@@ -641,50 +710,124 @@ export default function Content() {
           </div>
         )}
 
-        {/* This Week Tab */}
+        {/* This Week Tab - NEW CONTENT REVIEW WORKFLOW */}
         {activeTab === 'this-week' && (
           <div>
-            <h3 className="text-lg font-bold text-jade-purple mb-6">📅 This Week's Content Plan</h3>
-            <p className="text-gray-600 mb-6">Your weekly lineup ready to film and schedule. Click any item to expand and see the full script and caption.</p>
+            <h3 className="text-lg font-bold text-jade-purple mb-6">📅 This Week's Content Review Workflow</h3>
+            <p className="text-gray-600 mb-6">Track content from review through filming and scheduling.</p>
 
-            {/* Weekly Progress Summary */}
+            {/* Review Workflow Summary */}
             <div className="bg-gradient-to-r from-jade-purple to-jade-light rounded-lg shadow-lg p-6 text-white mb-6">
-              <div className="flex items-center justify-between">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="text-2xl font-bold mb-1">7 Posts Ready</h4>
-                  <p className="text-jade-cream opacity-90">Monday - Sunday lineup planned and ready</p>
+                  <h4 className="text-2xl font-bold mb-1">
+                    {weeklyContent.filter(c => c.status === 'Due for Review').length}
+                  </h4>
+                  <p className="text-jade-cream opacity-90">Due for Review</p>
                 </div>
-                <div className="text-right">
-                  <div className="text-4xl font-bold">{THIS_WEEK_CONTENT.filter(c => c.status === 'Ready to film' || c.status === 'Ready to schedule').length}</div>
-                  <div className="text-sm text-jade-cream">Ready to go</div>
+                <div>
+                  <h4 className="text-2xl font-bold mb-1">
+                    {weeklyContent.filter(c => c.status === 'Ready to film' || c.status === 'Ready to schedule').length}
+                  </h4>
+                  <p className="text-jade-cream opacity-90">Approved & Ready</p>
                 </div>
               </div>
             </div>
 
-            {/* Status Legend */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                <span className="text-sm text-gray-700">Ready to film</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className="text-sm text-gray-700">Ready to schedule</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                <span className="text-sm text-gray-700">In progress</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="text-sm text-gray-700">Scheduled</span>
-              </div>
-            </div>
+            {/* SECTION 1: DUE FOR REVIEW */}
+            {weeklyContent.filter(c => c.status === 'Due for Review').length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-2xl">🚩</span>
+                  <h4 className="text-lg font-bold text-red-900">Due for Review ({weeklyContent.filter(c => c.status === 'Due for Review').length})</h4>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">Approve these items before filming/scheduling</p>
 
-            {/* Weekly Content Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {THIS_WEEK_CONTENT.map((item) => {
-                const isExpanded = expandedWeeklyItem === item.day;
+                <div className="grid grid-cols-1 gap-4">
+                  {weeklyContent.filter(c => c.status === 'Due for Review').map((item, idx) => (
+                    <div
+                      key={idx}
+                      className={`bg-white rounded-lg border-l-4 border-red-500 shadow-md overflow-hidden transition-all`}
+                    >
+                      {/* Header - Always Visible */}
+                      <button
+                        onClick={() => setExpandedWeeklyItem(expandedWeeklyItem === `review-${idx}` ? null : `review-${idx}`)}
+                        className="w-full p-4 hover:bg-red-50 transition-colors text-left"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <span className="text-lg">🚩</span>
+                              <div className="text-sm px-2 py-1 bg-red-200 text-red-900 rounded-full font-medium">
+                                {item.type}
+                              </div>
+                            </div>
+                            <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                            <p className="text-sm text-gray-600 mt-1 line-clamp-1">{item.description}</p>
+                          </div>
+                          <div className="flex flex-col items-end space-y-2 ml-4">
+                            <div className="text-jade-purple text-lg font-bold">
+                              {expandedWeeklyItem === `review-${idx}` ? '▼' : '▶'}
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+
+                      {/* Expanded Content */}
+                      {expandedWeeklyItem === `review-${idx}` && (
+                        <div className="p-4 bg-red-50 space-y-3 border-t border-red-200">
+                          {item.description && (
+                            <div className="bg-white p-3 rounded border border-red-200">
+                              <h5 className="font-semibold text-red-900 mb-1 text-sm">Description</h5>
+                              <p className="text-sm text-gray-700">{item.description}</p>
+                            </div>
+                          )}
+
+                          {item.script && (
+                            <div className="bg-white p-3 rounded border border-red-200">
+                              <h5 className="font-semibold text-red-900 mb-1 text-sm">📝 Script</h5>
+                              <p className="text-sm text-gray-700 max-h-32 overflow-y-auto">{item.script}</p>
+                            </div>
+                          )}
+
+                          {item.caption && (
+                            <div className="bg-white p-3 rounded border border-red-200">
+                              <h5 className="font-semibold text-red-900 mb-1 text-sm">💬 Caption</h5>
+                              <p className="text-sm text-gray-700 max-h-24 overflow-y-auto">{item.caption}</p>
+                            </div>
+                          )}
+
+                          <div className="flex gap-2 pt-3 border-t border-red-200">
+                            <button
+                              onClick={() => handleApproveContent(idx)}
+                              className="flex-1 bg-green-600 text-white px-4 py-2 rounded font-semibold hover:bg-green-700 transition text-sm"
+                            >
+                              ✅ Approve for Filming
+                            </button>
+                            <button className="flex-1 bg-amber-600 text-white px-4 py-2 rounded font-semibold hover:bg-amber-700 transition text-sm">
+                              📝 Request Changes
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* SECTION 2: READY TO FILM/SCHEDULE */}
+            {weeklyContent.filter(c => c.status === 'Ready to film' || c.status === 'Ready to schedule').length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-2xl">✅</span>
+                  <h4 className="text-lg font-bold text-green-900">Ready to Film/Schedule ({weeklyContent.filter(c => c.status === 'Ready to film' || c.status === 'Ready to schedule').length})</h4>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">Approved content ready to go</p>
+
+                <div className="grid grid-cols-1 gap-4">
+                  {weeklyContent.filter(c => c.status === 'Ready to film' || c.status === 'Ready to schedule').map((item, idx) => {
+                    const isExpanded = expandedWeeklyItem === `ready-${idx}`;
                 
                 // Status color mapping
                 let statusColor = 'bg-orange-100 text-orange-700 border-orange-300';
@@ -703,13 +846,13 @@ export default function Content() {
 
                 return (
                   <div
-                    key={item.day}
-                    className={`bg-white rounded-lg border border-jade-light shadow-md overflow-hidden transition-all ${isExpanded ? 'md:col-span-2' : ''}`}
+                    key={`ready-${idx}`}
+                    className={`bg-white rounded-lg border-l-4 border-green-500 shadow-md overflow-hidden transition-all`}
                   >
                     {/* Header - Always Visible */}
                     <button
-                      onClick={() => setExpandedWeeklyItem(isExpanded ? null : item.day)}
-                      className="w-full p-4 hover:bg-jade-cream/30 transition-colors text-left border-b border-jade-light/50"
+                      onClick={() => setExpandedWeeklyItem(isExpanded ? null : `ready-${idx}`)}
+                      className="w-full p-4 hover:bg-green-50 transition-colors text-left border-b border-green-200"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -793,13 +936,25 @@ export default function Content() {
                           </div>
                         )}
 
+                        {/* Ready to Film/Schedule Details */}
+                        {item.script && (
+                          <div className="bg-white p-3 rounded border border-green-200">
+                            <h5 className="font-semibold text-green-900 mb-1 text-sm">📝 Script</h5>
+                            <p className="text-sm text-gray-700 max-h-24 overflow-y-auto">{item.script}</p>
+                          </div>
+                        )}
+
+                        {item.caption && (
+                          <div className="bg-white p-3 rounded border border-green-200">
+                            <h5 className="font-semibold text-green-900 mb-1 text-sm">💬 Caption</h5>
+                            <p className="text-sm text-gray-700 max-h-24 overflow-y-auto">{item.caption}</p>
+                          </div>
+                        )}
+
                         {/* Action Buttons */}
-                        <div className="flex gap-2 pt-2 border-t border-jade-light">
-                          <button className="flex-1 bg-jade-purple text-jade-cream px-3 py-2 rounded text-sm font-medium hover:bg-jade-light hover:text-jade-purple transition-colors">
-                            ✓ Mark Ready
-                          </button>
-                          <button className="flex-1 bg-blue-500 text-white px-3 py-2 rounded text-sm font-medium hover:bg-blue-600 transition-colors">
-                            📤 Schedule
+                        <div className="flex gap-2 pt-3 border-t border-green-200">
+                          <button className="flex-1 bg-green-600 text-white px-3 py-2 rounded text-sm font-medium hover:bg-green-700 transition">
+                            {item.status === 'Ready to film' ? '🎥 Start Filming' : '📤 Schedule Now'}
                           </button>
                         </div>
                       </div>
@@ -807,7 +962,15 @@ export default function Content() {
                   </div>
                 );
               })}
-            </div>
+                </div>
+              </div>
+            )}
+
+            {weeklyContent.filter(c => c.status === 'Due for Review').length === 0 && weeklyContent.filter(c => c.status === 'Ready to film' || c.status === 'Ready to schedule').length === 0 && (
+              <div className="bg-blue-50 rounded-lg p-8 text-center border border-blue-200">
+                <p className="text-blue-900">No content in the review workflow yet. Start by adding content items!</p>
+              </div>
+            )}
           </div>
         )}
 
