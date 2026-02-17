@@ -34,7 +34,17 @@ interface WeeklyPlan {
   daysTotal: number;
 }
 
-type TabType = 'content-flow' | 'ideas' | 'templates' | 'daily' | 'stats';
+type TabType = 'content-flow' | 'ideas' | 'templates' | 'daily' | 'this-week' | 'stats';
+
+interface WeeklyContentItem {
+  day: string;
+  title: string;
+  type: 'Reel' | 'Carousel' | 'Static';
+  description: string;
+  status: 'Ready to film' | 'Ready to schedule' | 'In progress' | 'Scheduled';
+  script?: string;
+  caption?: string;
+}
 
 // Merged Ideas organized by THEME instead of platform
 const CURATED_IDEAS_BY_THEME = {
@@ -69,6 +79,72 @@ const CURATED_IDEAS_BY_THEME = {
     { topic: 'Email Newsletter Hooks', description: 'Curiosity-driven subject lines and opens', useCase: 'Email subject line, Newsletter, Blog intro' },
   ],
 };
+
+const THIS_WEEK_CONTENT: WeeklyContentItem[] = [
+  {
+    day: 'Monday',
+    title: 'Toddler Pillow',
+    type: 'Reel',
+    description: 'Quick tip on choosing the right pillow for toddlers',
+    status: 'Ready to film',
+    script: 'Hook: "Does your toddler refuse to use a pillow?" | Content: Explain why toddlers under 2 shouldn\'t have pillows, show safe alternatives | CTA: "What\'s your toddler sleep hack?"',
+    caption: 'The pillow question! 🛏️ Here\'s what you need to know about toddler sleep safety...'
+  },
+  {
+    day: 'Tuesday',
+    title: 'Educational Carousel',
+    type: 'Carousel',
+    description: 'Sleep myths debunked - 5 common misconceptions',
+    status: 'Ready to schedule',
+    script: 'Slide 1: "5 Sleep Myths Debunked" | Slides 2-6: Each myth + science-backed fact | Slide 7: "DM me your biggest sleep question"',
+    caption: 'Myth vs Reality: Let\'s talk about what actually helps baby sleep! These 5 myths keep parents stuck in sleep-deprived cycles... 🧵'
+  },
+  {
+    day: 'Wednesday',
+    title: 'Harvey Turning 2',
+    type: 'Static',
+    description: 'Harvey\'s 2nd birthday - personal milestone + sleep tips',
+    status: 'Ready to film',
+    script: 'Personal story: Harvey\'s sleep journey from newborn to 2-year-old | Share 3 things that changed | Tie to gentle sleep strategies',
+    caption: 'Harvey is TWO! 🎂 It\'s been quite the sleep journey from this tiny newborn to this spirited 2-year-old. Here\'s what we learned about toddler sleep...'
+  },
+  {
+    day: 'Thursday',
+    title: 'Myth-Busting Reel',
+    type: 'Reel',
+    description: 'Challenging the "cry it out" misconception',
+    status: 'Ready to film',
+    script: 'Hook: "Your pediatrician said let them cry?" | Show: What science actually says | Share: Gentler alternatives | CTA: "What\'s been holding you back?"',
+    caption: 'There\'s a middle ground between chaos and "cry it out." Let\'s talk about it. 🤍'
+  },
+  {
+    day: 'Friday',
+    title: 'Monthly Sleep Guidelines',
+    type: 'Static',
+    description: 'Age-specific sleep needs and schedules by month',
+    status: 'In progress',
+    script: 'Reference post: 0-3 months, 4-6 months, 7-12 months, 1-2 years sleep amounts + schedules | Educational focus | Save-worthy content',
+    caption: 'Wondering if your baby is getting enough sleep? Here\'s the breakdown by age. This is the ONE post to bookmark for reference! 📌'
+  },
+  {
+    day: 'Saturday',
+    title: 'Sample Schedule Static',
+    type: 'Static',
+    description: 'Real example: What a good day looks like (6-month-old)',
+    status: 'Ready to schedule',
+    script: 'Walk through a realistic day: wake time, feeds, naps, bedtime routine | Show flexibility within structure | Realistic timing',
+    caption: 'This is what a gentle, realistic schedule looks like for a 6-month-old. Not rigid, but rhythmic. Here\'s how to build one that actually works... ✨'
+  },
+  {
+    day: 'Sunday',
+    title: 'Soft Sell: 3 Options',
+    type: 'Reel',
+    description: 'Community connection - ask followers about their biggest sleep struggle (rotate 3 options)',
+    status: 'Ready to film',
+    script: 'Option 1: "What\'s harder: bedtime or night wakings?" | Option 2: "Schedule stress or actual behavior?" | Option 3: "First month or first year?"',
+    caption: 'Real talk: What\'s YOUR biggest sleep challenge right now? Drop it below and let\'s talk about how to solve it. 🤍'
+  }
+];
 
 const DEFAULT_TEMPLATES = [
   {
@@ -151,6 +227,7 @@ export default function Content() {
   const [templates, setTemplates] = useState<ContentTemplate[]>([]);
   const [customIdeas, setCustomIdeas] = useState<ContentIdea[]>([]);
   const [dailyView, setDailyView] = useState<'today' | 'week' | 'upcoming'>('today');
+  const [expandedWeeklyItem, setExpandedWeeklyItem] = useState<string | null>(null);
 
   const [contentTitle, setContentTitle] = useState('');
   const [contentPlatform, setContentPlatform] = useState('');
@@ -348,6 +425,7 @@ export default function Content() {
       <div className="border-b border-jade-light px-6 py-4 flex items-center space-x-2 overflow-x-auto">
         {[
           { id: 'content-flow', label: '📋 Content Flow' },
+          { id: 'this-week', label: '🎬 This Week' },
           { id: 'ideas', label: '💡 Ideas (By Theme)' },
           { id: 'daily', label: '📅 Daily & Weekly' },
           { id: 'templates', label: '📝 Templates' },
@@ -511,6 +589,139 @@ export default function Content() {
                   {stats.published === 0 && <p className="text-gray-600 text-sm italic">No published posts</p>}
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* This Week Tab */}
+        {activeTab === 'this-week' && (
+          <div>
+            <h3 className="text-lg font-bold text-jade-purple mb-6">📅 This Week's Content Plan</h3>
+            <p className="text-gray-600 mb-6">Your weekly lineup ready to film and schedule. Click any item to expand and see the full script and caption.</p>
+
+            {/* Weekly Progress Summary */}
+            <div className="bg-gradient-to-r from-jade-purple to-jade-light rounded-lg shadow-lg p-6 text-white mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="text-2xl font-bold mb-1">7 Posts Ready</h4>
+                  <p className="text-jade-cream opacity-90">Monday - Sunday lineup planned and ready</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-4xl font-bold">{THIS_WEEK_CONTENT.filter(c => c.status === 'Ready to film' || c.status === 'Ready to schedule').length}</div>
+                  <div className="text-sm text-jade-cream">Ready to go</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Status Legend */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                <span className="text-sm text-gray-700">Ready to film</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                <span className="text-sm text-gray-700">Ready to schedule</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                <span className="text-sm text-gray-700">In progress</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="text-sm text-gray-700">Scheduled</span>
+              </div>
+            </div>
+
+            {/* Weekly Content Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {THIS_WEEK_CONTENT.map((item) => {
+                const isExpanded = expandedWeeklyItem === item.day;
+                
+                // Status color mapping
+                let statusColor = 'bg-orange-100 text-orange-700 border-orange-300';
+                let statusDot = 'bg-orange-500';
+                
+                if (item.status === 'Ready to schedule') {
+                  statusColor = 'bg-blue-100 text-blue-700 border-blue-300';
+                  statusDot = 'bg-blue-500';
+                } else if (item.status === 'In progress') {
+                  statusColor = 'bg-yellow-100 text-yellow-700 border-yellow-300';
+                  statusDot = 'bg-yellow-500';
+                } else if (item.status === 'Scheduled') {
+                  statusColor = 'bg-green-100 text-green-700 border-green-300';
+                  statusDot = 'bg-green-500';
+                }
+
+                return (
+                  <div
+                    key={item.day}
+                    className={`bg-white rounded-lg border border-jade-light shadow-md overflow-hidden transition-all ${isExpanded ? 'md:col-span-2' : ''}`}
+                  >
+                    {/* Header - Always Visible */}
+                    <button
+                      onClick={() => setExpandedWeeklyItem(isExpanded ? null : item.day)}
+                      className="w-full p-4 hover:bg-jade-cream/30 transition-colors text-left border-b border-jade-light/50"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <div className="text-lg font-bold text-jade-purple">{item.day}</div>
+                            <span className="text-xs px-2 py-1 bg-gray-200 text-gray-700 rounded-full font-medium">
+                              {item.type}
+                            </span>
+                          </div>
+                          <h4 className="font-semibold text-gray-900">{item.title}</h4>
+                          <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                        </div>
+                        <div className="flex flex-col items-end space-y-2 ml-4">
+                          <div className="flex items-center space-x-2">
+                            <div className={`w-2 h-2 ${statusDot} rounded-full`}></div>
+                            <span className={`text-xs font-semibold px-2 py-1 rounded border ${statusColor}`}>
+                              {item.status}
+                            </span>
+                          </div>
+                          <div className="text-jade-purple text-lg font-bold">
+                            {isExpanded ? '▼' : '▶'}
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Expanded Content */}
+                    {isExpanded && (
+                      <div className="p-4 bg-jade-cream/20 space-y-4">
+                        {item.script && (
+                          <div>
+                            <h5 className="font-semibold text-jade-purple mb-2">📝 Script</h5>
+                            <div className="bg-white p-3 rounded border border-jade-light text-sm text-gray-700 whitespace-pre-wrap">
+                              {item.script}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {item.caption && (
+                          <div>
+                            <h5 className="font-semibold text-jade-purple mb-2">💬 Caption</h5>
+                            <div className="bg-white p-3 rounded border border-jade-light text-sm text-gray-700">
+                              {item.caption}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex space-x-2 pt-2">
+                          <button className="flex-1 bg-jade-purple text-jade-cream px-3 py-2 rounded text-sm font-medium hover:bg-jade-light hover:text-jade-purple transition-colors">
+                            ✓ Mark Ready
+                          </button>
+                          <button className="flex-1 bg-blue-500 text-white px-3 py-2 rounded text-sm font-medium hover:bg-blue-600 transition-colors">
+                            📤 Schedule
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
