@@ -64,11 +64,12 @@ export default function TodayExpanded() {
     tasks: false,
     harvey: false,
     awaiting: false,
-    contentPipeline: false,
+    contentPipeline: false,  // Open by default
   });
   const [contentAwaitingReview, setContentAwaitingReview] = useState<ContentItem[]>([]);
   const [contentReadyToFilm, setContentReadyToFilm] = useState<ContentItem[]>([]);
   const [contentAwaitingScript, setContentAwaitingScript] = useState<ContentItem[]>([]);
+  const [refreshKey, setRefreshKey] = useState(0);  // Force re-render on data changes
 
   useEffect(() => {
     const today = new Date();
@@ -91,13 +92,23 @@ export default function TodayExpanded() {
     loadTodaysData(todayString, dayOfWeek, tomorrowDayOfWeek);
     loadContentPipeline();
 
-    // Listen for ContentStore changes
+    // Listen for ContentStore changes - refresh every second to catch updates
+    const interval = setInterval(() => {
+      loadContentPipeline();
+      setRefreshKey(k => k + 1);
+    }, 1000);
+
+    // Also listen for storage events (cross-tab sync)
     const handleStorageChange = () => {
       loadContentPipeline();
+      setRefreshKey(k => k + 1);
     };
 
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const loadTodaysData = (todayString: string, dayOfWeek: string, tomorrowDayOfWeek: string) => {
@@ -429,6 +440,24 @@ export default function TodayExpanded() {
     }));
   };
 
+  const handleApproveContent = (itemId: string) => {
+    ContentStore.update(itemId, { status: 'Ready to Film' });
+    loadContentPipeline();
+    setRefreshKey(k => k + 1);
+  };
+
+  const handleMarkFilmed = (itemId: string) => {
+    ContentStore.update(itemId, { status: 'Filmed' });
+    loadContentPipeline();
+    setRefreshKey(k => k + 1);
+  };
+
+  const handleMarkScheduled = (itemId: string) => {
+    ContentStore.update(itemId, { status: 'Scheduled' });
+    loadContentPipeline();
+    setRefreshKey(k => k + 1);
+  };
+
   const handleTopicSelection = (topicId: string) => {
     handleSelectTopic(topicId);
   };
@@ -569,8 +598,10 @@ export default function TodayExpanded() {
                   <span className="bg-red-100 text-red-900 px-3 py-1 rounded text-xs font-semibold">
                     📋 Review Pending
                   </span>
-                  <button className="bg-green-600 text-white px-4 py-1 rounded text-xs font-semibold hover:bg-green-700 transition">
-                    Approve for Filming
+                  <button 
+                    onClick={() => handleApproveContent(item.id as string)}
+                    className="bg-green-600 text-white px-4 py-1 rounded text-xs font-semibold hover:bg-green-700 transition">
+                    ✅ Approve for Filming
                   </button>
                 </div>
               </div>
@@ -870,7 +901,7 @@ export default function TodayExpanded() {
                 <div className="space-y-2">
                   {contentAwaitingReview.map((item) => (
                     <div key={item.id} className="bg-white rounded p-3 border border-blue-100">
-                      <div className="flex items-start justify-between">
+                      <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
                           <p className="font-semibold text-gray-900">{item.title}</p>
                           <p className="text-xs text-gray-600 mt-1">{item.day} • {item.type}</p>
@@ -880,8 +911,16 @@ export default function TodayExpanded() {
                               <p className="text-yellow-700">{item.feedback.substring(0, 80)}...</p>
                             </div>
                           )}
+                          <div className="mt-2 flex gap-2">
+                            <button
+                              onClick={() => handleApproveContent(item.id)}
+                              className="text-xs font-semibold px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                            >
+                              ✅ Approve
+                            </button>
+                          </div>
                         </div>
-                        <span className={`text-xs font-semibold px-2 py-1 rounded ml-2 ${
+                        <span className={`text-xs font-semibold px-2 py-1 rounded ml-2 whitespace-nowrap ${
                           item.status === 'Feedback Given' 
                             ? 'bg-yellow-100 text-yellow-700' 
                             : 'bg-blue-100 text-blue-700'
@@ -924,9 +963,20 @@ export default function TodayExpanded() {
                     <div key={item.id} className="bg-white rounded p-3 border border-green-100">
                       <p className="font-semibold text-gray-900">{item.title}</p>
                       <p className="text-xs text-gray-600 mt-1">{item.day} • {item.type}</p>
-                      <button className="mt-2 text-xs font-semibold text-green-700 hover:text-green-800">
-                        → Open in Content tab
-                      </button>
+                      <div className="mt-2 flex gap-2">
+                        <button
+                          onClick={() => handleMarkFilmed(item.id)}
+                          className="text-xs font-semibold px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
+                        >
+                          🎥 Mark Filmed
+                        </button>
+                        <button
+                          onClick={() => handleMarkScheduled(item.id)}
+                          className="text-xs font-semibold px-2 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                        >
+                          📅 Scheduled
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
