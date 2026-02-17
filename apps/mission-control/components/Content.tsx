@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { FileText, Plus, Trash2, Filter, Search, Eye, Edit2 } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { FileText, Plus, Trash2, Filter, Search, Eye, Edit2, Trash } from 'lucide-react';
 import { getStatusColor } from '@/lib/statusColors';
+import ContentStore, { ContentItem } from '@/lib/contentStore';
 
 interface WeeklyContentItem {
   id: string;

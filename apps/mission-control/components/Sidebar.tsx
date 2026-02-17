@@ -66,11 +66,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         { id: 'content', label: 'Content', icon: FileText },
         { id: 'weekly-newsletter', label: 'Weekly Newsletter', icon: Mail },
         { id: 'campaigns', label: 'Campaigns', icon: Zap },
-        // TEMPORARILY HIDDEN - remove invalid integrations before deploy
-        // { id: 'meta-ads', label: 'Meta Ads', icon: BarChart3 },
         { id: 'combined-metrics', label: 'Metrics (All)', icon: BarChart3 },
-        // { id: 'ghl-metrics', label: 'Metrics (GHL)', icon: BarChart3 },
-        // { id: 'stripe-revenue', label: 'Revenue (Stripe)', icon: CreditCard },
         { id: 'hls-tasks', label: 'HLS Pipeline', icon: CheckSquare },
       ],
     },
