@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "buildCommand": "cd apps/mission-control && npm run build",
+  "installCommand": "npm install",
+  "outputDirectory": "apps/mission-control/.next",
+  "framework": "nextjs",
+  "regions": ["syd"],
+  "env": {
+    "GOHIGHLEVEL_API_TOKEN": "@gohighlevel_api_token",
+    "STRIPE_RESTRICTED_KEY": "@stripe_restricted_key",
+    "META_ACCESS_TOKEN": "@meta_access_token",
+    "META_AD_ACCOUNT_ID": "@meta_ad_account_id"
+  }
+}
