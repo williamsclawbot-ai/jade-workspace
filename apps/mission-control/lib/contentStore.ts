@@ -9,7 +9,7 @@ export interface ContentItem {
   title: string;
   type: 'Reel' | 'Carousel' | 'Static' | 'Newsletter' | 'Email';
   description: string;
-  status: 'Ready to Film' | 'Ready to Schedule' | 'In Progress' | 'Scheduled' | 'Due for Review';
+  status: 'Due for Review' | 'Feedback Given' | 'Ready to Film' | 'Filmed' | 'Scheduled' | 'Posted' | 'In Progress' | 'Ready to Schedule';
   script?: string;
   caption?: string;
   duration?: string;
@@ -18,6 +18,10 @@ export interface ContentItem {
   reviewStatus?: 'needs-review' | 'approved' | 'changes-requested' | 'pending';
   reviewDueDate?: string;
   onScreenText?: string;
+  feedback?: string; // Jade's notes/feedback
+  aiGenerated?: boolean;
+  generatedAt?: string; // timestamp
+  lastUpdated?: string; // timestamp
 }
 
 const STORAGE_KEY = 'jade_content_items';
@@ -30,7 +34,7 @@ const DEFAULT_CONTENT: ContentItem[] = [
     title: 'Toddler Pillow',
     type: 'Reel',
     description: 'Quick tip on choosing the right pillow for toddlers',
-    status: 'Ready to Film',
+    status: 'Due for Review',
     duration: '45 seconds',
     setting: 'Home - nursery room',
     onScreenText: '[0-2 sec] "Does your toddler refuse to use a pillow?" [3-8 sec] Show pillow with X, transition to safe setup [8-20 sec] Show comparison: Under 2 vs 2-3 vs Over 3 [20-40 sec] Show lovey/stuffed animal alternative [40-45 sec] "Safe sleep beats cute every time"',
@@ -45,7 +49,7 @@ const DEFAULT_CONTENT: ContentItem[] = [
     title: 'Educational Carousel',
     type: 'Carousel',
     description: '5 sleep myths debunked with science',
-    status: 'Ready to Schedule',
+    status: 'Due for Review',
     duration: '5 slides',
     setting: 'Graphic design / infographic',
     onScreenText: 'Slide 1: Bold title over sleep imagery | Slide 2-6: Myth on left, fact on right, icon for each | Slide 7: CTA with DM prompt',
