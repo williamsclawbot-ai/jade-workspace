@@ -784,9 +784,9 @@ export default function Content() {
                             </div>
                           )}
 
-                          {item.script && (
+                          {item.description && (
                             <ContentItem6Column 
-                              script={item.script}
+                              script={item.description}
                               onScreenText={item.onScreenText}
                               caption={item.caption}
                               setting={item.setting}
@@ -905,9 +905,9 @@ export default function Content() {
                         )}
                         
                         {/* Full Script - 6-Column Display */}
-                        {item.script && (
+                        {item.description && (
                           <ContentItem6Column 
-                            script={item.script}
+                            script={item.description}
                             onScreenText={item.onScreenText}
                             caption={item.caption}
                             setting={item.setting}

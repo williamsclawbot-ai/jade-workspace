@@ -536,9 +536,9 @@ export default function TodayExpanded() {
                   </div>
                 )}
 
-                {item.script && (
+                {item.description && (
                   <ContentItem6Column 
-                    script={item.script}
+                    script={item.description}
                     onScreenText={item.onScreenText}
                     caption={item.caption}
                     description={item.description}
@@ -611,9 +611,9 @@ export default function TodayExpanded() {
                     </div>
                   )}
 
-                  {item.script && (
+                  {item.description && (
                     <ContentItem6Column 
-                      script={item.script}
+                      script={item.description}
                       onScreenText={item.onScreenText}
                       caption={item.caption}
                       description={item.description}
