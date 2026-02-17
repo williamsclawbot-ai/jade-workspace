@@ -12,6 +12,8 @@ interface ContentItem {
   title: string;
   type: 'Reel' | 'Carousel' | 'Static';
   status: 'Ready to film' | 'Ready to schedule' | 'In progress' | 'Scheduled';
+  reviewStatus?: 'needs-review' | 'approved' | 'changes-requested';
+  reviewDueDate?: string;
 }
 
 interface Task {
@@ -35,6 +37,23 @@ interface Decision {
   title: string;
   question: string;
   status: 'open' | 'decided' | 'postponed';
+  dueDate?: string;
+  dateAdded?: string;
+}
+
+function isDateOverdue(dateString?: string): boolean {
+  if (!dateString) return false;
+  const dueDate = new Date(dateString);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return dueDate < today;
+}
+
+function isDateToday(dateString?: string): boolean {
+  if (!dateString) return false;
+  const dueDate = new Date(dateString);
+  const today = new Date();
+  return dueDate.toDateString() === today.toDateString();
 }
 
 export default function KanbanDashboard({ onNavigate }: DashboardProps) {
@@ -55,16 +74,19 @@ export default function KanbanDashboard({ onNavigate }: DashboardProps) {
   });
   const [awaiting, setAwaiting] = useState<Decision[]>([]);
 
-  // Load all data from localStorage
-  useEffect(() => {
-    // Load Content (This Week)
+  // Function to reload all data
+  const loadAllData = () => {
+    // Load Content (Needing Review)
     const contentData = localStorage.getItem('jadeContentData');
     if (contentData) {
       try {
         const parsed = JSON.parse(contentData);
-        // Extract this week's content items
+        // Extract content items that need review
         if (parsed.weeklyContent && Array.isArray(parsed.weeklyContent)) {
-          setContentThisWeek(parsed.weeklyContent.slice(0, 5)); // Show first 5
+          const needsReview = parsed.weeklyContent.filter((item: any) => 
+            item.reviewStatus === 'needs-review'
+          );
+          setContentThisWeek(needsReview.slice(0, 5)); // Show first 5
         }
       } catch (e) {
         console.log('No content data');
@@ -213,19 +235,34 @@ export default function KanbanDashboard({ onNavigate }: DashboardProps) {
       }
     }
 
-    // Load Decisions (Awaiting Review)
+    // Load Decisions (All Open)
     const decisionsData = localStorage.getItem('decisionsData');
     if (decisionsData) {
       try {
         const parsed = JSON.parse(decisionsData);
         if (Array.isArray(parsed)) {
           const openDecisions = parsed.filter((d: any) => d.status === 'open');
-          setAwaiting(openDecisions.slice(0, 5)); // Show first 5
+          setAwaiting(openDecisions); // Show all open decisions
         }
       } catch (e) {
         console.log('No decisions data');
       }
     }
+  };
+
+  // Load all data on mount and when storage changes
+  useEffect(() => {
+    loadAllData();
+
+    // Listen for storage changes (from other tabs or updates)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'jadeContentData' || e.key === 'decisionsData') {
+        loadAllData();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const getStatusBadgeColor = (status: string) => {
@@ -276,37 +313,47 @@ export default function KanbanDashboard({ onNavigate }: DashboardProps) {
           <div className="bg-purple-50 px-6 py-4 border-b border-purple-200">
             <h2 className="text-lg font-bold text-purple-900 flex items-center gap-2">
               <FileText size={20} className="text-purple-600" />
-              🎬 CONTENT
+              📝 CONTENT REVIEW
             </h2>
-            <p className="text-sm text-purple-700 mt-1">{contentThisWeek.length} posts this week</p>
+            <p className="text-sm text-purple-700 mt-1">{contentThisWeek.length} posts need review</p>
           </div>
           <div className="p-6 space-y-3 max-h-96 overflow-y-auto">
             {contentThisWeek.length > 0 ? (
               <>
-                {contentThisWeek.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-gray-50 rounded-md p-3 border border-gray-200 hover:border-purple-300 hover:bg-purple-50 transition"
-                  >
-                    <div className="flex justify-between items-start gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 text-sm">{item.day}</p>
-                        <p className="text-xs text-gray-600 truncate">{item.title}</p>
-                        <div className="flex gap-1 mt-2 flex-wrap">
-                          <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-medium">
-                            {item.type}
-                          </span>
-                          <span className={`${getStatusBadgeColor(item.status)} px-2 py-1 rounded text-xs font-medium`}>
-                            {item.status}
-                          </span>
+                {contentThisWeek.map((item, idx) => {
+                  const isOverdue = isDateOverdue(item.reviewDueDate);
+                  const isDueToday = isDateToday(item.reviewDueDate);
+                  const borderClass = isOverdue ? 'border-red-300 bg-red-50' : isDueToday ? 'border-orange-300 bg-orange-50' : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50';
+                  
+                  return (
+                    <div
+                      key={idx}
+                      className={`rounded-md p-3 border transition ${borderClass}`}
+                    >
+                      <div className="flex justify-between items-start gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-gray-900 text-sm">{item.day}</p>
+                          <p className="text-xs text-gray-600 truncate">{item.title}</p>
+                          {item.reviewDueDate && (
+                            <p className={`text-xs mt-1 ${isOverdue ? 'text-red-600 font-semibold' : isDueToday ? 'text-orange-600 font-semibold' : 'text-gray-500'}`}>
+                              {isOverdue && '🚨 OVERDUE: '}
+                              {isDueToday && '⚠️ DUE TODAY: '}
+                              Due {new Date(item.reviewDueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            </p>
+                          )}
+                          <div className="flex gap-1 mt-2 flex-wrap">
+                            <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-medium">
+                              {item.type}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </>
             ) : (
-              <p className="text-center text-gray-500 text-sm py-8">No content scheduled this week</p>
+              <p className="text-center text-gray-500 text-sm py-8">All content approved! ✅</p>
             )}
           </div>
           <div className="bg-gradient-to-t from-purple-50 to-transparent px-6 py-3 border-t border-purple-100">
@@ -451,28 +498,41 @@ export default function KanbanDashboard({ onNavigate }: DashboardProps) {
           <div className="bg-red-50 px-6 py-4 border-b border-red-200">
             <h2 className="text-lg font-bold text-red-900 flex items-center gap-2">
               <Clock size={20} className="text-red-600" />
-              📝 AWAITING
+              ⏳ DECISIONS OPEN
             </h2>
-            <p className="text-sm text-red-700 mt-1">Decisions pending ({awaiting.length})</p>
+            <p className="text-sm text-red-700 mt-1">{awaiting.length} decision(s) pending</p>
           </div>
           <div className="p-6 space-y-3 max-h-96 overflow-y-auto">
             {awaiting.length > 0 ? (
               <>
-                {awaiting.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-red-50 rounded-md p-3 border border-red-200 hover:border-red-400 hover:bg-red-100 transition"
-                  >
-                    <p className="font-semibold text-red-900 text-sm">{item.title}</p>
-                    <p className="text-xs text-red-700 mt-1 line-clamp-2">{item.question}</p>
-                    <span className="inline-block bg-red-200 text-red-800 px-2 py-1 rounded text-xs font-medium mt-2">
-                      Open
-                    </span>
-                  </div>
-                ))}
+                {awaiting.map((item) => {
+                  const isOverdue = isDateOverdue(item.dueDate);
+                  const isDueToday = isDateToday(item.dueDate);
+                  const borderClass = isOverdue ? 'border-red-400 bg-red-100' : isDueToday ? 'border-orange-300 bg-orange-50' : 'border-red-200';
+                  
+                  return (
+                    <div
+                      key={item.id}
+                      className={`rounded-md p-3 border hover:shadow-sm transition ${borderClass}`}
+                    >
+                      <p className="font-semibold text-red-900 text-sm">{item.title}</p>
+                      <p className="text-xs text-gray-700 mt-1 line-clamp-2">{item.question}</p>
+                      {item.dueDate && (
+                        <p className={`text-xs mt-2 ${isOverdue ? 'text-red-700 font-semibold' : isDueToday ? 'text-orange-700 font-semibold' : 'text-gray-600'}`}>
+                          {isOverdue && '🚨 OVERDUE: '}
+                          {isDueToday && '⚠️ DUE TODAY: '}
+                          Due {new Date(item.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </p>
+                      )}
+                      <span className="inline-block bg-red-200 text-red-800 px-2 py-1 rounded text-xs font-medium mt-2">
+                        ⏳ Open
+                      </span>
+                    </div>
+                  );
+                })}
               </>
             ) : (
-              <p className="text-center text-gray-500 text-sm py-8">All clear! ✅</p>
+              <p className="text-center text-gray-500 text-sm py-8">All decisions made! ✅</p>
             )}
           </div>
           <div className="bg-gradient-to-t from-red-50 to-transparent px-6 py-3 border-t border-red-100">

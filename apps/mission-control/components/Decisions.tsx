@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { GitBranch, Plus, CheckCircle2, Clock, Pause } from 'lucide-react';
 
 interface Decision {
@@ -9,35 +9,61 @@ interface Decision {
   question: string;
   status: 'open' | 'decided' | 'postponed';
   dateAdded: string;
+  dueDate?: string;
 }
 
-export default function Decisions() {
-  const [decisions, setDecisions] = useState<Decision[]>([
-    {
-      id: '1',
-      title: 'Daycare Prep Guide',
-      question: 'Is this still worth creating or has the window passed for this year?',
-      status: 'open',
-      dateAdded: '2026-02-17',
-    },
-    {
-      id: '2',
-      title: 'Guide Launch Strategy',
-      question: 'Do I launch guides one at a time as they\'re ready, or wait until the full bundle is complete?',
-      status: 'open',
-      dateAdded: '2026-02-17',
-    },
-    {
-      id: '3',
-      title: 'Technical approach for Meta Ads, GoHighLevel, and Stripe integrations',
-      question: 'Decide: What access is needed for each integration? Who sets up what? Document approach.',
-      status: 'open',
-      dateAdded: '2026-02-17',
-    },
-  ]);
+const DEFAULT_DECISIONS: Decision[] = [
+  {
+    id: '1',
+    title: 'Daycare Prep Guide',
+    question: 'Is this still worth creating or has the window passed for this year?',
+    status: 'open',
+    dateAdded: '2026-02-17',
+    dueDate: '2026-02-25',
+  },
+  {
+    id: '2',
+    title: 'Guide Launch Strategy',
+    question: 'Do I launch guides one at a time as they\'re ready, or wait until the full bundle is complete?',
+    status: 'open',
+    dateAdded: '2026-02-17',
+    dueDate: '2026-02-28',
+  },
+  {
+    id: '3',
+    title: 'Technical approach for Meta Ads, GoHighLevel, and Stripe integrations',
+    question: 'Decide: What access is needed for each integration? Who sets up what? Document approach.',
+    status: 'open',
+    dateAdded: '2026-02-17',
+    dueDate: '2026-03-05',
+  },
+];
 
+export default function Decisions() {
+  const [decisions, setDecisions] = useState<Decision[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [newDecision, setNewDecision] = useState({ title: '', question: '' });
+  const [newDecision, setNewDecision] = useState({ title: '', question: '', dueDate: '' });
+
+  // Load decisions from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('decisionsData');
+    if (saved) {
+      try {
+        setDecisions(JSON.parse(saved));
+      } catch (e) {
+        setDecisions(DEFAULT_DECISIONS);
+      }
+    } else {
+      setDecisions(DEFAULT_DECISIONS);
+    }
+  }, []);
+
+  // Save decisions to localStorage whenever they change
+  useEffect(() => {
+    if (decisions.length > 0) {
+      localStorage.setItem('decisionsData', JSON.stringify(decisions));
+    }
+  }, [decisions]);
 
   const openCount = decisions.filter(d => d.status === 'open').length;
   const decidedCount = decisions.filter(d => d.status === 'decided').length;
@@ -63,9 +89,10 @@ export default function Decisions() {
           question: newDecision.question,
           status: 'open',
           dateAdded: new Date().toISOString().split('T')[0],
+          dueDate: newDecision.dueDate || undefined,
         },
       ]);
-      setNewDecision({ title: '', question: '' });
+      setNewDecision({ title: '', question: '', dueDate: '' });
       setShowForm(false);
     }
   };
@@ -218,6 +245,17 @@ export default function Decisions() {
                   className="w-full px-4 py-2 border border-jade-light rounded-lg focus:outline-none focus:ring-2 focus:ring-jade-purple resize-none"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Due Date (Optional)
+                </label>
+                <input
+                  type="date"
+                  value={newDecision.dueDate}
+                  onChange={(e) => setNewDecision({ ...newDecision, dueDate: e.target.value })}
+                  className="w-full px-4 py-2 border border-jade-light rounded-lg focus:outline-none focus:ring-2 focus:ring-jade-purple"
+                />
+              </div>
               <div className="flex space-x-3">
                 <button
                   onClick={addDecision}
@@ -228,7 +266,7 @@ export default function Decisions() {
                 <button
                   onClick={() => {
                     setShowForm(false);
-                    setNewDecision({ title: '', question: '' });
+                    setNewDecision({ title: '', question: '', dueDate: '' });
                   }}
                   className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
                 >
@@ -263,10 +301,17 @@ export default function Decisions() {
                         {decision.title}
                       </h3>
                       <p className="text-gray-700 mb-3">{decision.question}</p>
-                      <div className="flex items-center justify-between">
-                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${getStatusTextColor(decision.status)} bg-white`}>
-                          {decision.status === 'open' ? '⏳ Open' : decision.status === 'decided' ? '✓ Decided' : '⏸ Postponed'}
-                        </span>
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${getStatusTextColor(decision.status)} bg-white`}>
+                            {decision.status === 'open' ? '⏳ Open' : decision.status === 'decided' ? '✓ Decided' : '⏸ Postponed'}
+                          </span>
+                          {decision.dueDate && (
+                            <span className="text-xs text-gray-500 px-2.5 py-1 bg-white rounded-full">
+                              Due: {formatDate(decision.dueDate)}
+                            </span>
+                          )}
+                        </div>
                         <span className="text-xs text-gray-500">Added {formatDate(decision.dateAdded)}</span>
                       </div>
                     </div>
@@ -298,10 +343,17 @@ export default function Decisions() {
                         {decision.title}
                       </h3>
                       <p className="text-gray-700 mb-3">{decision.question}</p>
-                      <div className="flex items-center justify-between">
-                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${getStatusTextColor(decision.status)} bg-white`}>
-                          {decision.status === 'open' ? '⏳ Open' : decision.status === 'decided' ? '✓ Decided' : '⏸ Postponed'}
-                        </span>
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${getStatusTextColor(decision.status)} bg-white`}>
+                            {decision.status === 'open' ? '⏳ Open' : decision.status === 'decided' ? '✓ Decided' : '⏸ Postponed'}
+                          </span>
+                          {decision.dueDate && (
+                            <span className="text-xs text-gray-500 px-2.5 py-1 bg-white rounded-full">
+                              Due: {formatDate(decision.dueDate)}
+                            </span>
+                          )}
+                        </div>
                         <span className="text-xs text-gray-500">Added {formatDate(decision.dateAdded)}</span>
                       </div>
                     </div>
@@ -333,10 +385,17 @@ export default function Decisions() {
                         {decision.title}
                       </h3>
                       <p className="text-gray-700 mb-3">{decision.question}</p>
-                      <div className="flex items-center justify-between">
-                        <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${getStatusTextColor(decision.status)} bg-white`}>
-                          {decision.status === 'open' ? '⏳ Open' : decision.status === 'decided' ? '✓ Decided' : '⏸ Postponed'}
-                        </span>
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${getStatusTextColor(decision.status)} bg-white`}>
+                            {decision.status === 'open' ? '⏳ Open' : decision.status === 'decided' ? '✓ Decided' : '⏸ Postponed'}
+                          </span>
+                          {decision.dueDate && (
+                            <span className="text-xs text-gray-500 px-2.5 py-1 bg-white rounded-full">
+                              Due: {formatDate(decision.dueDate)}
+                            </span>
+                          )}
+                        </div>
                         <span className="text-xs text-gray-500">Added {formatDate(decision.dateAdded)}</span>
                       </div>
                     </div>
