@@ -145,6 +145,7 @@ export default function ContentRefactored() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedContent, setSelectedContent] = useState<WeeklyContentItem | null>(null);
 
   const filteredContent = useMemo(() => {
     return THIS_WEEK_CONTENT.filter(item => {
@@ -194,6 +195,7 @@ export default function ContentRefactored() {
           </button>
         </div>
 
+        {/* Add Content Button Handler */}
         {/* Search & Filter Bar */}
         <div className="space-y-3">
           {/* Search */}
@@ -316,10 +318,16 @@ export default function ContentRefactored() {
 
                   {/* Action Buttons */}
                   <div className="flex gap-2">
-                    <button className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 bg-white border border-gray-300 text-gray-700 text-sm rounded hover:bg-gray-50">
+                    <button 
+                      onClick={() => setSelectedContent(item)}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 bg-white border border-gray-300 text-gray-700 text-sm rounded hover:bg-gray-50 transition-colors"
+                    >
                       <Eye size={14} /> View
                     </button>
-                    <button className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 bg-white border border-gray-300 text-gray-700 text-sm rounded hover:bg-gray-50">
+                    <button 
+                      onClick={() => setSelectedContent(item)}
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-1.5 bg-white border border-gray-300 text-gray-700 text-sm rounded hover:bg-gray-50 transition-colors"
+                    >
                       <Edit2 size={14} /> Edit
                     </button>
                   </div>
@@ -335,6 +343,66 @@ export default function ContentRefactored() {
           )}
         </div>
       </div>
+
+      {/* Content Detail Modal */}
+      {selectedContent && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b p-6 flex items-center justify-between">
+              <h3 className="text-2xl font-bold text-gray-900">{selectedContent.title}</h3>
+              <button
+                onClick={() => setSelectedContent(null)}
+                className="text-gray-500 hover:text-gray-700 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs text-gray-500 uppercase mb-1">Day</p>
+                  <p className="font-semibold">{selectedContent.day}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500 uppercase mb-1">Type</p>
+                  <p className="font-semibold">{selectedContent.type}</p>
+                </div>
+              </div>
+
+              {selectedContent.script && (
+                <div>
+                  <p className="text-xs text-gray-500 uppercase mb-2 font-semibold">Script</p>
+                  <div className="bg-gray-50 p-4 rounded border border-gray-200 whitespace-pre-wrap text-sm text-gray-700 max-h-48 overflow-y-auto">
+                    {selectedContent.script}
+                  </div>
+                </div>
+              )}
+
+              {selectedContent.caption && (
+                <div>
+                  <p className="text-xs text-gray-500 uppercase mb-2 font-semibold">Caption</p>
+                  <div className="bg-gray-50 p-4 rounded border border-gray-200 whitespace-pre-wrap text-sm text-gray-700 max-h-48 overflow-y-auto">
+                    {selectedContent.caption}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3 border-t pt-6">
+                <button className="flex-1 px-4 py-2 bg-jade-purple text-white rounded-lg hover:bg-jade-purple/90 font-medium">
+                  Edit
+                </button>
+                <button 
+                  onClick={() => setSelectedContent(null)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* IDEAS QUICK ACCESS */}
       <div className="border-t pt-6">

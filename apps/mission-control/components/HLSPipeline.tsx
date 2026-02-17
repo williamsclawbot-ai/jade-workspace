@@ -98,6 +98,24 @@ const ASSIGNEE_COLORS = {
   'Team': 'bg-teal-100 text-teal-700'
 };
 
+// Weekly content data (synced with Content tab)
+const WEEKLY_CONTENT = [
+  { id: '1', day: 'Monday', title: 'Toddler Pillow', type: 'Reel', status: 'Ready to Film' },
+  { id: '2', day: 'Tuesday', title: 'Educational Carousel', type: 'Carousel', status: 'Ready to Schedule' },
+  { id: '3', day: 'Wednesday', title: 'Harvey Turning 2', type: 'Static', status: 'Ready to Film' },
+  { id: '4', day: 'Thursday', title: 'Myth-Busting Reel', type: 'Reel', status: 'In Progress' },
+  { id: '5', day: 'Friday', title: 'Sleep Guidelines', type: 'Static', status: 'In Progress' },
+  { id: '6', day: 'Saturday', title: 'Sample Schedule', type: 'Static', status: 'Ready to Schedule' },
+  { id: '7', day: 'Sunday', title: 'Community Ask', type: 'Reel', status: 'Ready to Film' },
+];
+
+const CONTENT_STATUS_ORDER = {
+  'Ready to Film': 0,
+  'In Progress': 1,
+  'Ready to Schedule': 2,
+  'Scheduled': 3,
+};
+
 export default function HLSPipeline() {
   const [tasks, setTasks] = useState<PipelineTask[]>(DEFAULT_TASKS);
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
@@ -338,6 +356,36 @@ export default function HLSPipeline() {
             <h2 className="text-2xl font-bold text-jade-purple">HLS Pipeline</h2>
             <p className="text-sm text-gray-600">Kanban workflow for HLS content projects</p>
           </div>
+        </div>
+      </div>
+
+      {/* Content Production Status */}
+      <div className="border-b border-jade-light px-6 py-4 bg-gradient-to-r from-jade-light to-white">
+        <h3 className="text-sm font-semibold text-jade-purple mb-3 uppercase">📹 This Week's Content Pipeline</h3>
+        <div className="grid grid-cols-7 gap-2">
+          {WEEKLY_CONTENT.map(content => {
+            const statusColors: Record<string, string> = {
+              'Ready to Film': 'bg-blue-50 border-blue-200',
+              'In Progress': 'bg-yellow-50 border-yellow-200',
+              'Ready to Schedule': 'bg-green-50 border-green-200',
+              'Scheduled': 'bg-purple-50 border-purple-200',
+            };
+            const statusBadgeColors: Record<string, string> = {
+              'Ready to Film': 'bg-blue-100 text-blue-700',
+              'In Progress': 'bg-yellow-100 text-yellow-700',
+              'Ready to Schedule': 'bg-green-100 text-green-700',
+              'Scheduled': 'bg-purple-100 text-purple-700',
+            };
+            return (
+              <div key={content.id} className={`p-3 rounded border ${statusColors[content.status] || 'bg-gray-50 border-gray-200'}`}>
+                <p className="text-xs font-semibold text-gray-700 mb-1">{content.day}</p>
+                <p className="text-xs font-medium text-gray-900 mb-2 line-clamp-2">{content.title}</p>
+                <span className={`text-xs px-2 py-0.5 rounded-full block text-center ${statusBadgeColors[content.status] || 'bg-gray-100 text-gray-700'}`}>
+                  {content.status}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
