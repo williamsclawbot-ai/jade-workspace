@@ -25,7 +25,7 @@ import {
   Sun,
   CreditCard,
   ListTodo,
-  NotePad,
+  StickyNote,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -50,7 +50,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       section: 'management',
       items: [
         { id: 'inbox', label: 'Quick Capture', icon: Inbox },
-        { id: 'notes', label: 'Notes', icon: NotePad },
+        { id: 'notes', label: 'Notes', icon: StickyNote },
         { id: 'calendar', label: 'Calendar', icon: Calendar },
         { id: 'decisions', label: 'Decisions', icon: GitBranch },
         { id: 'personal-tasks', label: 'Personal Tasks', icon: ListTodo },
