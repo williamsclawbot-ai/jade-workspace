@@ -64,6 +64,25 @@ export default function RemindersForJohn() {
         console.log('Added gummies reminder:', newReminder);
       }
 
+      // Check if integrations reminder exists
+      const integrationsReminder = loaded.find(
+        (r) => r.text === 'Set up Meta Ads, GoHighLevel, and Stripe integrations for Mission Control'
+      );
+
+      // If it doesn't exist, add it
+      if (!integrationsReminder) {
+        const integrationsReminder: Reminder = {
+          id: crypto.randomUUID?.() || 'integrations-' + Date.now().toString(),
+          text: 'Set up Meta Ads, GoHighLevel, and Stripe integrations for Mission Control — The dashboard is live but missing integrations. Meta Ads (access ready), GoHighLevel API (token ready), Stripe (approach pending). Review and set up.',
+          status: 'sent',
+          sentDate: new Date().toISOString().split('T')[0],
+          createdDate: new Date().toISOString().split('T')[0],
+          priority: 'high',
+        };
+        loaded = [...loaded, integrationsReminder];
+        console.log('Added integrations reminder:', integrationsReminder);
+      }
+
       setReminders(loaded);
     } catch (e) {
       console.error('Error loading reminders from localStorage:', e);

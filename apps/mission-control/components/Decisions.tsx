@@ -27,6 +27,13 @@ export default function Decisions() {
       status: 'open',
       dateAdded: '2026-02-17',
     },
+    {
+      id: '3',
+      title: 'Technical approach for Meta Ads, GoHighLevel, and Stripe integrations',
+      question: 'Decide: What access is needed for each integration? Who sets up what? Document approach.',
+      status: 'open',
+      dateAdded: '2026-02-17',
+    },
   ]);
 
   const [showForm, setShowForm] = useState(false);
