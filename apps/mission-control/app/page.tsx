@@ -26,6 +26,7 @@ import GoHighLevelMetrics from '@/components/GoHighLevelMetrics';
 import StripeRevenue from '@/components/StripeRevenue';
 import CombinedMetrics from '@/components/CombinedMetrics';
 import PersonalTasks from '@/components/PersonalTasks';
+import Notes from '@/components/Notes';
 import weeklyContentData from '@/lib/weeklyContentData.json';
 import { initializeWeeklyContent } from '@/lib/initializeContentData';
 
@@ -88,6 +89,8 @@ export default function Home() {
         return <PersonalTasks />;
       case 'woolworths':
         return <div className="p-8 text-center"><p className="text-gray-600">🛒 Woolworths integration coming soon</p></div>;
+      case 'notes':
+        return <Notes />;
       case 'memory':
         return <Memory />;
       case 'office':
