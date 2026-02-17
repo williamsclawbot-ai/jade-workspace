@@ -13,6 +13,13 @@ export default function Content() {
   const [feedbackModal, setFeedbackModal] = useState(false);
   const [feedbackText, setFeedbackText] = useState('');
   const [viewMode, setViewMode] = useState<'calendar' | 'grid'>('calendar');
+  const [addContentModal, setAddContentModal] = useState(false);
+  const [newContent, setNewContent] = useState({
+    day: 'Monday',
+    title: '',
+    type: 'Reel' as const,
+    description: ''
+  });
 
   // Load data on mount
   useEffect(() => {
@@ -75,6 +82,7 @@ export default function Content() {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, { badge: string; bg: string; dot: string }> = {
+      'Awaiting Script': { badge: 'bg-orange-100 text-orange-700', bg: 'bg-orange-50', dot: 'bg-orange-500' },
       'Due for Review': { badge: 'bg-blue-100 text-blue-700', bg: 'bg-blue-50', dot: 'bg-blue-500' },
       'Feedback Given': { badge: 'bg-yellow-100 text-yellow-700', bg: 'bg-yellow-50', dot: 'bg-yellow-500' },
       'Ready to Film': { badge: 'bg-green-100 text-green-700', bg: 'bg-green-50', dot: 'bg-green-500' },
@@ -82,7 +90,7 @@ export default function Content() {
       'Scheduled': { badge: 'bg-indigo-100 text-indigo-700', bg: 'bg-indigo-50', dot: 'bg-indigo-500' },
       'Posted': { badge: 'bg-gray-100 text-gray-700', bg: 'bg-gray-50', dot: 'bg-gray-500' },
     };
-    return colors[status] || colors['Due for Review'];
+    return colors[status] || colors['Awaiting Script'];
   };
 
   const getReviewIcon = (status?: string) => {
@@ -95,8 +103,34 @@ export default function Content() {
     return icons[status || 'pending'] || '⏳';
   };
 
+  const handleAddContent = () => {
+    if (!newContent.title.trim() || !newContent.description.trim()) return;
+    
+    ContentStore.create({
+      day: newContent.day,
+      title: newContent.title,
+      type: newContent.type,
+      description: newContent.description,
+      status: 'Awaiting Script',
+      script: '',
+      caption: '',
+      onScreenText: '',
+      setting: ''
+    });
+    
+    setItems(ContentStore.getAll());
+    setAddContentModal(false);
+    setNewContent({
+      day: 'Monday',
+      title: '',
+      type: 'Reel',
+      description: ''
+    });
+  };
+
   // Pipeline stats
   const pipelineStats = {
+    'Awaiting Script': items.filter(i => i.status === 'Awaiting Script').length,
     'Due for Review': items.filter(i => i.status === 'Due for Review').length,
     'Feedback Given': items.filter(i => i.status === 'Feedback Given').length,
     'Ready to Film': items.filter(i => i.status === 'Ready to Film').length,
@@ -117,6 +151,12 @@ export default function Content() {
           <p className="text-gray-600">Plan, create, and schedule your weekly content</p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => setAddContentModal(true)}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
+          >
+            ✨ Add Idea
+          </button>
           <button
             onClick={() => setViewMode('calendar')}
             className={`px-4 py-2 rounded-lg font-medium transition-colors ${viewMode === 'calendar' ? 'bg-jade-purple text-white' : 'bg-gray-100 text-gray-700'}`}
@@ -310,6 +350,7 @@ export default function Content() {
                     }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
                   >
+                    <option>Awaiting Script</option>
                     <option>Due for Review</option>
                     <option>Feedback Given</option>
                     <option>Ready to Film</option>
@@ -396,6 +437,7 @@ export default function Content() {
                     onChange={(e) => setEditForm({ ...editForm, status: e.target.value as any })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
                   >
+                    <option>Awaiting Script</option>
                     <option>Due for Review</option>
                     <option>Feedback Given</option>
                     <option>Ready to Film</option>
@@ -547,6 +589,99 @@ export default function Content() {
                 </button>
                 <button
                   onClick={handleCancel}
+                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Content Modal */}
+      {addContentModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full">
+            <div className="border-b p-6 flex items-center justify-between">
+              <h3 className="text-2xl font-bold text-gray-900">✨ Add Content Idea</h3>
+              <button onClick={() => setAddContentModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-8 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-bold text-gray-700 mb-2 block">Day</label>
+                  <select
+                    value={newContent.day}
+                    onChange={(e) => setNewContent({ ...newContent, day: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
+                  >
+                    <option>Monday</option>
+                    <option>Tuesday</option>
+                    <option>Wednesday</option>
+                    <option>Thursday</option>
+                    <option>Friday</option>
+                    <option>Saturday</option>
+                    <option>Sunday</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-bold text-gray-700 mb-2 block">Content Type</label>
+                  <select
+                    value={newContent.type}
+                    onChange={(e) => setNewContent({ ...newContent, type: e.target.value as any })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white"
+                  >
+                    <option value="Reel">Reel (45-60 sec video)</option>
+                    <option value="Carousel">Carousel (5-7 slides)</option>
+                    <option value="Static">Static (single image + caption)</option>
+                    <option value="Newsletter">Newsletter</option>
+                    <option value="Email">Email</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-bold text-gray-700 mb-2 block">Title</label>
+                <input
+                  type="text"
+                  value={newContent.title}
+                  onChange={(e) => setNewContent({ ...newContent, title: e.target.value })}
+                  placeholder="e.g., Sleep Training Myths"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-bold text-gray-700 mb-2 block">Your Idea / Description</label>
+                <textarea
+                  value={newContent.description}
+                  onChange={(e) => setNewContent({ ...newContent, description: e.target.value })}
+                  placeholder="What's the main idea or topic? What should I focus on? Any specific angle or message?"
+                  className="w-full h-32 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                />
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-800">
+                  <span className="font-bold">What happens next:</span> Your idea will be saved with "Awaiting Script" status. I'll check it each night and generate a full script (Hook, Setting, Script, Caption) for you to review on Friday 11pm generation cycle.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleAddContent}
+                  disabled={!newContent.title.trim() || !newContent.description.trim()}
+                  className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 font-bold"
+                >
+                  Add Content
+                </button>
+                <button
+                  onClick={() => setAddContentModal(false)}
                   className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
                 >
                   Cancel

@@ -9,7 +9,7 @@ export interface ContentItem {
   title: string;
   type: 'Reel' | 'Carousel' | 'Static' | 'Newsletter' | 'Email';
   description: string;
-  status: 'Due for Review' | 'Feedback Given' | 'Ready to Film' | 'Filmed' | 'Scheduled' | 'Posted' | 'In Progress' | 'Ready to Schedule';
+  status: 'Awaiting Script' | 'Due for Review' | 'Feedback Given' | 'Ready to Film' | 'Filmed' | 'Scheduled' | 'Posted' | 'In Progress' | 'Ready to Schedule';
   script?: string;
   caption?: string;
   duration?: string;
