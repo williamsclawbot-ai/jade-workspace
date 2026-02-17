@@ -103,10 +103,11 @@ export default function Content() {
     return icons[status || 'pending'] || '⏳';
   };
 
-  const handleAddContent = () => {
+  const handleAddContent = async () => {
     if (!newContent.title.trim() || !newContent.description.trim()) return;
     
-    ContentStore.create({
+    // Create item with Awaiting Script status
+    const created = ContentStore.create({
       day: newContent.day,
       title: newContent.title,
       type: newContent.type,
@@ -126,6 +127,36 @@ export default function Content() {
       type: 'Reel',
       description: ''
     });
+
+    // Trigger generation immediately
+    try {
+      const response = await fetch('/api/content/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'single',
+          idea: created,
+          existingExamples: items.slice(0, 3)
+        })
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.data) {
+          // Update with generated content
+          ContentStore.update(created.id, {
+            script: result.data.script,
+            caption: result.data.caption,
+            onScreenText: result.data.onScreenText,
+            setting: result.data.setting,
+            status: 'Due for Review'
+          });
+          setItems(ContentStore.getAll());
+        }
+      }
+    } catch (error) {
+      console.error('Generation failed:', error);
+    }
   };
 
   // Pipeline stats
