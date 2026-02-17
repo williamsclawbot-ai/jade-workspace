@@ -1,15 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, BookOpen, Lightbulb, FileText, Calendar, BarChart3 } from 'lucide-react';
+import { Plus, Trash2, BookOpen, Lightbulb, FileText, Calendar, BarChart3, Download } from 'lucide-react';
+import weeklyContentData from '../lib/weeklyContentData.json';
 
 interface ContentPost {
   id: number;
   title: string;
   platform: string;
   description: string;
-  status: 'Draft' | 'Scheduled' | 'Published';
+  status: 'Draft' | 'Scheduled' | 'Published' | 'Ready to Film' | 'Ready to Schedule';
   created: string;
+  date?: string;
+  type?: string;
 }
 
 interface ContentTemplate {
@@ -181,6 +184,26 @@ export default function ContentDashboard() {
     localStorage.setItem('jadeContentData', JSON.stringify(data));
   };
 
+  const handleLoadWeeklyContent = () => {
+    if (weeklyContentData && weeklyContentData.posts) {
+      const convertedPosts: ContentPost[] = weeklyContentData.posts.map(post => ({
+        id: post.id,
+        title: post.title,
+        platform: post.platform,
+        description: post.description,
+        status: (post.status as any),
+        created: post.dateStr || new Date().toLocaleDateString(),
+        date: post.date,
+        type: post.type
+      }));
+
+      const updated = [...posts, ...convertedPosts];
+      setPosts(updated);
+      saveData(updated, templates, customIdeas);
+      alert(`✅ Loaded ${convertedPosts.length} posts for this week!`);
+    }
+  };
+
   const handleAddContent = () => {
     if (!contentTitle.trim() || !contentPlatform) {
       alert('Please fill in title and platform');
@@ -325,6 +348,23 @@ export default function ContentDashboard() {
         {/* Content Board Tab */}
         {activeTab === 'content-board' && (
           <div>
+            {/* Weekly Content Loader */}
+            <div className="mb-6 bg-gradient-to-r from-jade-light to-jade-cream p-4 rounded-lg border-2 border-jade-purple">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-jade-purple mb-1">📅 This Week's Content Ready!</h3>
+                  <p className="text-sm text-gray-700">Load all 7 posts (Mon-Sat) + newsletter. Ready to film/schedule.</p>
+                </div>
+                <button
+                  onClick={handleLoadWeeklyContent}
+                  className="bg-jade-purple text-jade-cream px-4 py-3 rounded hover:bg-jade-light hover:text-jade-purple transition-colors flex items-center space-x-2 text-sm font-semibold whitespace-nowrap"
+                >
+                  <Download size={18} />
+                  <span>Load Weekly Plan</span>
+                </button>
+              </div>
+            </div>
+
             <h3 className="text-lg font-bold text-jade-purple mb-4">Add New Content</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 bg-jade-cream p-4 rounded-lg">
               <input
@@ -370,33 +410,51 @@ export default function ContentDashboard() {
             ) : (
               <div className="space-y-3">
                 {posts.map(post => (
-                  <div key={post.id} className="bg-gray-50 p-4 rounded border border-gray-200 flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="font-semibold text-gray-800">{post.title}</div>
-                      <div className="text-sm text-gray-600">{post.platform} • {post.created}</div>
+                  <div key={post.id} className="bg-white p-4 rounded border border-gray-200 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex-1">
+                        <div className="font-semibold text-gray-800">{post.title}</div>
+                        <div className="text-sm text-gray-600 mt-1">
+                          {post.type && <span className="mr-3 inline-block font-medium">{post.type}</span>}
+                          {post.platform && <span className="mr-3 inline-block">📱 {post.platform}</span>}
+                          {post.date && <span className="mr-3 inline-block">📅 {post.date}</span>}
+                          <span className="text-xs text-gray-500">{post.created}</span>
+                        </div>
+                        {post.description && (
+                          <div className="text-sm text-gray-700 mt-2 p-2 bg-gray-50 rounded line-clamp-2 hover:line-clamp-none">
+                            {post.description.substring(0, 150)}...
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <select
-                      value={post.status}
-                      onChange={(e) => handleUpdateStatus(post.id, e.target.value as any)}
-                      className="border border-gray-300 rounded px-2 py-1 text-sm mx-2 focus:outline-none focus:border-jade-purple"
-                    >
-                      <option value="Draft">Draft</option>
-                      <option value="Scheduled">Scheduled</option>
-                      <option value="Published">Published</option>
-                    </select>
-                    <div className={`px-3 py-1 rounded text-sm font-semibold text-center min-w-24 ${
-                      post.status === 'Draft' ? 'bg-yellow-100 text-yellow-800' :
-                      post.status === 'Scheduled' ? 'bg-blue-100 text-blue-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
-                      {post.status}
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                      <select
+                        value={post.status}
+                        onChange={(e) => handleUpdateStatus(post.id, e.target.value as any)}
+                        className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-jade-purple"
+                      >
+                        <option value="Draft">Draft</option>
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="Published">Published</option>
+                        <option value="Ready to Film">Ready to Film</option>
+                        <option value="Ready to Schedule">Ready to Schedule</option>
+                      </select>
+                      <div className={`px-3 py-1 rounded text-sm font-semibold text-center min-w-24 ml-2 ${
+                        post.status === 'Draft' ? 'bg-yellow-100 text-yellow-800' :
+                        post.status === 'Scheduled' ? 'bg-blue-100 text-blue-800' :
+                        post.status === 'Published' ? 'bg-green-100 text-green-800' :
+                        post.status === 'Ready to Film' ? 'bg-purple-100 text-purple-800' :
+                        'bg-orange-100 text-orange-800'
+                      }`}>
+                        {post.status}
+                      </div>
+                      <button
+                        onClick={() => handleDeletePost(post.id)}
+                        className="ml-2 bg-red-100 text-red-600 hover:bg-red-200 px-3 py-1 rounded text-sm font-semibold transition-colors"
+                      >
+                        Delete
+                      </button>
                     </div>
-                    <button
-                      onClick={() => handleDeletePost(post.id)}
-                      className="ml-2 bg-red-100 text-red-600 hover:bg-red-200 px-3 py-1 rounded text-sm font-semibold transition-colors"
-                    >
-                      Delete
-                    </button>
                   </div>
                 ))}
               </div>
