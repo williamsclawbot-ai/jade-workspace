@@ -146,6 +146,8 @@ export default function ContentRefactored() {
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedContent, setSelectedContent] = useState<WeeklyContentItem | null>(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editedContent, setEditedContent] = useState<Partial<WeeklyContentItem>>({});
 
   const filteredContent = useMemo(() => {
     return THIS_WEEK_CONTENT.filter(item => {
@@ -347,58 +349,167 @@ export default function ContentRefactored() {
       {/* Content Detail Modal */}
       {selectedContent && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[95vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b p-6 flex items-center justify-between">
-              <h3 className="text-2xl font-bold text-gray-900">{selectedContent.title}</h3>
+              <h3 className="text-2xl font-bold text-gray-900">{editedContent.title || selectedContent.title}</h3>
               <button
-                onClick={() => setSelectedContent(null)}
+                onClick={() => {
+                  setSelectedContent(null);
+                  setEditMode(false);
+                  setEditedContent({});
+                }}
                 className="text-gray-500 hover:text-gray-700 text-xl"
               >
                 ✕
               </button>
             </div>
             
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs text-gray-500 uppercase mb-1">Day</p>
-                  <p className="font-semibold">{selectedContent.day}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500 uppercase mb-1">Type</p>
-                  <p className="font-semibold">{selectedContent.type}</p>
-                </div>
-              </div>
+            <div className="p-8">
+              {!editMode ? (
+                // View Mode
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase mb-1">Day</p>
+                      <p className="font-semibold">{selectedContent.day}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase mb-1">Type</p>
+                      <p className="font-semibold">{selectedContent.type}</p>
+                    </div>
+                  </div>
 
-              {selectedContent.script && (
-                <div>
-                  <p className="text-xs text-gray-500 uppercase mb-2 font-semibold">Script</p>
-                  <div className="bg-gray-50 p-4 rounded border border-gray-200 whitespace-pre-wrap text-sm text-gray-700 max-h-48 overflow-y-auto">
-                    {selectedContent.script}
+                  {selectedContent.script && (
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase mb-2 font-semibold">Script</p>
+                      <div className="bg-gray-50 p-4 rounded border border-gray-200 whitespace-pre-wrap text-sm text-gray-700 max-h-48 overflow-y-auto">
+                        {selectedContent.script}
+                      </div>
+                    </div>
+                  )}
+
+                  {selectedContent.caption && (
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase mb-2 font-semibold">Caption</p>
+                      <div className="bg-gray-50 p-4 rounded border border-gray-200 whitespace-pre-wrap text-sm text-gray-700 max-h-48 overflow-y-auto">
+                        {selectedContent.caption}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 border-t pt-6">
+                    <button 
+                      onClick={() => {
+                        setEditMode(true);
+                        setEditedContent({...selectedContent});
+                      }}
+                      className="flex-1 px-4 py-2 bg-jade-purple text-white rounded-lg hover:bg-jade-purple/90 font-medium"
+                    >
+                      Edit
+                    </button>
+                    <button 
+                      onClick={() => setSelectedContent(null)}
+                      className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                // Edit Mode
+                <div className="space-y-6">
+                  {/* 6 Content Boxes Grid */}
+                  <div className="grid grid-cols-3 gap-4">
+                    {/* Hook */}
+                    <div className="border-2 border-red-200 rounded-lg p-4 bg-red-50">
+                      <p className="text-sm font-bold text-red-700 mb-3">📢 HOOK</p>
+                      <textarea
+                        value={(editedContent as any).script?.split('\n')[0] || ''}
+                        onChange={(e) => setEditedContent({...editedContent, script: e.target.value} as any)}
+                        className="w-full h-32 p-3 border border-red-300 rounded bg-white text-sm resize-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        placeholder="Hook text..."
+                      />
+                    </div>
+
+                    {/* Setting */}
+                    <div className="border-2 border-red-200 rounded-lg p-4 bg-red-50">
+                      <p className="text-sm font-bold text-red-700 mb-3">📍 SETTING</p>
+                      <textarea
+                        value={(editedContent as any).setting || ''}
+                        onChange={(e) => setEditedContent({...editedContent, setting: e.target.value} as any)}
+                        className="w-full h-32 p-3 border border-red-300 rounded bg-white text-sm resize-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        placeholder="Setting details..."
+                      />
+                    </div>
+
+                    {/* Script */}
+                    <div className="border-2 border-red-200 rounded-lg p-4 bg-red-50">
+                      <p className="text-sm font-bold text-red-700 mb-3">📋 SCRIPT</p>
+                      <textarea
+                        value={(editedContent as any).script || ''}
+                        onChange={(e) => setEditedContent({...editedContent, script: e.target.value} as any)}
+                        className="w-full h-32 p-3 border border-red-300 rounded bg-white text-sm resize-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        placeholder="Full script..."
+                      />
+                    </div>
+
+                    {/* On Screen Hook Text */}
+                    <div className="border-2 border-red-200 rounded-lg p-4 bg-red-50">
+                      <p className="text-sm font-bold text-red-700 mb-3">📺 ON SCREEN HOOK TEXT</p>
+                      <textarea
+                        value={(editedContent as any).onScreenText || ''}
+                        onChange={(e) => setEditedContent({...editedContent, onScreenText: e.target.value} as any)}
+                        className="w-full h-32 p-3 border border-red-300 rounded bg-white text-sm resize-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        placeholder="On screen text..."
+                      />
+                    </div>
+
+                    {/* On Screen Text */}
+                    <div className="border-2 border-red-200 rounded-lg p-4 bg-red-50">
+                      <p className="text-sm font-bold text-red-700 mb-3">💬 ON SCREEN TEXT</p>
+                      <textarea
+                        value={(editedContent as any).onScreenText || ''}
+                        onChange={(e) => setEditedContent({...editedContent, onScreenText: e.target.value} as any)}
+                        className="w-full h-32 p-3 border border-red-300 rounded bg-white text-sm resize-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        placeholder="Additional on-screen text..."
+                      />
+                    </div>
+
+                    {/* Caption */}
+                    <div className="border-2 border-red-200 rounded-lg p-4 bg-red-50">
+                      <p className="text-sm font-bold text-red-700 mb-3">💭 CAPTION</p>
+                      <textarea
+                        value={(editedContent as any).caption || ''}
+                        onChange={(e) => setEditedContent({...editedContent, caption: e.target.value} as any)}
+                        className="w-full h-32 p-3 border border-red-300 rounded bg-white text-sm resize-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        placeholder="Post caption..."
+                      />
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 border-t pt-6">
+                    <button 
+                      onClick={() => {
+                        // Save changes (in real app, would update data)
+                        setEditMode(false);
+                      }}
+                      className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+                    >
+                      ✅ Save Changes
+                    </button>
+                    <button 
+                      onClick={() => {
+                        setEditMode(false);
+                        setEditedContent({});
+                      }}
+                      className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+                    >
+                      Cancel
+                    </button>
                   </div>
                 </div>
               )}
-
-              {selectedContent.caption && (
-                <div>
-                  <p className="text-xs text-gray-500 uppercase mb-2 font-semibold">Caption</p>
-                  <div className="bg-gray-50 p-4 rounded border border-gray-200 whitespace-pre-wrap text-sm text-gray-700 max-h-48 overflow-y-auto">
-                    {selectedContent.caption}
-                  </div>
-                </div>
-              )}
-
-              <div className="flex gap-3 border-t pt-6">
-                <button className="flex-1 px-4 py-2 bg-jade-purple text-white rounded-lg hover:bg-jade-purple/90 font-medium">
-                  Edit
-                </button>
-                <button 
-                  onClick={() => setSelectedContent(null)}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
-                >
-                  Close
-                </button>
-              </div>
             </div>
           </div>
         </div>

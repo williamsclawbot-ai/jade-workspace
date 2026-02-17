@@ -529,22 +529,13 @@ export default function TodayExpanded() {
                   </span>
                 </div>
 
-                {item.description && (
-                  <div className="bg-white rounded p-3 mb-3 border border-red-200">
-                    <p className="text-xs font-semibold text-gray-700 uppercase mb-1">Description:</p>
-                    <p className="text-sm text-gray-800 line-clamp-3">{item.description}</p>
-                  </div>
-                )}
-
-                {item.description && (
-                  <ContentItem6Column 
-                    script={item.description}
-                    onScreenText={item.onScreenText}
-                    caption={item.caption}
-                    description={item.description}
-                    statusColor="red"
-                  />
-                )}
+                <ContentItem6Column 
+                  script={item.script}
+                  onScreenText={item.onScreenText}
+                  caption={item.caption}
+                  description={item.description}
+                  statusColor="red"
+                />
 
                 <div className="flex gap-2 flex-wrap">
                   <span className="bg-red-100 text-red-900 px-3 py-1 rounded text-xs font-semibold">
@@ -604,22 +595,13 @@ export default function TodayExpanded() {
                     </span>
                   </div>
 
-                  {item.description && (
-                    <div className="bg-white rounded p-3 mb-3 border border-green-200">
-                      <p className="text-xs font-semibold text-gray-700 uppercase mb-1">Description:</p>
-                      <p className="text-sm text-gray-800 line-clamp-2">{item.description}</p>
-                    </div>
-                  )}
-
-                  {item.description && (
-                    <ContentItem6Column 
-                      script={item.description}
-                      onScreenText={item.onScreenText}
-                      caption={item.caption}
-                      description={item.description}
-                      statusColor="green"
-                    />
-                  )}
+                  <ContentItem6Column 
+                    script={item.script}
+                    onScreenText={item.onScreenText}
+                    caption={item.caption}
+                    description={item.description}
+                    statusColor="green"
+                  />
 
                   <div className="flex gap-2 flex-wrap">
                     <span className="bg-green-100 text-green-900 px-3 py-1 rounded text-xs font-semibold">
