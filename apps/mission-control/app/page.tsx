@@ -26,13 +26,16 @@ import GoHighLevelMetrics from '@/components/GoHighLevelMetrics';
 import StripeRevenue from '@/components/StripeRevenue';
 import CombinedMetrics from '@/components/CombinedMetrics';
 import PersonalTasks from '@/components/PersonalTasks';
+import weeklyContentData from '@/lib/weeklyContentData.json';
+import { initializeWeeklyContent } from '@/lib/initializeContentData';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate initial load
+    // Initialize weekly content data on app startup
+    initializeWeeklyContent(weeklyContentData);
     const timer = setTimeout(() => setIsLoading(false), 500);
     return () => clearTimeout(timer);
   }, []);
