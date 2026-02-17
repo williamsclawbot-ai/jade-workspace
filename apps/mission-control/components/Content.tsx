@@ -20,6 +20,9 @@ export default function Content() {
     type: 'Reel' as const,
     description: ''
   });
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>('');
+  const [filterType, setFilterType] = useState<string>('');
 
   // Load data on mount
   useEffect(() => {
@@ -172,6 +175,19 @@ export default function Content() {
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const getItemForDay = (day: string) => items.find(item => item.day === day);
+
+  // Filter all content
+  const filteredItems = items.filter((item) => {
+    const matchesSearch =
+      item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.day.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = !filterStatus || item.status === filterStatus;
+    const matchesType = !filterType || item.type === filterType;
+    
+    return matchesSearch && matchesStatus && matchesType;
+  });
 
   return (
     <div className="space-y-6 p-8">
@@ -351,6 +367,131 @@ export default function Content() {
           })}
         </div>
       )}
+
+      {/* All Content Library */}
+      <div className="bg-white rounded-lg border-2 border-gray-200 p-6 mt-8">
+        <h3 className="text-lg font-bold text-gray-900 mb-4">📚 All Content Library</h3>
+        
+        {/* Search and Filters */}
+        <div className="mb-6 space-y-4">
+          <input
+            type="text"
+            placeholder="Search by title, description, or day..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-jade-purple focus:border-transparent"
+          />
+          
+          <div className="flex flex-wrap gap-3">
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm"
+            >
+              <option value="">All Statuses</option>
+              <option value="Awaiting Script">Awaiting Script</option>
+              <option value="Due for Review">Due for Review</option>
+              <option value="Feedback Given">Feedback Given</option>
+              <option value="Ready to Film">Ready to Film</option>
+              <option value="Filmed">Filmed</option>
+              <option value="Scheduled">Scheduled</option>
+              <option value="Posted">Posted</option>
+            </select>
+
+            <select
+              value={filterType}
+              onChange={(e) => setFilterType(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm"
+            >
+              <option value="">All Types</option>
+              <option value="Reel">Reel</option>
+              <option value="Carousel">Carousel</option>
+              <option value="Static">Static</option>
+              <option value="Newsletter">Newsletter</option>
+              <option value="Email">Email</option>
+            </select>
+
+            {(searchQuery || filterStatus || filterType) && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setFilterStatus('');
+                  setFilterType('');
+                }}
+                className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Content List */}
+        {filteredItems.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b-2 border-gray-300">
+                  <th className="text-left py-3 px-4 font-bold text-gray-900">Title</th>
+                  <th className="text-left py-3 px-4 font-bold text-gray-600">Day</th>
+                  <th className="text-left py-3 px-4 font-bold text-gray-600">Type</th>
+                  <th className="text-left py-3 px-4 font-bold text-gray-600">Status</th>
+                  <th className="text-left py-3 px-4 font-bold text-gray-600">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredItems.map((item) => {
+                  const colors = getStatusColor(item.status);
+                  return (
+                    <tr key={item.id} className="border-b border-gray-200 hover:bg-gray-50">
+                      <td className="py-3 px-4">
+                        <p className="font-semibold text-gray-900">{item.title}</p>
+                        <p className="text-xs text-gray-600 mt-1">{item.description}</p>
+                      </td>
+                      <td className="py-3 px-4 text-gray-700">{item.day}</td>
+                      <td className="py-3 px-4">
+                        <span className="text-xs bg-gray-200 text-gray-700 px-2 py-1 rounded">
+                          {item.type}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className={`text-xs font-semibold px-2 py-1 rounded ${colors.badge}`}>
+                          {item.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedItem(item);
+                              setIsEditing(false);
+                            }}
+                            className="text-xs font-medium text-jade-purple hover:underline"
+                          >
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleEdit(item)}
+                            className="text-xs font-medium text-jade-purple hover:underline"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-center text-gray-500 py-8">No content matches your filters</p>
+        )}
+
+        <p className="text-xs text-gray-600 mt-4">
+          Showing {filteredItems.length} of {items.length} total items
+        </p>
+      </div>
 
       {/* View Modal */}
       {selectedItem && !isEditing && !feedbackModal && (
