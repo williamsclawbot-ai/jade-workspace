@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sun, ChevronDown, ChevronUp, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Sun, ChevronDown, ChevronUp, Trash2, CheckCircle2, AlertCircle, Film, FileText } from 'lucide-react';
 import { getWeekStart } from '@/lib/newsletterTopicUtils';
 import { useNewsletterTopic } from '@/lib/useNewsletterTopic';
 import ContentItem6Column from './ContentItem6Column';
+import ContentStore, { ContentItem } from '@/lib/contentStore';
 
 interface TodayTask {
   id: string;
@@ -63,7 +64,11 @@ export default function TodayExpanded() {
     tasks: false,
     harvey: false,
     awaiting: false,
+    contentPipeline: false,
   });
+  const [contentAwaitingReview, setContentAwaitingReview] = useState<ContentItem[]>([]);
+  const [contentReadyToFilm, setContentReadyToFilm] = useState<ContentItem[]>([]);
+  const [contentAwaitingScript, setContentAwaitingScript] = useState<ContentItem[]>([]);
 
   useEffect(() => {
     const today = new Date();
@@ -84,6 +89,15 @@ export default function TodayExpanded() {
     setShowTopicSelection(isIsoTuesday);
 
     loadTodaysData(todayString, dayOfWeek, tomorrowDayOfWeek);
+    loadContentPipeline();
+
+    // Listen for ContentStore changes
+    const handleStorageChange = () => {
+      loadContentPipeline();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const loadTodaysData = (todayString: string, dayOfWeek: string, tomorrowDayOfWeek: string) => {
@@ -392,6 +406,20 @@ export default function TodayExpanded() {
     }
 
     setAwaitingAttention(attention);
+  };
+
+  const loadContentPipeline = () => {
+    const allContent = ContentStore.getAll();
+    
+    const awaiting = allContent.filter(item => item.status === 'Due for Review');
+    const feedback = allContent.filter(item => item.status === 'Feedback Given');
+    const ready = allContent.filter(item => item.status === 'Ready to Film');
+    const scripts = allContent.filter(item => item.status === 'Awaiting Script');
+    
+    // Combine Due for Review and Feedback Given for review attention
+    setContentAwaitingReview([...awaiting, ...feedback]);
+    setContentReadyToFilm(ready);
+    setContentAwaitingScript(scripts);
   };
 
   const toggleSection = (section: keyof typeof collapsedSections) => {
@@ -805,6 +833,108 @@ export default function TodayExpanded() {
               ))
             ) : (
               <p className="text-center text-gray-500 py-8">Nothing awaiting your attention 🎯</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* SECTION 5: CONTENT PIPELINE */}
+      <div className="bg-white rounded-lg shadow-md overflow-hidden border-t-4 border-purple-500">
+        <button
+          onClick={() => toggleSection('contentPipeline')}
+          className="w-full bg-purple-50 px-6 py-4 border-b border-purple-200 flex items-center justify-between hover:bg-purple-100 transition"
+        >
+          <h2 className="text-lg font-bold text-purple-900 flex items-center gap-2">
+            📹 CONTENT PIPELINE
+            {(contentAwaitingReview.length + contentReadyToFilm.length + contentAwaitingScript.length) > 0 && (
+              <span className="text-sm font-semibold bg-purple-200 text-purple-900 px-2 py-1 rounded">
+                {contentAwaitingReview.length + contentReadyToFilm.length + contentAwaitingScript.length}
+              </span>
+            )}
+          </h2>
+          {collapsedSections.contentPipeline ? (
+            <ChevronUp size={20} className="text-purple-600" />
+          ) : (
+            <ChevronDown size={20} className="text-purple-600" />
+          )}
+        </button>
+
+        {!collapsedSections.contentPipeline && (
+          <div className="p-6 space-y-4">
+            {/* Awaiting Review */}
+            {contentAwaitingReview.length > 0 && (
+              <div className="bg-blue-50 rounded-lg p-4 border-l-4 border-blue-500">
+                <p className="font-bold text-blue-900 mb-3 flex items-center gap-2">
+                  <FileText size={18} /> Need Your Review ({contentAwaitingReview.length})
+                </p>
+                <div className="space-y-2">
+                  {contentAwaitingReview.map((item) => (
+                    <div key={item.id} className="bg-white rounded p-3 border border-blue-100">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="font-semibold text-gray-900">{item.title}</p>
+                          <p className="text-xs text-gray-600 mt-1">{item.day} • {item.type}</p>
+                          {item.feedback && (
+                            <div className="mt-2 bg-yellow-50 p-2 rounded text-xs border border-yellow-200">
+                              <p className="font-semibold text-yellow-800">Your Feedback:</p>
+                              <p className="text-yellow-700">{item.feedback.substring(0, 80)}...</p>
+                            </div>
+                          )}
+                        </div>
+                        <span className={`text-xs font-semibold px-2 py-1 rounded ml-2 ${
+                          item.status === 'Feedback Given' 
+                            ? 'bg-yellow-100 text-yellow-700' 
+                            : 'bg-blue-100 text-blue-700'
+                        }`}>
+                          {item.status === 'Feedback Given' ? '🔄 Feedback' : '⚠️ Review'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Awaiting Script */}
+            {contentAwaitingScript.length > 0 && (
+              <div className="bg-orange-50 rounded-lg p-4 border-l-4 border-orange-500">
+                <p className="font-bold text-orange-900 mb-3 flex items-center gap-2">
+                  ✍️ Awaiting Script ({contentAwaitingScript.length})
+                </p>
+                <div className="space-y-2">
+                  {contentAwaitingScript.map((item) => (
+                    <div key={item.id} className="bg-white rounded p-3 border border-orange-100">
+                      <p className="font-semibold text-gray-900">{item.title}</p>
+                      <p className="text-xs text-gray-600 mt-1">{item.day} • {item.type}</p>
+                      <p className="text-xs text-gray-700 mt-2 italic">{item.description}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Ready to Film */}
+            {contentReadyToFilm.length > 0 && (
+              <div className="bg-green-50 rounded-lg p-4 border-l-4 border-green-500">
+                <p className="font-bold text-green-900 mb-3 flex items-center gap-2">
+                  <Film size={18} /> Ready to Film ({contentReadyToFilm.length})
+                </p>
+                <div className="space-y-2">
+                  {contentReadyToFilm.map((item) => (
+                    <div key={item.id} className="bg-white rounded p-3 border border-green-100">
+                      <p className="font-semibold text-gray-900">{item.title}</p>
+                      <p className="text-xs text-gray-600 mt-1">{item.day} • {item.type}</p>
+                      <button className="mt-2 text-xs font-semibold text-green-700 hover:text-green-800">
+                        → Open in Content tab
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {contentAwaitingReview.length === 0 && contentReadyToFilm.length === 0 && contentAwaitingScript.length === 0 && (
+              <p className="text-center text-gray-500 py-8">All content caught up ✓</p>
             )}
           </div>
         )}
