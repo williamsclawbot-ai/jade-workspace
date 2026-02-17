@@ -12,6 +12,13 @@ interface NewsletterStage {
   dueDate?: string;
 }
 
+interface TopicIdea {
+  id: number;
+  title: string;
+  relevance: string;
+  angle: string;
+}
+
 interface WeeklyNewsletter {
   week: string;
   startDate: string;
@@ -20,8 +27,36 @@ interface WeeklyNewsletter {
   outline?: string;
   fullCopy?: string;
   notes?: string;
+  selectedTopic?: string | null;
   stages: NewsletterStage[];
 }
+
+const topicIdeasBank: TopicIdea[] = [
+  {
+    id: 1,
+    title: "Daylight Saving Time Sleep Adjustments",
+    relevance: "Seasonal",
+    angle: "Tips for transitioning toddlers' sleep schedules during DST changes"
+  },
+  {
+    id: 2,
+    title: "Toddler Sleep Regressions: What's Normal?",
+    relevance: "Evergreen",
+    angle: "Understanding developmental regressions and when to expect them"
+  },
+  {
+    id: 3,
+    title: "Bedtime Connection vs. Control",
+    relevance: "Evergreen",
+    angle: "Building secure attachments while maintaining healthy boundaries at bedtime"
+  },
+  {
+    id: 4,
+    title: "Post-Holiday Sleep Reset",
+    relevance: "Seasonal",
+    angle: "Practical strategies for getting back on schedule after disruptions"
+  }
+];
 
 export default function WeeklyNewsletter() {
   const [newsletters, setNewsletters] = useState<WeeklyNewsletter[]>([]);
@@ -61,6 +96,7 @@ export default function WeeklyNewsletter() {
       week: `Week of ${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
       startDate: weekStart.toISOString().split('T')[0],
       endDate: weekEnd.toISOString().split('T')[0],
+      selectedTopic: null,
       stages: [
         {
           stage: 1,
@@ -97,6 +133,7 @@ export default function WeeklyNewsletter() {
       week: `Week of ${new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
       startDate: new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       endDate: new Date(weekEnd.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      selectedTopic: null,
       stages: [
         {
           stage: 1,
@@ -168,6 +205,14 @@ export default function WeeklyNewsletter() {
     } else {
       return { text: 'Not Started', color: 'bg-gray-100 text-gray-700' };
     }
+  };
+
+  const pickTopic = (weekIndex: number, topicIdea: TopicIdea) => {
+    const updated = [...newsletters];
+    updated[weekIndex].selectedTopic = topicIdea.title;
+    updated[weekIndex].topic = topicIdea.title;
+    setNewsletters(updated);
+    saveData(updated);
   };
 
   return (
@@ -251,6 +296,39 @@ export default function WeeklyNewsletter() {
                       />
                     </div>
                   </div>
+
+                  {/* Topic Ideas Section */}
+                  {!newsletter.selectedTopic && (
+                    <div className="p-6 bg-jade-cream/20 border-b border-jade-light">
+                      <h3 className="text-lg font-bold text-jade-purple mb-4 flex items-center space-x-2">
+                        <span>📚</span>
+                        <span>Topic Ideas for This Week</span>
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {topicIdeasBank.map((idea) => (
+                          <div key={idea.id} className="bg-white rounded-lg border-2 border-jade-light hover:border-jade-purple hover:shadow-md transition-all p-4">
+                            <h4 className="font-bold text-jade-purple mb-2 text-sm leading-tight">{idea.title}</h4>
+                            <div className="space-y-2 mb-4">
+                              <div>
+                                <p className="text-xs font-semibold text-gray-600 uppercase">Relevance</p>
+                                <p className="text-sm text-gray-700">{idea.relevance}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold text-gray-600 uppercase">Suggested Angle</p>
+                                <p className="text-sm text-gray-700">{idea.angle}</p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => pickTopic(weekIndex, idea)}
+                              className="w-full bg-jade-purple text-jade-cream py-2 rounded font-medium text-sm hover:bg-jade-light hover:text-jade-purple transition-colors"
+                            >
+                              Pick This Topic
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Stages */}
                   <div className="p-6 space-y-4">
