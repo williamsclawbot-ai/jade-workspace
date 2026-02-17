@@ -3,12 +3,27 @@
 import { useState } from 'react';
 import {
   LayoutGrid,
+  BookOpen,
   FileText,
   CheckSquare,
+  Zap,
   Calendar,
   Brain,
   Settings,
   UtensilsCrossed,
+  CheckCircle2,
+  GitBranch,
+  BarChart3,
+  Mail,
+  Inbox,
+  Home,
+  Clock,
+  ClipboardList,
+  Users,
+  ShoppingCart,
+  Building,
+  Sun,
+  CreditCard,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -21,29 +36,49 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
 
   const navSections = [
     {
-      name: 'Main',
-      section: 'main',
+      name: 'CORE',
+      section: 'core',
       items: [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutGrid },
-        { id: 'content', label: 'Content', icon: FileText },
-        { id: 'hls-tasks', label: 'HLS Tasks', icon: CheckSquare },
-        { id: 'tasks', label: 'Tasks', icon: CheckSquare },
-        { id: 'meal-planning', label: 'Meal Planning', icon: UtensilsCrossed },
+        { id: 'today', label: 'Today', icon: Sun },
+      ],
+    },
+    {
+      name: 'MANAGEMENT',
+      section: 'management',
+      items: [
+        { id: 'inbox', label: 'Quick Capture', icon: Inbox },
         { id: 'calendar', label: 'Calendar', icon: Calendar },
-      ],
-    },
-    {
-      name: 'Knowledge',
-      section: 'knowledge',
-      items: [
+        { id: 'decisions', label: 'Decisions', icon: GitBranch },
         { id: 'memory', label: 'Memory', icon: Brain },
+        { id: 'office', label: 'Office', icon: Building },
       ],
     },
     {
-      name: 'Settings',
-      section: 'settings',
+      name: 'HELLO LITTLE SLEEPERS',
+      section: 'hls',
       items: [
-        { id: 'office', label: 'Office', icon: Settings },
+        { id: 'guides', label: 'Guides', icon: BookOpen },
+        { id: 'content', label: 'Content', icon: FileText },
+        { id: 'weekly-newsletter', label: 'Weekly Newsletter', icon: Mail },
+        { id: 'campaigns', label: 'Campaigns', icon: Zap },
+        { id: 'meta-ads', label: 'Meta Ads', icon: BarChart3 },
+        { id: 'combined-metrics', label: 'Metrics (All)', icon: BarChart3 },
+        { id: 'ghl-metrics', label: 'Metrics (GHL)', icon: BarChart3 },
+        { id: 'stripe-revenue', label: 'Revenue (Stripe)', icon: CreditCard },
+        { id: 'hls-tasks', label: 'HLS Tasks', icon: CheckSquare },
+      ],
+    },
+    {
+      name: 'HOME',
+      section: 'home',
+      items: [
+        { id: 'appointments', label: 'Appointments', icon: Calendar },
+        { id: 'cleaning-schedule', label: 'Cleaning Schedule', icon: CheckCircle2 },
+        { id: 'reminders-john', label: 'Reminders for John', icon: Clock },
+        { id: 'household-todos', label: 'Household To-Dos', icon: ClipboardList },
+        { id: 'meal-planning', label: 'Meal Planning', icon: UtensilsCrossed },
+        { id: 'woolworths', label: 'Woolworths', icon: ShoppingCart },
       ],
     },
   ];

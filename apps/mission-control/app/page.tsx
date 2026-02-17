@@ -3,10 +3,28 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import Dashboard from '@/components/Dashboard';
+import Guides from '@/components/Guides';
+import Content from '@/components/Content';
+import WeeklyNewsletter from '@/components/WeeklyNewsletter';
+import Campaigns from '@/components/Campaigns';
+import MetaAds from '@/components/MetaAds';
+import GoHighLevel from '@/components/GoHighLevel';
+import Today from '@/components/Today';
+import HLSTasks from '@/components/HLSTasks';
 import Tasks from '@/components/Tasks';
+import Decisions from '@/components/Decisions';
+import MealPlanning from '@/components/MealPlanning';
 import Calendar from '@/components/Calendar';
 import Memory from '@/components/Memory';
 import Office from '@/components/Office';
+import QuickCapture from '@/components/QuickCapture';
+import Appointments from '@/components/Appointments';
+import CleaningSchedule from '@/components/CleaningSchedule';
+import RemindersForJohn from '@/components/RemindersForJohn';
+import HouseholdTodos from '@/components/HouseholdTodos';
+import GoHighLevelMetrics from '@/components/GoHighLevelMetrics';
+import StripeRevenue from '@/components/StripeRevenue';
+import CombinedMetrics from '@/components/CombinedMetrics';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -22,10 +40,48 @@ export default function Home() {
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard />;
+      case 'guides':
+        return <Guides />;
+      case 'content':
+        return <Content />;
+      case 'weekly-newsletter':
+        return <WeeklyNewsletter />;
+      case 'campaigns':
+        return <Campaigns />;
+      case 'meta-ads':
+        return <MetaAds />;
+      case 'ghl-metrics':
+        return <GoHighLevelMetrics />;
+      case 'stripe-revenue':
+        return <StripeRevenue />;
+      case 'combined-metrics':
+        return <CombinedMetrics />;
+      case 'ghl':
+        return <GoHighLevel />;
+      case 'today':
+        return <Today />;
+      case 'hls-tasks':
+        return <HLSTasks />;
       case 'tasks':
         return <Tasks />;
+      case 'decisions':
+        return <Decisions />;
+      case 'inbox':
+        return <QuickCapture onNavigate={setActiveTab} />;
+      case 'meal-planning':
+        return <MealPlanning />;
       case 'calendar':
         return <Calendar />;
+      case 'appointments':
+        return <Appointments />;
+      case 'cleaning-schedule':
+        return <CleaningSchedule />;
+      case 'reminders-john':
+        return <RemindersForJohn />;
+      case 'household-todos':
+        return <HouseholdTodos />;
+      case 'woolworths':
+        return <div className="p-8 text-center"><p className="text-gray-600">🛒 Woolworths integration coming soon</p></div>;
       case 'memory':
         return <Memory />;
       case 'office':
@@ -52,7 +108,11 @@ export default function Home() {
         ) : (
           <div className="h-screen bg-white rounded-tl-2xl shadow-2xl overflow-y-auto">
             <div className="p-8">
-              {renderContent()}
+              {activeTab === 'dashboard' ? (
+                <Dashboard onNavigate={setActiveTab} />
+              ) : (
+                renderContent()
+              )}
             </div>
           </div>
         )}

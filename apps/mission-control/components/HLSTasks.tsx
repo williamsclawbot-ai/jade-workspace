@@ -22,7 +22,64 @@ interface CalendarEvent {
   notes: string;
 }
 
-type TabType = 'today' | 'week' | 'month' | 'calendar' | 'content' | 'admin' | 'ads' | 'client' | 'all';
+type TabType = 'today' | 'week' | 'month' | 'guides' | 'content' | 'admin' | 'ads' | 'client' | 'all';
+
+const GUIDE_TASKS: Task[] = [
+  {
+    id: 1001,
+    title: '5–18 Month Sleep Guide',
+    category: 'content',
+    dueDate: '2026-02-28',
+    priority: 'high',
+    status: 'to-do' as const,
+    notes: 'Complete comprehensive sleep guide for 5-18 month olds'
+  },
+  {
+    id: 1002,
+    title: '4–5 Month Bridging Guide',
+    category: 'content',
+    dueDate: '2026-02-28',
+    priority: 'medium',
+    status: 'to-do' as const,
+    notes: 'Bridge guide for 4-5 month sleep transition'
+  },
+  {
+    id: 1003,
+    title: '18 Month – 3 Year Toddler Guide',
+    category: 'content',
+    dueDate: '2026-02-28',
+    priority: 'medium',
+    status: 'to-do' as const,
+    notes: 'Toddler sleep management for 18 months to 3 years'
+  },
+  {
+    id: 1004,
+    title: 'Newborn Guide',
+    category: 'content',
+    dueDate: '2026-02-28',
+    priority: 'medium',
+    status: 'to-do' as const,
+    notes: 'Newborn sleep guide for first 0-4 months'
+  },
+  {
+    id: 1005,
+    title: 'Sample Schedules Guide',
+    category: 'content',
+    dueDate: '2026-02-28',
+    priority: 'medium',
+    status: 'to-do' as const,
+    notes: 'Age-appropriate sample sleep schedules'
+  },
+  {
+    id: 1006,
+    title: 'Daycare Prep Guide',
+    category: 'content',
+    dueDate: '2026-02-28',
+    priority: 'medium',
+    status: 'to-do' as const,
+    notes: 'Guide for preparing children for daycare transitions'
+  }
+];
 
 const CALENDAR_EVENTS: CalendarEvent[] = [
   {
@@ -76,8 +133,9 @@ const CALENDAR_EVENTS: CalendarEvent[] = [
 ];
 
 export default function HLSTasks() {
-  const [activeTab, setActiveTab] = useState<TabType>('today');
+  const [activeTab, setActiveTab] = useState<TabType>('guides');
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [selectedGuideId, setSelectedGuideId] = useState<number | null>(1001);
 
   // Load from localStorage
   useEffect(() => {
@@ -131,6 +189,8 @@ export default function HLSTasks() {
           const taskDate = new Date(task.dueDate);
           return taskDate.getMonth() === today.getMonth() && taskDate.getFullYear() === today.getFullYear();
         });
+      case 'guides':
+        return GUIDE_TASKS;
       case 'content':
         return filterTasks(task => task.category === 'content');
       case 'admin':
@@ -141,7 +201,6 @@ export default function HLSTasks() {
         return filterTasks(task => task.category === 'client');
       case 'all':
         return tasks;
-      case 'calendar':
       default:
         return [];
     }
@@ -173,6 +232,50 @@ export default function HLSTasks() {
     } else {
       return { label: `Due in ${daysUntil} days`, class: 'bg-blue-100 text-blue-700' };
     }
+  };
+
+  const GuideTaskCard = ({ task, isSelected }: { task: Task; isSelected: boolean }) => {
+    const isHighPriority = task.priority === 'high';
+    const statusIcon = {
+      'to-do': '○',
+      'in-progress': '◐',
+      'done': '●'
+    };
+    const statusColor = {
+      'to-do': 'text-gray-400',
+      'in-progress': 'text-orange-400',
+      'done': 'text-green-500'
+    };
+
+    return (
+      <div
+        onClick={() => setSelectedGuideId(task.id)}
+        className={`p-4 rounded border-l-4 border-jade-light cursor-pointer transition-all active:scale-95 ${
+          isSelected
+            ? 'bg-jade-light shadow-lg border-l-4 border-jade-purple scale-[1.02]'
+            : 'bg-white hover:shadow-md hover:border-jade-purple'
+        } ${task.status === 'done' ? 'opacity-75 bg-gray-50' : ''}`}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className={`text-2xl ${statusColor[task.status]}`}>{statusIcon[task.status]}</span>
+              <h4 className={`font-semibold text-gray-800 text-base ${task.status === 'done' ? 'line-through text-gray-500' : ''}`}>
+                {task.title}
+              </h4>
+              {isHighPriority && (
+                <span className="text-lg">⭐</span>
+              )}
+            </div>
+            <p className="text-xs text-gray-600 ml-8">{task.notes}</p>
+          </div>
+          <div className="text-right flex-shrink-0">
+            <div className="text-xs font-semibold text-gray-600 mb-1">Due Feb 28</div>
+            <div className="text-xs text-gray-500">{task.status === 'done' ? '✓ Complete' : 'In Progress'}</div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   const TaskCard = ({ task }: { task: Task }) => {
@@ -250,12 +353,12 @@ export default function HLSTasks() {
     </div>
   );
 
-  const tabsList: TabType[] = ['today', 'week', 'month', 'calendar', 'content', 'admin', 'ads', 'client', 'all'];
+  const tabsList: TabType[] = ['today', 'week', 'month', 'guides', 'content', 'admin', 'ads', 'client', 'all'];
   const tabLabels: Record<TabType, string> = {
     today: '📅 Today',
     week: '📆 This Week',
     month: '📊 This Month',
-    calendar: '📅 Calendar',
+    guides: '📚 Guides',
     content: '✍️ Content',
     admin: '⚙️ Admin',
     ads: '📢 Ads',
@@ -295,63 +398,89 @@ export default function HLSTasks() {
 
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto px-6 py-6">
-        {/* Calendar Tab */}
-        {activeTab === 'calendar' && (
+        {/* Guides Tab */}
+        {activeTab === 'guides' && (
           <div>
-            <div className="bg-yellow-50 border-l-4 border-jade-light p-4 rounded mb-6">
+            <div className="bg-blue-50 border-l-4 border-jade-light p-4 rounded mb-6">
               <p className="text-sm text-gray-700 font-semibold">
-                📅 Content Calendar - Key dates for HLS newsletters & content
+                📚 HLS Content Guides - All due Feb 28, 2026
               </p>
+              <p className="text-xs text-gray-600 mt-1">⭐ = Priority task • Click a guide to see details</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {CALENDAR_EVENTS.map((event, idx) => {
-                const date = new Date(event.date);
-                const formatted = date.toLocaleDateString('en-AU', {
-                  weekday: 'short',
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric'
-                });
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Guide List */}
+              <div className="lg:col-span-1 space-y-3">
+                <h3 className="font-semibold text-gray-700 mb-3">Available Guides</h3>
+                {GUIDE_TASKS.map(task => (
+                  <GuideTaskCard
+                    key={task.id}
+                    task={task}
+                    isSelected={selectedGuideId === task.id}
+                  />
+                ))}
+              </div>
 
-                const typeClasses = {
-                  seasonal: 'bg-green-100 text-green-700',
-                  holiday: 'bg-red-100 text-red-700',
-                  awareness: 'bg-blue-100 text-blue-700',
-                  school: 'bg-orange-100 text-orange-700'
-                };
+              {/* Selected Guide Details */}
+              <div className="lg:col-span-2">
+                {selectedGuideId ? (() => {
+                  const selectedGuide = GUIDE_TASKS.find(t => t.id === selectedGuideId);
+                  if (!selectedGuide) return null;
+                  return (
+                    <div className="bg-white p-6 rounded-lg shadow-md border-2 border-jade-purple sticky top-6">
+                      <div className="mb-4">
+                        <div className="flex items-start justify-between mb-2">
+                          <h2 className="text-2xl font-bold text-jade-purple">{selectedGuide.title}</h2>
+                          {selectedGuide.priority === 'high' && (
+                            <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-semibold flex items-center gap-1">
+                              ⭐ PRIORITY
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-gray-600 mb-4">{selectedGuide.notes}</p>
+                      </div>
 
-                return (
-                  <div key={idx} className="bg-white p-4 rounded border-l-4 border-jade-light shadow-sm">
-                    <div className="text-sm text-gray-600 font-semibold mb-1">{formatted}</div>
-                    <h3 className="text-lg font-semibold text-jade-purple mb-2">{event.title}</h3>
-                    <div className="mb-3">
-                      <span className={`text-xs font-semibold px-2 py-1 rounded ${typeClasses[event.type]}`}>
-                        {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
-                      </span>
+                      <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div className="bg-jade-light/20 p-4 rounded">
+                          <p className="text-sm text-gray-600 mb-1">Due Date</p>
+                          <p className="font-semibold text-gray-900">Feb 28, 2026</p>
+                        </div>
+                        <div className="bg-orange-100/30 p-4 rounded">
+                          <p className="text-sm text-gray-600 mb-1">Status</p>
+                          <p className="font-semibold text-orange-700">
+                            {selectedGuide.status === 'done' ? '✓ Complete' : '◐ In Progress'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="border-t border-gray-200 pt-4">
+                        <h3 className="font-semibold text-gray-900 mb-3">Project Details</h3>
+                        <div className="space-y-2 text-sm text-gray-700">
+                          <p><strong>Category:</strong> {selectedGuide.category}</p>
+                          <p><strong>Priority:</strong> <span className="text-red-600 font-semibold">{selectedGuide.priority === 'high' ? 'High' : 'Medium'}</span></p>
+                          <p><strong>Description:</strong> {selectedGuide.notes}</p>
+                        </div>
+                      </div>
+
+                      <div className="mt-6 p-4 bg-blue-50 rounded border-l-4 border-blue-500">
+                        <p className="text-xs text-gray-700">
+                          💡 <strong>Tip:</strong> View the <span className="text-jade-purple font-semibold">Guides tab</span> in the sidebar to see all sub-tasks and track progress for this guide.
+                        </p>
+                      </div>
                     </div>
-                    {event.newsletter && (
-                      <div className="mb-2 bg-gray-100 p-2 rounded text-sm">
-                        <strong>Newsletter:</strong> {event.newsletter}
-                      </div>
-                    )}
-                    {event.content && (
-                      <div className="mb-2 text-sm text-gray-700">
-                        <strong>Content:</strong> {event.content}
-                      </div>
-                    )}
-                    {event.notes && (
-                      <div className="text-sm text-gray-600 italic">{event.notes}</div>
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                })() : null}
+              </div>
+            </div>
+
+            <div className="mt-8 bg-gray-50 p-4 rounded text-sm text-gray-600">
+              <p><strong>Status Legend:</strong> ○ = To Do | ◐ = In Progress | ● = Done</p>
             </div>
           </div>
         )}
 
         {/* All Other Tabs */}
-        {activeTab !== 'calendar' && (
+        {activeTab !== 'guides' && (
           <div>
             {/* Update Note */}
             <div className="bg-yellow-50 border-l-4 border-jade-light p-4 rounded mb-6">
@@ -367,7 +496,8 @@ export default function HLSTasks() {
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
 
-                switch (activeTab) {
+                const tab = activeTab as Exclude<TabType, 'guides' | 'calendar'>;
+                switch (tab) {
                   case 'today':
                     filterFn = t => {
                       const td = new Date(t.dueDate);

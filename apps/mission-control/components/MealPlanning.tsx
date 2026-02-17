@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { UtensilsCrossed, Plus, Trash2, Search, ShoppingCart } from 'lucide-react';
+import { UtensilsCrossed, Plus, Trash2, Search, ShoppingCart, X, AlertCircle, CheckCircle, ExternalLink } from 'lucide-react';
+import { woolworthsMappings, getWoolworthsMapping, getUnmappedItems, isItemFlagged } from '../lib/woolworthsMapping';
 
 interface MealDatabaseEntry {
   calories: number;
@@ -16,6 +17,10 @@ interface ShoppingItem {
   name: string;
   qty: string;
   unit: string;
+  woolworthsUrl?: string;
+  woolworthsProductName?: string;
+  hasMapping?: boolean;
+  isFlagged?: boolean;
 }
 
 interface Staple {
@@ -28,8 +33,16 @@ interface Staple {
 interface MealsState {
   jades: Record<string, string>;
   harveys: Record<string, string>;
+  harveysAssignedMeals: Record<string, Record<string, string[]>>;
   shopping: ShoppingItem[];
   staples: Staple[];
+}
+
+interface AssignmentModalState {
+  isOpen: boolean;
+  selectedItem: string | null;
+  selectedDay: string | null;
+  selectedMeal: string | null;
 }
 
 const JADE_TARGETS = {
@@ -42,6 +55,20 @@ const JADE_TARGETS = {
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const jadesMealTypes = ['Breakfast', 'Lunch', 'Snack', 'Dinner', 'Dessert'];
 const harveysMealTypes = ['Breakfast', 'Lunch', 'Snack', 'Dinner'];
+
+// Initialize empty assigned meals structure
+const initializeAssignedMeals = () => {
+  const structure: Record<string, Record<string, string[]>> = {};
+  days.forEach((day) => {
+    structure[day] = {
+      breakfast: [],
+      lunch: [],
+      snack: [],
+      dinner: [],
+    };
+  });
+  return structure;
+};
 
 const mealDatabase: Record<string, MealDatabaseEntry> = {
   'Double Cheeseburger': {
@@ -67,6 +94,7 @@ export default function MealPlanning() {
   const [meals, setMeals] = useState<MealsState>({
     jades: { 'Friday-Dinner': 'Double Cheeseburger' },
     harveys: {},
+    harveysAssignedMeals: initializeAssignedMeals(),
     shopping: [
       { id: 1, name: 'Extra Lean Beef Mince (5 Star)', qty: '180', unit: 'g' },
       { id: 2, name: '50% Less Fat Cheese Slice - Bega', qty: '1', unit: 'slice' },
@@ -80,18 +108,92 @@ export default function MealPlanning() {
     staples: [],
   });
 
+  const [assignmentModal, setAssignmentModal] = useState<AssignmentModalState>({
+    isOpen: false,
+    selectedItem: null,
+    selectedDay: null,
+    selectedMeal: null,
+  });
+
   const [newItemName, setNewItemName] = useState('');
   const [newItemQty, setNewItemQty] = useState('');
   const [newItemUnit, setNewItemUnit] = useState('');
   const [newStapleName, setNewStapleName] = useState('');
   const [newStapleBrand, setNewStapleBrand] = useState('');
 
+  // All Harvey's meal options (organized by category)
+  const harveysMealOptions: Record<string, string[]> = {
+    '🥣 Carb/Protein': [
+      'ABC Muffins',
+      'Banana Muffins',
+      'Muesli Bar',
+      'Carmans Oat Bar',
+      'Rice Bubble Bars (homemade)',
+      'Ham & Cheese Scroll',
+      'Pizza Scroll',
+      'Cheese & Vegemite (+backup)',
+      'Ham & Cheese Sandwich',
+      'Nut Butter & Honey (+backup)',
+      'Pasta & Boiled Egg (+backup)',
+      'Avo & Cream Cheese (+backup)',
+      'Sweet Potato & Chicken',
+      'Choc Chip Muffins',
+      'Weekly New Muffin',
+      'Weekly New Bar',
+    ],
+    '🍎 Fruit': [
+      'Apple (introduce)',
+      'Pear',
+      'Oranges',
+      'Banana',
+      'Grapes',
+      'Strawberries',
+      'Raspberries',
+      'Blueberries',
+      'Kiwi Fruit',
+      'Plum',
+      'Nectarine',
+    ],
+    '🥦 Vegetable': [
+      'Mixed Frozen Veg ⭐ LOVES',
+      'Cucumber (keep trying)',
+      'Tomato (keep trying)',
+      'Capsicum',
+      'Broccoli (new)',
+      'Green Beans (new)',
+      'Roasted Sweet Potato (new)',
+    ],
+    '🍪 Crunch': [
+      'Star Crackers',
+      'Rice Cakes',
+      'Pikelets/Pancakes',
+      'Veggie Chips',
+      'Soft Pretzels',
+      'Cheese Crackers',
+      'Breadsticks/Grissini',
+    ],
+    '🥤 Afternoon Snacks': [
+      'Smoothie (banana, berries, yogurt, milk)',
+      'Yogurt + Fruit',
+      'Crackers + Cheese',
+      'Toast + Nut Butter',
+      'Fruit Salad',
+      'Rice Cakes + Honey',
+    ],
+    '✅ Everyday': ['Yogurt (every lunch)'],
+  };
+
   // Load from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('jadesMealData');
     if (saved) {
       try {
-        setMeals(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        // Ensure harveysAssignedMeals structure exists
+        if (!parsed.harveysAssignedMeals) {
+          parsed.harveysAssignedMeals = initializeAssignedMeals();
+        }
+        setMeals(parsed);
       } catch (e) {
         console.log('No saved data');
       }
@@ -198,6 +300,89 @@ export default function MealPlanning() {
     }
   };
 
+  // Modal functions
+  const openAssignmentModal = (item: string) => {
+    setAssignmentModal({
+      isOpen: true,
+      selectedItem: item,
+      selectedDay: days[0],
+      selectedMeal: 'breakfast',
+    });
+  };
+
+  const closeAssignmentModal = () => {
+    setAssignmentModal({
+      isOpen: false,
+      selectedItem: null,
+      selectedDay: null,
+      selectedMeal: null,
+    });
+  };
+
+  const addItemToMeal = () => {
+    const { selectedItem, selectedDay, selectedMeal } = assignmentModal;
+    if (selectedItem && selectedDay && selectedMeal) {
+      setMeals((prev) => {
+        const updated = { ...prev };
+        const mealList = updated.harveysAssignedMeals[selectedDay][selectedMeal as keyof typeof updated.harveysAssignedMeals[string]];
+        if (!mealList.includes(selectedItem)) {
+          mealList.push(selectedItem);
+        }
+        return updated;
+      });
+      closeAssignmentModal();
+    }
+  };
+
+  const removeItemFromMeal = (day: string, mealSlot: string, item: string) => {
+    setMeals((prev) => {
+      const updated = { ...prev };
+      updated.harveysAssignedMeals[day][mealSlot as keyof typeof updated.harveysAssignedMeals[string]] = 
+        updated.harveysAssignedMeals[day][mealSlot as keyof typeof updated.harveysAssignedMeals[string]].filter((i) => i !== item);
+      return updated;
+    });
+  };
+
+  // Auto-generate shopping list from assigned meals
+  const generateShoppingListFromAssignments = () => {
+    const itemMap: Record<string, { qty: number; category: string }> = {};
+    
+    Object.values(meals.harveysAssignedMeals).forEach((dayMeals) => {
+      Object.values(dayMeals).forEach((items) => {
+        items.forEach((item) => {
+          if (!itemMap[item]) {
+            // Determine category from the options
+            let category = 'Other';
+            for (const [cat, opts] of Object.entries(harveysMealOptions)) {
+              if (opts.includes(item)) {
+                category = cat;
+                break;
+              }
+            }
+            itemMap[item] = { qty: 1, category };
+          } else {
+            itemMap[item].qty += 1;
+          }
+        });
+      });
+    });
+
+    return Object.entries(itemMap).map(([name, data]) => {
+      const mapping = getWoolworthsMapping(name);
+      return {
+        id: Date.now() + Math.random(),
+        name,
+        qty: data.qty.toString(),
+        unit: 'unit',
+        category: data.category,
+        woolworthsUrl: mapping?.woolworthsUrl,
+        woolworthsProductName: mapping?.woolworthsProductName,
+        hasMapping: !!mapping,
+        isFlagged: mapping ? isItemFlagged(name) : false,
+      };
+    });
+  };
+
   // Jade's Meals Tab
   const JadesMealsTab = () => (
     <div className="space-y-6">
@@ -288,32 +473,69 @@ export default function MealPlanning() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-jade-purple mb-2">Harvey's Weekly Meal Plan</h2>
-        <p className="text-gray-600">Plan Harvey's meals for the week.</p>
+        <p className="text-gray-600 mb-4">Assigned items from Options page. Remove items here if needed.</p>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {days.map((day) => (
-          <div key={day} className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="font-semibold text-jade-purple text-lg mb-3 pb-2 border-b-2 border-jade-light">
-              {day}
-            </div>
-            {harveysMealTypes.map((mealType) => {
-              const key = `${day}-${mealType}`;
-              return (
-                <div key={mealType} className="mb-2">
-                  <label className="text-xs font-semibold text-gray-700 block mb-1">{mealType}</label>
-                  <input
-                    type="text"
-                    value={meals.harveys[key] || ''}
-                    onChange={(e) => updateMeal(key, 'harveys', e.target.value)}
-                    placeholder="Meal name"
-                    className="w-full px-2 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-jade-light focus:ring-1 focus:ring-jade-light"
-                  />
-                </div>
-              );
-            })}
-          </div>
-        ))}
+
+      {/* Weekly Grid */}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr>
+              <th className="bg-jade-light text-jade-purple font-bold p-3 text-left border border-gray-300">Day</th>
+              {harveysMealTypes.map((meal) => (
+                <th key={meal} className="bg-jade-light text-jade-purple font-bold p-3 text-left border border-gray-300">
+                  {meal}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {days.map((day) => (
+              <tr key={day}>
+                <td className="bg-jade-light/30 font-semibold text-jade-purple p-3 border border-gray-300 w-24">
+                  {day}
+                </td>
+                {harveysMealTypes.map((meal) => {
+                  const mealKey = meal.toLowerCase() as keyof typeof meals.harveysAssignedMeals[string];
+                  const items = meals.harveysAssignedMeals[day]?.[mealKey] || [];
+                  return (
+                    <td key={meal} className="p-3 border border-gray-300 bg-white">
+                      {items.length === 0 ? (
+                        <div className="text-gray-400 italic text-sm">Empty</div>
+                      ) : (
+                        <div className="space-y-2">
+                          {items.map((item) => (
+                            <div
+                              key={item}
+                              className="bg-jade-light/20 border border-jade-light rounded px-2 py-1 flex items-center justify-between text-sm"
+                            >
+                              <span className="text-gray-800 font-medium">{item}</span>
+                              <button
+                                onClick={() => removeItemFromMeal(day, mealKey, item)}
+                                className="text-red-500 hover:text-red-700 transition ml-2"
+                              >
+                                <X size={16} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
+
+      <div className="bg-green-50 border-l-4 border-green-400 rounded-lg p-4">
+        <p className="text-green-800 font-semibold">✅ Workflow Connected!</p>
+        <p className="text-green-700 text-sm mt-1">
+          Items assigned from Options tab appear here automatically. They also auto-populate your Shopping List below.
+        </p>
+      </div>
+
       <div className="text-center pt-4">
         <button
           onClick={clearHarveysMeals}
@@ -326,15 +548,20 @@ export default function MealPlanning() {
   );
 
   // Shopping List Tab
-  const ShoppingListTab = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-jade-purple mb-2">Shopping List</h2>
-        <p className="text-gray-600 mb-4">Items extracted from your meal plans. Add more manually as needed.</p>
+  const ShoppingListTab = () => {
+    const autoGeneratedItems = generateShoppingListFromAssignments();
+    const combinedList = [...autoGeneratedItems, ...meals.shopping];
+
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-jade-purple mb-2">Shopping List</h2>
+          <p className="text-gray-600 mb-4">Auto-generated from your assigned meals with Woolworths links, plus manually added items.</p>
+        </div>
 
         {/* Add Item Form */}
-        <div className="bg-white rounded-lg p-4 border border-gray-200 mb-6">
-          <h3 className="text-lg font-semibold text-jade-purple mb-3">Add Item Manually</h3>
+        <div className="bg-white rounded-lg p-4 border border-gray-200">
+          <h3 className="text-lg font-semibold text-jade-purple mb-3">Add Additional Item</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
             <input
               type="text"
@@ -367,287 +594,457 @@ export default function MealPlanning() {
         </div>
 
         {/* Shopping List */}
-        {meals.shopping.length === 0 ? (
+        {combinedList.length === 0 ? (
           <div className="bg-gray-50 rounded-lg p-8 text-center">
             <ShoppingCart size={48} className="mx-auto mb-4 text-gray-300" />
-            <p className="text-gray-600">No items yet. Add meals or items manually above.</p>
+            <p className="text-gray-600">No items yet. Assign meals in the Options tab to auto-populate.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {meals.shopping.map((item) => (
-              <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-3 flex justify-between items-center">
-                <div>
-                  <div className="font-semibold text-gray-800">{item.name}</div>
-                  <div className="text-sm text-gray-600">
-                    {item.qty} {item.unit}
-                  </div>
+          <div className="space-y-3">
+            {/* Auto-generated items */}
+            {autoGeneratedItems.length > 0 && (
+              <div>
+                <h4 className="font-semibold text-jade-purple mb-2 text-sm flex items-center gap-2">
+                  <CheckCircle size={16} className="text-green-600" /> FROM ASSIGNED MEALS (Auto-Generated)
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {autoGeneratedItems.map((item) => (
+                    <div key={item.id} className={`border rounded-lg p-3 ${
+                      item.isFlagged ? 'bg-amber-50 border-amber-200' : item.hasMapping ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                    }`}>
+                      <div className="font-semibold text-gray-800">{item.name}</div>
+                      <div className="flex justify-between items-center mt-1 mb-2">
+                        <div className="text-sm text-gray-600">
+                          {item.qty} {item.unit}
+                        </div>
+                        <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                          {item.category}
+                        </div>
+                      </div>
+                      {item.hasMapping && (
+                        <div className="text-xs text-gray-700 mb-2 flex items-center gap-1">
+                          {item.isFlagged ? (
+                            <>
+                              <AlertCircle size={12} /> Multiple options on Woolworths
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle size={12} /> {item.woolworthsProductName}
+                            </>
+                          )}
+                        </div>
+                      )}
+                      {item.woolworthsUrl && (
+                        <a
+                          href={item.woolworthsUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded transition ${
+                            item.isFlagged 
+                              ? 'bg-amber-600 text-white hover:bg-amber-700' 
+                              : 'bg-green-600 text-white hover:bg-green-700'
+                          }`}
+                        >
+                          <ExternalLink size={12} /> Woolworths
+                        </a>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <button
-                  onClick={() => removeShoppingItem(item.id)}
-                  className="bg-red-100 text-red-600 p-2 rounded hover:bg-red-200 transition"
-                >
-                  <Trash2 size={16} />
-                </button>
               </div>
-            ))}
+            )}
+
+            {/* Manually added items */}
+            {meals.shopping.length > 0 && (
+              <div>
+                <h4 className="font-semibold text-jade-purple mb-2 text-sm">ADDITIONAL ITEMS (Manually Added)</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {meals.shopping.map((item) => (
+                    <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-3 flex justify-between items-center">
+                      <div>
+                        <div className="font-semibold text-gray-800">{item.name}</div>
+                        <div className="text-sm text-gray-600">
+                          {item.qty} {item.unit}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => removeShoppingItem(item.id)}
+                        className="bg-red-100 text-red-600 p-2 rounded hover:bg-red-200 transition"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        <div className="text-center mt-6">
-          <button
-            onClick={clearShoppingList}
-            className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition"
-          >
-            Clear Shopping List
-          </button>
+        <div className="bg-green-50 border-l-4 border-green-400 rounded-lg p-4">
+          <p className="text-green-800 font-semibold">🔗 Connected to Meal Plan + Woolworths!</p>
+          <p className="text-green-700 text-sm mt-1">
+            This list auto-updates whenever you assign items to meals. Click "Woolworths" to open product pages directly. Check the Woolworths tab for detailed product links and status.
+          </p>
         </div>
-      </div>
-    </div>
-  );
 
-  // Woolworths Tab
-  const WoolworthsTab = () => (
-    <div className="space-y-6">
-      {/* Staples Section */}
-      <div>
-        <h2 className="text-2xl font-bold text-jade-purple mb-2">🛞 Household Staples (Always There)</h2>
-        <p className="text-gray-600 mb-4">Your recurring household items with preferred brands. Check off as you shop.</p>
-
-        {/* Add Staple Form */}
-        <div className="bg-white rounded-lg p-4 border border-gray-200 mb-4">
-          <h3 className="text-lg font-semibold text-jade-purple mb-3">Add New Staple</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <input
-              type="text"
-              value={newStapleName}
-              onChange={(e) => setNewStapleName(e.target.value)}
-              placeholder="Item (e.g., Toilet Paper)"
-              className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-jade-light"
-            />
-            <input
-              type="text"
-              value={newStapleBrand}
-              onChange={(e) => setNewStapleBrand(e.target.value)}
-              placeholder="Brand (e.g., Kleenex)"
-              className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-jade-light"
-            />
+        {combinedList.length > 0 && (
+          <div className="text-center pt-4">
             <button
-              onClick={addStaple}
-              className="bg-jade-purple text-white px-4 py-2 rounded hover:bg-jade-purple/80 transition"
+              onClick={clearShoppingList}
+              className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition"
             >
-              Add Staple
+              Clear Shopping List
             </button>
           </div>
-        </div>
-
-        {/* Staples List */}
-        {meals.staples.length === 0 ? (
-          <div className="bg-gray-50 rounded-lg p-8 text-center">
-            <p className="text-gray-600">No staples yet. Add your go-to household items above.</p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {meals.staples.map((staple) => {
-              const searchUrl = `https://www.woolworths.com.au/shop/search/products?searchTerm=${encodeURIComponent(staple.name + ' ' + staple.brand)}`;
-              return (
-                <div
-                  key={staple.id}
-                  className={`p-3 rounded-lg border flex items-center gap-3 ${
-                    staple.checked ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={staple.checked}
-                    onChange={() => toggleStaple(staple.id)}
-                    className="w-5 h-5 rounded accent-jade-purple cursor-pointer"
-                  />
-                  <div className="flex-1">
-                    <div className={`font-semibold ${staple.checked ? 'line-through text-gray-500' : 'text-gray-800'}`}>
-                      {staple.name}
-                    </div>
-                    <div className="text-sm text-gray-600">{staple.brand}</div>
-                  </div>
-                  <div className="flex gap-2">
-                    <a
-                      href={searchUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-jade-light text-jade-purple px-3 py-1 rounded text-sm font-semibold hover:bg-jade-light/80 transition"
-                    >
-                      Search
-                    </a>
-                    <button
-                      onClick={() => removeStaple(staple.id)}
-                      className="bg-red-100 text-red-600 px-3 py-1 rounded text-sm font-semibold hover:bg-red-200 transition"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
         )}
       </div>
+    );
+  };
 
-      {/* Meal Items Section */}
-      <div>
-        <h2 className="text-2xl font-bold text-jade-purple mb-2">🛒 This Week's Meal Items</h2>
-        <p className="text-gray-600 mb-4">Ingredients from your meals. Clear after checkout.</p>
+  // Woolworths Tab
+  const WoolworthsTab = () => {
+    const autoGeneratedItems = generateShoppingListFromAssignments();
+    const verifiedItems = autoGeneratedItems.filter((item) => item.hasMapping && !item.isFlagged);
+    const flaggedItems = autoGeneratedItems.filter((item) => item.isFlagged);
+    const unmappedItems = autoGeneratedItems.filter((item) => !item.hasMapping);
 
-        {meals.shopping.length === 0 ? (
-          <div className="bg-gray-50 rounded-lg p-8 text-center">
-            <p className="text-gray-600">No items in shopping list yet.</p>
+    return (
+      <div className="space-y-6">
+        {/* FROM MEAL PLAN Section */}
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <CheckCircle size={24} className="text-green-600" />
+            <h2 className="text-2xl font-bold text-jade-purple">🛒 FROM MEAL PLAN (Auto-Linked)</h2>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {meals.shopping.map((item) => {
-              const searchUrl = `https://www.woolworths.com.au/shop/search/products?searchTerm=${encodeURIComponent(item.name)}`;
-              return (
-                <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-3 flex justify-between items-center">
-                  <div>
-                    <div className="font-semibold text-gray-800">{item.name}</div>
-                    <div className="text-sm text-gray-600">
-                      {item.qty} {item.unit}
+          <p className="text-gray-600 mb-4">Items from Harvey's meals with verified Woolworths product links. Click "Add to Cart" to open directly on Woolworths.</p>
+
+          {verifiedItems.length === 0 ? (
+            <div className="bg-gray-50 rounded-lg p-8 text-center">
+              <ShoppingCart size={48} className="mx-auto mb-4 text-gray-300" />
+              <p className="text-gray-600">No verified items yet. Assign meals to populate this list.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+              {verifiedItems.map((item) => (
+                <div key={item.id} className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <div className="font-semibold text-gray-800">{item.name}</div>
+                      <div className="text-sm text-gray-600">
+                        Qty: {item.qty} {item.unit}
+                      </div>
+                      {item.woolworthsProductName && (
+                        <div className="text-xs text-green-700 mt-1 font-medium">
+                          ✓ {item.woolworthsProductName}
+                        </div>
+                      )}
+                    </div>
+                    <CheckCircle size={20} className="text-green-600 flex-shrink-0" />
+                  </div>
+                  <a
+                    href={item.woolworthsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-green-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-green-700 transition inline-flex items-center gap-2 w-full justify-center"
+                  >
+                    <ShoppingCart size={16} /> Add to Cart
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* FLAGGED ITEMS Section */}
+        {flaggedItems.length > 0 && (
+          <div className="border-t-2 border-yellow-200 pt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <AlertCircle size={24} className="text-amber-600" />
+              <h3 className="text-2xl font-bold text-jade-purple">⚠️ NEEDS VERIFICATION (Multiple Options)</h3>
+            </div>
+            <p className="text-gray-600 mb-4">These items have multiple options on Woolworths. Please choose the right product and I'll save your preference.</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+              {flaggedItems.map((item) => (
+                <div key={item.id} className="bg-amber-50 border-2 border-amber-200 rounded-lg p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <div className="font-semibold text-gray-800">{item.name}</div>
+                      <div className="text-sm text-gray-600">
+                        Qty: {item.qty} {item.unit}
+                      </div>
+                      <div className="text-xs text-amber-700 mt-1 font-medium">
+                        Multiple options available - search and choose
+                      </div>
+                    </div>
+                    <AlertCircle size={20} className="text-amber-600 flex-shrink-0" />
+                  </div>
+                  <a
+                    href={item.woolworthsUrl || `https://www.woolworths.com.au/shop/search/products?searchTerm=${encodeURIComponent(item.name)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-amber-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-amber-700 transition inline-flex items-center gap-2 w-full justify-center"
+                  >
+                    <Search size={16} /> Search & Choose
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* UNMAPPED ITEMS Section */}
+        {unmappedItems.length > 0 && (
+          <div className="border-t-2 border-red-200 pt-6">
+            <div className="flex items-center gap-2 mb-4">
+              <AlertCircle size={24} className="text-red-600" />
+              <h3 className="text-2xl font-bold text-jade-purple">❓ NOT IN DATABASE</h3>
+            </div>
+            <p className="text-gray-600 mb-4">These items aren't in our Woolworths mapping yet. Search for them and let me know the product link!</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+              {unmappedItems.map((item) => (
+                <div key={item.id} className="bg-red-50 border-2 border-red-200 rounded-lg p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <div className="font-semibold text-gray-800">{item.name}</div>
+                      <div className="text-sm text-gray-600">
+                        Qty: {item.qty} {item.unit}
+                      </div>
+                      <div className="text-xs text-red-700 mt-1 font-medium">
+                        Help us add this to our database!
+                      </div>
                     </div>
                   </div>
                   <a
-                    href={searchUrl}
+                    href={`https://www.woolworths.com.au/shop/search/products?searchTerm=${encodeURIComponent(item.name)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-jade-light text-jade-purple px-3 py-1 rounded text-sm font-semibold hover:bg-jade-light/80 transition flex items-center gap-1"
+                    className="bg-red-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-red-700 transition inline-flex items-center gap-2 w-full justify-center mb-2"
                   >
-                    <Search size={14} /> Search
+                    <Search size={16} /> Find on Woolworths
                   </a>
+                  <p className="text-xs text-red-700 text-center">
+                    📧 Once you find it, send me the link and product name
+                  </p>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
         )}
-      </div>
 
-      {/* Info Box */}
-      <div className="bg-yellow-50 border-l-4 border-jade-light rounded-lg p-4">
-        <h3 className="font-semibold text-jade-purple mb-2">How This Works</h3>
-        <ol className="list-decimal list-inside text-gray-700 space-y-1 text-sm">
-          <li><strong>Staples:</strong> Check off items you pick up each week. They stay forever.</li>
-          <li><strong>Weekly Items:</strong> Search and add meal ingredients to your cart.</li>
-          <li>Click "Search Woolworths" to open each item on Woolworths.com.au</li>
-          <li>Click the product → Add to cart</li>
-          <li>Once done, come back and clear the weekly list (staples stay!)</li>
-        </ol>
+        {/* Staples Section */}
+        <div className="border-t-2 border-gray-200 pt-6">
+          <h3 className="text-2xl font-bold text-jade-purple mb-2">🛞 Household Staples (Always There)</h3>
+          <p className="text-gray-600 mb-4">Your recurring household items with preferred brands. Check off as you shop.</p>
+
+          {/* Add Staple Form */}
+          <div className="bg-white rounded-lg p-4 border border-gray-200 mb-4">
+            <h4 className="text-lg font-semibold text-jade-purple mb-3">Add New Staple</h4>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+              <input
+                type="text"
+                value={newStapleName}
+                onChange={(e) => setNewStapleName(e.target.value)}
+                placeholder="Item (e.g., Toilet Paper)"
+                className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-jade-light"
+              />
+              <input
+                type="text"
+                value={newStapleBrand}
+                onChange={(e) => setNewStapleBrand(e.target.value)}
+                placeholder="Brand (e.g., Kleenex)"
+                className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-jade-light"
+              />
+              <button
+                onClick={addStaple}
+                className="bg-jade-purple text-white px-4 py-2 rounded hover:bg-jade-purple/80 transition"
+              >
+                Add Staple
+              </button>
+            </div>
+          </div>
+
+          {/* Staples List */}
+          {meals.staples.length === 0 ? (
+            <div className="bg-gray-50 rounded-lg p-8 text-center">
+              <p className="text-gray-600">No staples yet. Add your go-to household items above.</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {meals.staples.map((staple) => {
+                const searchUrl = `https://www.woolworths.com.au/shop/search/products?searchTerm=${encodeURIComponent(staple.name + ' ' + staple.brand)}`;
+                return (
+                  <div
+                    key={staple.id}
+                    className={`p-3 rounded-lg border flex items-center gap-3 ${
+                      staple.checked ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={staple.checked}
+                      onChange={() => toggleStaple(staple.id)}
+                      className="w-5 h-5 rounded accent-jade-purple cursor-pointer"
+                    />
+                    <div className="flex-1">
+                      <div className={`font-semibold ${staple.checked ? 'line-through text-gray-500' : 'text-gray-800'}`}>
+                        {staple.name}
+                      </div>
+                      <div className="text-sm text-gray-600">{staple.brand}</div>
+                    </div>
+                    <div className="flex gap-2">
+                      <a
+                        href={searchUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-jade-light text-jade-purple px-3 py-1 rounded text-sm font-semibold hover:bg-jade-light/80 transition inline-flex items-center gap-1"
+                      >
+                        <Search size={14} /> Search
+                      </a>
+                      <button
+                        onClick={() => removeStaple(staple.id)}
+                        className="bg-red-100 text-red-600 px-3 py-1 rounded text-sm font-semibold hover:bg-red-200 transition"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Info Box */}
+        <div className="bg-blue-50 border-l-4 border-jade-light rounded-lg p-4">
+          <h3 className="font-semibold text-jade-purple mb-2">✨ Woolworths Integration</h3>
+          <ol className="list-decimal list-inside text-gray-700 space-y-1 text-sm">
+            <li><strong>From Meal Plan:</strong> Items with ✓ have direct Woolworths links - click "Add to Cart"</li>
+            <li><strong>Needs Verification:</strong> Items with ⚠️ - search Woolworths and choose the right product</li>
+            <li><strong>Not in Database:</strong> Items with ❓ - help us add them by finding the product link</li>
+            <li><strong>Staples:</strong> Check off recurring household items as you shop</li>
+          </ol>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Harvey's Options Tab
   const HarveysOptionsTab = () => (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-jade-purple mb-2">Harvey's Meal Options</h2>
-        <p className="text-gray-600 mb-4">All meal options organized by category. Check what works, note what needs changes.</p>
+        <p className="text-gray-600 mb-4">Click any item to assign it to a day and meal slot. It will automatically appear in Harvey's Meals.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {[
-          {
-            category: '🥣 Carb/Protein Options',
-            items: [
-              'ABC Muffins',
-              'Banana Muffins',
-              'Muesli Bar',
-              'Carmans Oat Bar',
-              'Rice Bubble Bars (homemade)',
-              'Ham & Cheese Scroll',
-              'Pizza Scroll',
-              'Cheese & Vegemite (+backup)',
-              'Ham & Cheese Sandwich',
-              'Nut Butter & Honey (+backup)',
-              'Pasta & Boiled Egg (+backup)',
-              'Avo & Cream Cheese (+backup)',
-              'Sweet Potato & Chicken',
-              'Choc Chip Muffins',
-              '✨ Weekly New Muffin',
-              '✨ Weekly New Bar',
-            ],
-          },
-          {
-            category: '🍎 Fruit Options',
-            items: [
-              'Apple (introduce)',
-              'Pear',
-              'Oranges',
-              'Banana',
-              'Grapes',
-              'Strawberries',
-              'Raspberries',
-              'Blueberries',
-              'Kiwi Fruit',
-              'Plum',
-              'Nectarine',
-            ],
-          },
-          {
-            category: '🥦 Vegetable Options',
-            items: [
-              '⭐ Mixed Frozen Veg ⭐ LOVES',
-              'Cucumber (keep trying)',
-              'Tomato (keep trying)',
-              'Capsicum',
-              'Broccoli (new)',
-              'Green Beans (new)',
-              'Roasted Sweet Potato (new)',
-            ],
-          },
-          {
-            category: '🍪 Crunch Options',
-            items: [
-              'Star Crackers',
-              'Rice Cakes',
-              'Pikelets/Pancakes',
-              'Veggie Chips',
-              'Soft Pretzels',
-              'Cheese Crackers',
-              'Breadsticks/Grissini',
-            ],
-          },
-          {
-            category: '🥤 Afternoon Snacks (2:30pm)',
-            items: [
-              'Smoothie (banana, berries, yogurt, milk)',
-              'Yogurt + Fruit',
-              'Crackers + Cheese',
-              'Toast + Nut Butter',
-              'Fruit Salad',
-              'Rice Cakes + Honey',
-            ],
-          },
-          {
-            category: '✅ Everyday Item',
-            items: ['🥄 Yogurt (every lunch)'],
-          },
-        ].map((section) => (
-          <div key={section.category} className="bg-white border border-gray-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-jade-purple mb-3">{section.category}</h3>
+        {Object.entries(harveysMealOptions).map(([category, items]) => (
+          <div key={category} className="bg-white border border-gray-200 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-jade-purple mb-3">{category}</h3>
             <div className="space-y-2">
-              {section.items.map((item) => (
-                <label key={item} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                  <input type="checkbox" className="w-4 h-4 accent-jade-purple" />
-                  <span className="text-sm text-gray-700">{item}</span>
-                </label>
+              {items.map((item) => (
+                <button
+                  key={item}
+                  onClick={() => openAssignmentModal(item)}
+                  className="w-full text-left px-3 py-2 rounded hover:bg-jade-light/30 transition border border-transparent hover:border-jade-light font-medium text-gray-700 hover:text-jade-purple"
+                >
+                  + {item}
+                </button>
               ))}
             </div>
           </div>
         ))}
       </div>
 
-      <div className="bg-yellow-50 border-l-4 border-jade-light rounded-lg p-4">
-        <p className="font-semibold text-jade-purple mb-2">📝 How to Use This:</p>
+      <div className="bg-blue-50 border-l-4 border-jade-light rounded-lg p-4">
+        <p className="font-semibold text-jade-purple mb-2">✨ How to Use This:</p>
         <p className="text-gray-700 text-sm">
-          Check the boxes for options you're using. Items marked (+backup) = pair with a backup option until Harvey is ready to eat it solo. Once you've checked what works, I'll build the weekly lunch rotation.
+          Click any item to assign it to a specific day and meal (Breakfast, Lunch, Snack, Dinner). Once assigned, it will appear in your weekly meal plan and automatically add to the shopping list.
         </p>
       </div>
+
+      {/* Assignment Modal */}
+      {assignmentModal.isOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-jade-purple">Assign to Meal Plan</h3>
+              <button
+                onClick={closeAssignmentModal}
+                className="text-gray-500 hover:text-gray-700 transition"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Item</label>
+                <div className="bg-jade-light/20 px-3 py-2 rounded border border-jade-light text-gray-800 font-medium">
+                  {assignmentModal.selectedItem}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Day</label>
+                <select
+                  value={assignmentModal.selectedDay || ''}
+                  onChange={(e) =>
+                    setAssignmentModal((prev) => ({
+                      ...prev,
+                      selectedDay: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-jade-light focus:ring-1 focus:ring-jade-light"
+                >
+                  {days.map((day) => (
+                    <option key={day} value={day}>
+                      {day}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Meal Slot</label>
+                <select
+                  value={assignmentModal.selectedMeal || ''}
+                  onChange={(e) =>
+                    setAssignmentModal((prev) => ({
+                      ...prev,
+                      selectedMeal: e.target.value,
+                    }))
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-jade-light focus:ring-1 focus:ring-jade-light"
+                >
+                  {harveysMealTypes.map((meal) => (
+                    <option key={meal} value={meal.toLowerCase()}>
+                      {meal}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <button
+                  onClick={closeAssignmentModal}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition font-medium text-gray-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={addItemToMeal}
+                  className="flex-1 px-4 py-2 bg-jade-purple text-white rounded hover:bg-jade-purple/80 transition font-medium"
+                >
+                  Add to Meal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
