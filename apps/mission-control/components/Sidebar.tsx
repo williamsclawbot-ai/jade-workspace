@@ -24,6 +24,7 @@ import {
   Building,
   Sun,
   CreditCard,
+  ListTodo,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -50,6 +51,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         { id: 'inbox', label: 'Quick Capture', icon: Inbox },
         { id: 'calendar', label: 'Calendar', icon: Calendar },
         { id: 'decisions', label: 'Decisions', icon: GitBranch },
+        { id: 'personal-tasks', label: 'Personal Tasks', icon: ListTodo },
         { id: 'memory', label: 'Memory', icon: Brain },
         { id: 'office', label: 'Office', icon: Building },
       ],

@@ -25,6 +25,7 @@ import HouseholdTodos from '@/components/HouseholdTodos';
 import GoHighLevelMetrics from '@/components/GoHighLevelMetrics';
 import StripeRevenue from '@/components/StripeRevenue';
 import CombinedMetrics from '@/components/CombinedMetrics';
+import PersonalTasks from '@/components/PersonalTasks';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -80,6 +81,8 @@ export default function Home() {
         return <RemindersForJohn />;
       case 'household-todos':
         return <HouseholdTodos />;
+      case 'personal-tasks':
+        return <PersonalTasks />;
       case 'woolworths':
         return <div className="p-8 text-center"><p className="text-gray-600">🛒 Woolworths integration coming soon</p></div>;
       case 'memory':
