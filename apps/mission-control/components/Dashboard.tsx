@@ -1,11 +1,11 @@
 'use client';
 
-import KanbanDashboard from './KanbanDashboard';
+import DashboardExpanded from './DashboardExpanded';
 
 interface DashboardProps {
   onNavigate?: (tab: string) => void;
 }
 
 export default function Dashboard({ onNavigate }: DashboardProps) {
-  return <KanbanDashboard onNavigate={onNavigate} />;
+  return <DashboardExpanded onNavigate={onNavigate} />;
 }
