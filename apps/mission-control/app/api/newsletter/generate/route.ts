@@ -21,11 +21,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+    // Try multiple ways to get the API key
+    const ANTHROPIC_API_KEY = 
+      process.env.ANTHROPIC_API_KEY || 
+      process.env['ANTHROPIC_API_KEY'];
+    
+    console.log('Checking for ANTHROPIC_API_KEY...');
+    console.log('process.env.ANTHROPIC_API_KEY exists:', !!process.env.ANTHROPIC_API_KEY);
+    console.log('Key length:', ANTHROPIC_API_KEY ? ANTHROPIC_API_KEY.length : 0);
+    
     if (!ANTHROPIC_API_KEY) {
       console.error('ANTHROPIC_API_KEY not found in environment');
+      console.error('Available env vars:', Object.keys(process.env).filter(k => k.includes('ANTHROPIC')));
       return NextResponse.json(
-        { error: 'API key not configured' },
+        { error: 'API key not configured', debug: 'Missing ANTHROPIC_API_KEY in environment' },
         { status: 500 }
       );
     }
