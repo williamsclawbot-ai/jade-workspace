@@ -131,8 +131,10 @@ export default function MealPlanning() {
   const [newItemUnit, setNewItemUnit] = useState('');
   const [newStapleName, setNewStapleName] = useState('');
   const [newStapleBrand, setNewStapleBrand] = useState('');
+  const [buildingCart, setBuildingCart] = useState(false);
+  const [cartResult, setCartResult] = useState<{ success: boolean; message: string; items?: any[]; total?: number } | null>(null);
 
-  // Load meals from storage on mount
+  // Load meals from jadesMealsStorage on mount
   useEffect(() => {
     const loadMeals = () => {
       const allMeals = jadesMealsStorage.getAllMeals();
@@ -146,8 +148,12 @@ export default function MealPlanning() {
 
     loadMeals();
 
-    // Listen for storage changes
-    const handleStorageChange = () => loadMeals();
+    // Listen for storage changes from jadesMealsStorage
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'jades-meals-storage-v1') {
+        loadMeals();
+      }
+    };
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
@@ -257,6 +263,28 @@ export default function MealPlanning() {
       ...prev,
       [type]: { ...prev[type], [key]: value },
     }));
+
+    // If updating Jade's meal, persist to jadesMealsStorage
+    if (type === 'jades' && value.trim()) {
+      const [day, mealType] = key.split('-');
+      const mealData = mealDatabase[value];
+      jadesMealsStorage.addMeal(
+        day,
+        mealType,
+        value,
+        mealData ? {
+          calories: mealData.calories,
+          protein: mealData.protein,
+          fats: mealData.fats,
+          carbs: mealData.carbs,
+        } : {},
+        mealData ? mealData.ingredients : []
+      );
+    } else if (type === 'jades' && !value.trim()) {
+      // Remove meal if empty
+      const [day, mealType] = key.split('-');
+      jadesMealsStorage.removeMeal(day, mealType);
+    }
   };
 
   const clearJadesMeals = () => {
@@ -292,6 +320,15 @@ export default function MealPlanning() {
     setMeals((prev) => ({
       ...prev,
       shopping: prev.shopping.filter((item) => item.id !== id),
+    }));
+  };
+
+  const editShoppingItem = (id: number, field: 'name' | 'qty' | 'unit', value: string) => {
+    setMeals((prev) => ({
+      ...prev,
+      shopping: prev.shopping.map((item) => 
+        item.id === id ? { ...item, [field]: value } : item
+      ),
     }));
   };
 
@@ -372,6 +409,37 @@ export default function MealPlanning() {
         updated.harveysAssignedMeals[day][mealSlot as keyof typeof updated.harveysAssignedMeals[string]].filter((i) => i !== item);
       return updated;
     });
+  };
+
+  const buildWoolworthsCart = async () => {
+    setBuildingCart(true);
+    setCartResult(null);
+    try {
+      const response = await fetch('/api/woolworths/build-cart', {
+        method: 'POST',
+      });
+      const data = await response.json();
+      if (data.success) {
+        setCartResult({
+          success: true,
+          message: `✅ Cart built successfully! ${data.items.length} items added. Cart total: $${data.total.toFixed(2)}`,
+          items: data.items,
+          total: data.total,
+        });
+      } else {
+        setCartResult({
+          success: false,
+          message: `❌ Error building cart: ${data.error}`,
+        });
+      }
+    } catch (error) {
+      setCartResult({
+        success: false,
+        message: `❌ Failed to build cart: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      });
+    } finally {
+      setBuildingCart(false);
+    }
   };
 
   // Extract ingredients from Jade's meals
@@ -719,22 +787,41 @@ export default function MealPlanning() {
             {/* Manually added items */}
             {meals.shopping.length > 0 && (
               <div>
-                <h4 className="font-semibold text-jade-purple mb-2 text-sm">ADDITIONAL ITEMS (Manually Added)</h4>
+                <h4 className="font-semibold text-jade-purple mb-2 text-sm">ADDITIONAL ITEMS (Manually Added - Editable)</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {meals.shopping.map((item) => (
-                    <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-3 flex justify-between items-center">
-                      <div>
-                        <div className="font-semibold text-gray-800">{item.name}</div>
-                        <div className="text-sm text-gray-600">
-                          {item.qty} {item.unit}
+                    <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-4">
+                      <div className="space-y-2">
+                        <input
+                          type="text"
+                          value={item.name}
+                          onChange={(e) => editShoppingItem(item.id, 'name', e.target.value)}
+                          placeholder="Item name"
+                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm font-semibold focus:outline-none focus:border-jade-light"
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <input
+                            type="text"
+                            value={item.qty}
+                            onChange={(e) => editShoppingItem(item.id, 'qty', e.target.value)}
+                            placeholder="Qty"
+                            className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-jade-light"
+                          />
+                          <input
+                            type="text"
+                            value={item.unit}
+                            onChange={(e) => editShoppingItem(item.id, 'unit', e.target.value)}
+                            placeholder="Unit"
+                            className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-jade-light"
+                          />
                         </div>
+                        <button
+                          onClick={() => removeShoppingItem(item.id)}
+                          className="w-full bg-red-100 text-red-600 p-2 rounded hover:bg-red-200 transition text-sm font-semibold flex items-center justify-center gap-2"
+                        >
+                          <Trash2 size={14} /> Remove
+                        </button>
                       </div>
-                      <button
-                        onClick={() => removeShoppingItem(item.id)}
-                        className="bg-red-100 text-red-600 p-2 rounded hover:bg-red-200 transition"
-                      >
-                        <Trash2 size={16} />
-                      </button>
                     </div>
                   ))}
                 </div>
@@ -763,19 +850,62 @@ export default function MealPlanning() {
 
         {/* Build Woolworths Cart Button */}
         {combinedList.length > 0 && (
-          <div className="mt-8 bg-green-50 rounded-lg p-6 border border-green-200">
-            <h3 className="text-lg font-semibold text-green-900 mb-3">Ready to Shop?</h3>
-            <p className="text-green-800 text-sm mb-4">
-              You have {combinedList.length} item{combinedList.length !== 1 ? 's' : ''} in your shopping list. Build your Woolworths cart to proceed to checkout.
-            </p>
-            <button
-              onClick={() => {
-                alert(`✅ Cart ready with ${combinedList.length} items!\n\nNext: Go to HOME → Shopping Cart (Checkout) to access the Woolworths integration.`);
-              }}
-              className="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition font-semibold text-lg flex items-center justify-center gap-2"
-            >
-              <ShoppingCart size={20} /> Build Woolworths Cart ({combinedList.length} items)
-            </button>
+          <div className="mt-8 space-y-4">
+            <div className="bg-green-50 rounded-lg p-6 border border-green-200">
+              <h3 className="text-lg font-semibold text-green-900 mb-3">Ready to Shop?</h3>
+              <p className="text-green-800 text-sm mb-4">
+                You have {combinedList.length} item{combinedList.length !== 1 ? 's' : ''} in your shopping list. Build your Woolworths cart to auto-add items and proceed to checkout.
+              </p>
+              <button
+                onClick={buildWoolworthsCart}
+                disabled={buildingCart}
+                className={`w-full px-6 py-3 rounded-lg transition font-semibold text-lg flex items-center justify-center gap-2 ${
+                  buildingCart 
+                    ? 'bg-gray-400 text-white cursor-not-allowed' 
+                    : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
+              >
+                {buildingCart ? (
+                  <>
+                    <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+                    Building Cart...
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart size={20} /> Build Woolworths Cart ({combinedList.length} items)
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Cart Result */}
+            {cartResult && (
+              <div className={`rounded-lg p-4 border-l-4 ${
+                cartResult.success 
+                  ? 'bg-green-50 border-green-400' 
+                  : 'bg-red-50 border-red-400'
+              }`}>
+                <p className={`font-semibold mb-2 ${cartResult.success ? 'text-green-900' : 'text-red-900'}`}>
+                  {cartResult.message}
+                </p>
+                {cartResult.success && cartResult.items && cartResult.items.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-sm font-semibold text-green-800 mb-2">Items Added:</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                      {cartResult.items.map((item, idx) => (
+                        <div key={idx} className="bg-white/50 rounded px-2 py-1">
+                          <div className="font-medium text-gray-800">{item.name}</div>
+                          <div className="text-xs text-gray-600">${item.price.toFixed(2)}</div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-3 text-lg font-bold text-green-900">
+                      Total: ${cartResult.total?.toFixed(2)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
