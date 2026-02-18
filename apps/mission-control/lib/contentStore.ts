@@ -33,6 +33,8 @@ export interface ContentItem {
 }
 
 const STORAGE_KEY = 'jade_content_items';
+const VERSION_KEY = 'jade_content_version';
+const CURRENT_VERSION = '2026-02-18-7pieces'; // Version bump forces reset
 
 // Default content data with FULL SCRIPTS - 7 NEW PIECES FOR FEB 17-23
 const DEFAULT_CONTENT: ContentItem[] = [
@@ -212,15 +214,27 @@ class ContentStore {
   static getAll(): ContentItem[] {
     if (typeof window === 'undefined') return DEFAULT_CONTENT;
     
+    // Check version and reset if needed
+    const storedVersion = localStorage.getItem(VERSION_KEY);
+    if (storedVersion !== CURRENT_VERSION) {
+      // Version mismatch - force reset to new content
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_CONTENT));
+      localStorage.setItem(VERSION_KEY, CURRENT_VERSION);
+      return DEFAULT_CONTENT;
+    }
+    
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_CONTENT));
+      localStorage.setItem(VERSION_KEY, CURRENT_VERSION);
       return DEFAULT_CONTENT;
     }
     
     try {
       return JSON.parse(stored);
     } catch {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_CONTENT));
+      localStorage.setItem(VERSION_KEY, CURRENT_VERSION);
       return DEFAULT_CONTENT;
     }
   }
@@ -303,6 +317,7 @@ class ContentStore {
    */
   static reset(): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_CONTENT));
+    localStorage.setItem(VERSION_KEY, CURRENT_VERSION);
   }
 }
 
