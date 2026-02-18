@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useNewsletterTopic } from '@/lib/useNewsletterTopic';
 import { type NewsletterTopicIdea } from '@/lib/newsletterTopicUtils';
 import QuickNotesModal from './QuickNotesModal';
+import NotesButton from './NotesButton';
 
 interface NewsletterStage {
   stage: 1 | 2 | 3 | 4;
@@ -32,7 +33,6 @@ export default function WeeklyNewsletter() {
   const [editingWeek, setEditingWeek] = useState<string | null>(null);
   const [showNewForm, setShowNewForm] = useState(false);
   const [generatingDraft, setGeneratingDraft] = useState<string | null>(null);
-  const [notesModalOpen, setNotesModalOpen] = useState(false);
   
   // Use shared newsletter topic hook
   const { topicData, selectTopic: handleSelectTopicUtil } = useNewsletterTopic();
@@ -266,14 +266,7 @@ export default function WeeklyNewsletter() {
             </div>
           </div>
           <div className="flex gap-2">
-            <button
-              onClick={() => setNotesModalOpen(true)}
-              className="flex items-center space-x-2 bg-amber-100 text-amber-700 px-4 py-2 rounded-lg hover:bg-amber-200 transition-colors"
-              title="Add notes for this section"
-            >
-              <StickyNote size={20} />
-              <span>Notes</span>
-            </button>
+            <NotesButton section="Newsletter" />
             <button
               onClick={() => setShowNewForm(true)}
               className="flex items-center space-x-2 bg-jade-purple text-jade-cream px-4 py-2 rounded-lg hover:bg-jade-light hover:text-jade-purple transition-colors"
@@ -538,12 +531,7 @@ export default function WeeklyNewsletter() {
           </div>
         )}
 
-        {/* Quick Notes Modal */}
-        <QuickNotesModal
-          isOpen={notesModalOpen}
-          onClose={() => setNotesModalOpen(false)}
-          section="Newsletter"
-        />
+        {/* Notes managed via NotesButton component */}
       </div>
     </div>
   );

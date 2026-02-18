@@ -2,6 +2,7 @@
 
 import { Zap, Plus, Calendar, CheckCircle2, Target } from 'lucide-react';
 import { useState } from 'react';
+import NotesButton from './NotesButton';
 
 interface Campaign {
   id: string;
@@ -71,10 +72,13 @@ export default function Campaigns() {
               <p className="text-sm text-gray-600">Manage and track marketing campaigns</p>
             </div>
           </div>
-          <button className="flex items-center space-x-2 bg-jade-purple text-jade-cream px-4 py-2 rounded-lg hover:bg-jade-light hover:text-jade-purple transition-colors">
-            <Plus size={20} />
-            <span>New Campaign</span>
-          </button>
+          <div className="flex gap-2">
+            <NotesButton section="Campaigns" />
+            <button className="flex items-center space-x-2 bg-jade-purple text-jade-cream px-4 py-2 rounded-lg hover:bg-jade-light hover:text-jade-purple transition-colors">
+              <Plus size={20} />
+              <span>New Campaign</span>
+            </button>
+          </div>
         </div>
       </div>
 

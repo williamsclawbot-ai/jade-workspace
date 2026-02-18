@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { UtensilsCrossed, Plus, Trash2, Search, ShoppingCart, X, AlertCircle, CheckCircle, ExternalLink } from 'lucide-react';
 import { woolworthsMappings, getWoolworthsMapping, getUnmappedItems, isItemFlagged } from '../lib/woolworthsMapping';
+import NotesButton from './NotesButton';
 
 interface MealDatabaseEntry {
   calories: number;
@@ -1060,6 +1061,7 @@ export default function MealPlanning() {
               <p className="text-sm text-gray-600">Track meals, macros, and shopping</p>
             </div>
           </div>
+          <NotesButton section="Meals" />
         </div>
       </div>
 

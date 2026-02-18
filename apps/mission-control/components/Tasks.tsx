@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Dashboard from './Dashboard';
 import KanbanBoard from './KanbanBoard';
 import Metrics from './Metrics';
+import NotesButton from './NotesButton';
 
 type TaskView = 'dashboard' | 'kanban' | 'metrics';
 
@@ -16,6 +17,7 @@ export default function Tasks() {
       <div className="border-b border-jade-light px-6 py-4 flex items-center space-x-4">
         <h2 className="text-2xl font-bold text-jade-purple">Tasks</h2>
         <div className="flex items-center space-x-2 ml-auto">
+          <NotesButton section="Tasks" />
           {[
             { id: 'dashboard', label: 'Dashboard' },
             { id: 'kanban', label: 'Kanban' },

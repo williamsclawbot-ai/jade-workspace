@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Calendar, Plus, Trash2, Edit2, Clock } from 'lucide-react';
+import NotesButton from './NotesButton';
 
 interface Appointment {
   id: string;
@@ -143,24 +144,27 @@ export default function Appointments() {
               <p className="text-sm text-gray-600">Doctor, dental, school, and other appointments</p>
             </div>
           </div>
-          <button
-            onClick={() => {
-              setEditingId(null);
-              setFormData({
-                person: 'jade',
-                type: '',
-                description: '',
-                date: '',
-                time: '',
-                location: '',
-                notes: '',
-              });
-              setShowForm(!showForm);
-            }}
-            className="bg-jade-purple text-white px-4 py-2 rounded-lg hover:bg-jade-purple/80 transition flex items-center gap-2"
-          >
-            <Plus size={18} /> Add Appointment
-          </button>
+          <div className="flex gap-2">
+            <NotesButton section="Appointments" />
+            <button
+              onClick={() => {
+                setEditingId(null);
+                setFormData({
+                  person: 'jade',
+                  type: '',
+                  description: '',
+                  date: '',
+                  time: '',
+                  location: '',
+                  notes: '',
+                });
+                setShowForm(!showForm);
+              }}
+              className="bg-jade-purple text-white px-4 py-2 rounded-lg hover:bg-jade-purple/80 transition flex items-center gap-2"
+            >
+              <Plus size={18} /> Add Appointment
+            </button>
+          </div>
         </div>
       </div>
 

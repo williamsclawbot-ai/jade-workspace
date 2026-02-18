@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { CheckCircle2, Plus, Trash2, X, StickyNote } from 'lucide-react';
-import QuickNotesModal from './QuickNotesModal';
+import NotesButton from './NotesButton';
 
 interface CleaningTask {
   id: string;
@@ -49,7 +49,6 @@ export default function CleaningSchedule() {
     selectedTaskId: null,
   });
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [notesModalOpen, setNotesModalOpen] = useState(false);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -317,12 +316,15 @@ export default function CleaningSchedule() {
     <div className="h-full flex flex-col bg-white">
       {/* Header */}
       <div className="border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center space-x-3">
-          <CheckCircle2 size={32} className="text-jade-purple" />
-          <div>
-            <h2 className="text-2xl font-bold text-jade-purple">Cleaning Schedule</h2>
-            <p className="text-sm text-gray-600">Organize and track your weekly cleaning tasks</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <CheckCircle2 size={32} className="text-jade-purple" />
+            <div>
+              <h2 className="text-2xl font-bold text-jade-purple">Cleaning Schedule</h2>
+              <p className="text-sm text-gray-600">Organize and track your weekly cleaning tasks</p>
+            </div>
           </div>
+          <NotesButton section="Cleaning" />
         </div>
       </div>
 

@@ -1,125 +1,135 @@
 /**
- * Notes Store - Manages notes and ideas
+ * Notes Store - Manages notes by section/tab
  */
 
-export interface Note {
+export interface SectionNote {
   id: string;
-  title: string;
-  content: string;
-  tags?: string[];
-  category?: string;
-  pinned?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
+  section: string; // e.g., 'Content', 'Meals', 'Cleaning', 'Newsletter', etc.
+  text: string;
+  timestamp: number; // Unix timestamp
+  date: string; // ISO date string
 }
 
-const STORAGE_KEY = 'jade_notes';
+const STORAGE_KEY = 'mission-control-section-notes';
 
-const DEFAULT_NOTES: Note[] = [
-  {
-    id: '1',
-    title: 'Video ideas for next month',
-    content: 'Sleep schedules, nap transitions, bedtime routines',
-    tags: ['content', 'ideas'],
-    category: 'content',
-    pinned: true,
-  },
-  {
-    id: '2',
-    title: 'Product features to explore',
-    content: 'Better analytics, customer segmentation, automation',
-    tags: ['product', 'future'],
-    category: 'business',
-  },
-];
-
-class NotesStore {
-  private notes: Note[] = [];
+class SectionNotesStore {
+  private notes: SectionNote[] = [];
+  private listeners: (() => void)[] = [];
 
   constructor() {
     this.load();
+    this.setupStorageListener();
   }
 
   private load() {
     if (typeof window === 'undefined') {
-      this.notes = DEFAULT_NOTES;
       return;
     }
 
     const stored = localStorage.getItem(STORAGE_KEY);
-    this.notes = stored ? JSON.parse(stored) : DEFAULT_NOTES;
+    if (stored) {
+      try {
+        this.notes = JSON.parse(stored);
+      } catch (e) {
+        console.error('Failed to load section notes:', e);
+        this.notes = [];
+      }
+    }
   }
 
   private save() {
     if (typeof window === 'undefined') return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(this.notes));
+    this.notifyListeners();
   }
 
-  getNotes(): Note[] {
-    return this.notes.sort((a, b) => {
-      if (a.pinned && !b.pinned) return -1;
-      if (!a.pinned && b.pinned) return 1;
-      return (b.updatedAt || b.createdAt || '').localeCompare(a.updatedAt || a.createdAt || '');
+  private setupStorageListener() {
+    if (typeof window === 'undefined') return;
+    
+    window.addEventListener('storage', (e) => {
+      if (e.key === STORAGE_KEY) {
+        this.load();
+        this.notifyListeners();
+      }
     });
   }
 
-  searchNotes(query: string): Note[] {
-    const q = query.toLowerCase();
-    return this.notes.filter(
-      (n) =>
-        n.title.toLowerCase().includes(q) ||
-        n.content.toLowerCase().includes(q) ||
-        (n.tags || []).some((tag) => tag.toLowerCase().includes(q))
-    );
+  subscribe(listener: () => void) {
+    this.listeners.push(listener);
+    return () => {
+      this.listeners = this.listeners.filter(l => l !== listener);
+    };
   }
 
-  getByCategory(category: string): Note[] {
-    return this.notes.filter((n) => n.category === category);
+  private notifyListeners() {
+    this.listeners.forEach(listener => listener());
   }
 
-  getPinned(): Note[] {
-    return this.notes.filter((n) => n.pinned);
+  // Get all notes
+  getNotes(): SectionNote[] {
+    return [...this.notes].sort((a, b) => b.timestamp - a.timestamp);
   }
 
-  addNote(note: Omit<Note, 'id'>): Note {
-    const newNote: Note = {
-      ...note,
+  // Get notes for a specific section
+  getBySection(section: string): SectionNote[] {
+    return this.notes
+      .filter(n => n.section === section)
+      .sort((a, b) => b.timestamp - a.timestamp);
+  }
+
+  // Get unique sections with note counts
+  getSections(): Array<{ section: string; count: number }> {
+    const sections = new Map<string, number>();
+    this.notes.forEach(note => {
+      sections.set(note.section, (sections.get(note.section) || 0) + 1);
+    });
+    return Array.from(sections.entries())
+      .map(([section, count]) => ({ section, count }))
+      .sort((a, b) => a.section.localeCompare(b.section));
+  }
+
+  // Add a new note
+  addNote(section: string, text: string): SectionNote {
+    const now = new Date();
+    const newNote: SectionNote = {
       id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      section,
+      text,
+      timestamp: now.getTime(),
+      date: now.toISOString(),
     };
     this.notes.push(newNote);
     this.save();
     return newNote;
   }
 
-  updateNote(id: string, updates: Partial<Note>): Note | null {
-    const note = this.notes.find((n) => n.id === id);
-    if (!note) return null;
-    Object.assign(note, updates, { updatedAt: new Date().toISOString() });
-    this.save();
-    return note;
-  }
-
+  // Delete a note
   deleteNote(id: string): boolean {
-    const index = this.notes.findIndex((n) => n.id === id);
+    const index = this.notes.findIndex(n => n.id === id);
     if (index === -1) return false;
     this.notes.splice(index, 1);
     this.save();
     return true;
   }
 
-  togglePin(id: string): Note | null {
-    const note = this.notes.find((n) => n.id === id);
-    if (!note) return null;
-    note.pinned = !note.pinned;
-    this.save();
-    return note;
+  // Search notes by text
+  searchNotes(query: string): SectionNote[] {
+    const q = query.toLowerCase();
+    return this.notes
+      .filter(n => n.text.toLowerCase().includes(q) || n.section.toLowerCase().includes(q))
+      .sort((a, b) => b.timestamp - a.timestamp);
   }
 
-  getUrgentForToday(): Note[] {
-    return this.getPinned();
+  // Get all notes for display in management tab
+  getAllNotes(): SectionNote[] {
+    return this.getNotes();
+  }
+
+  // Clear all notes (use with caution)
+  clearAll(): void {
+    this.notes = [];
+    this.save();
   }
 }
 
-export const notesStore = new NotesStore();
+export const sectionNotesStore = new SectionNotesStore();

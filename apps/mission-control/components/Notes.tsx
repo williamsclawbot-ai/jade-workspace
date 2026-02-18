@@ -1,122 +1,96 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Pin, PinOff, Trash2, Search, Copy, Check } from 'lucide-react';
-import { noteColors } from '@/lib/statusColors';
-
-interface Note {
-  id: string;
-  title: string;
-  content: string;
-  color: 'urgent' | 'question' | 'idea' | 'insight' | 'content' | 'general';
-  pinned: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+import { Search, Trash2, Filter } from 'lucide-react';
+import { sectionNotesStore, SectionNote } from '@/lib/notesStore';
 
 export default function Notes() {
-  const [notes, setNotes] = useState<Note[]>([
-    {
-      id: '1',
-      title: 'Revenue target for March',
-      content: 'Target $10k MRR by end of March. Current: $4k. Need 2.5x growth. Focus on nurture sequence + guide bundle.',
-      color: 'urgent',
-      pinned: true,
-      createdAt: '2026-02-18T02:00:00Z',
-      updatedAt: '2026-02-18T02:00:00Z',
-    },
-    {
-      id: '2',
-      title: 'Content calendar idea',
-      content: 'Red Nose Day Feb 24 - create awareness content. Daylight savings Feb 22 - sleep disruption tips post.',
-      color: 'content',
-      pinned: true,
-      createdAt: '2026-02-18T02:05:00Z',
-      updatedAt: '2026-02-18T02:05:00Z',
-    },
-  ]);
-
-  const [newNoteContent, setNewNoteContent] = useState('');
-  const [selectedColor, setSelectedColor] = useState<'urgent' | 'question' | 'idea' | 'insight' | 'content' | 'general'>('general');
+  const [notes, setNotes] = useState<SectionNote[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedSection, setSelectedSection] = useState<string>('All');
+  const [sections, setSections] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load from localStorage on mount
   useEffect(() => {
-    const saved = localStorage.getItem('mission-control-notes');
-    if (saved) {
-      try {
-        setNotes(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to load notes:', e);
-      }
-    }
+    // Load all notes and sections
+    const allNotes = sectionNotesStore.getNotes();
+    setNotes(allNotes);
+
+    const uniqueSections = sectionNotesStore.getSections();
+    setSections(['All', ...uniqueSections.map(s => s.section)]);
+    setIsLoading(false);
+
+    // Subscribe to changes
+    const unsubscribe = sectionNotesStore.subscribe(() => {
+      const updated = sectionNotesStore.getNotes();
+      setNotes(updated);
+
+      const updatedSections = sectionNotesStore.getSections();
+      setSections(['All', ...updatedSections.map(s => s.section)]);
+    });
+
+    return unsubscribe;
   }, []);
 
-  // Save to localStorage whenever notes change
-  useEffect(() => {
-    localStorage.setItem('mission-control-notes', JSON.stringify(notes));
-  }, [notes]);
-
-  const addNote = () => {
-    if (!newNoteContent.trim()) return;
-
-    const firstLine = newNoteContent.split('\n')[0].substring(0, 50);
-    const newNote: Note = {
-      id: Date.now().toString(),
-      title: firstLine || 'Untitled',
-      content: newNoteContent,
-      color: selectedColor,
-      pinned: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    setNotes([newNote, ...notes]);
-    setNewNoteContent('');
-    setSelectedColor('general');
-  };
-
-  const togglePin = (id: string) => {
-    setNotes(notes.map(note =>
-      note.id === id ? { ...note, pinned: !note.pinned } : note
-    ));
-  };
-
-  const deleteNote = (id: string) => {
+  const handleDelete = (id: string) => {
     if (confirm('Delete this note?')) {
-      setNotes(notes.filter(note => note.id !== id));
+      sectionNotesStore.deleteNote(id);
     }
   };
 
-  const copyNote = (content: string, id: string) => {
-    navigator.clipboard.writeText(content);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
-  };
+  // Filter notes based on search and section selection
+  const filteredNotes = notes.filter(note => {
+    const matchesSearch = note.text.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         note.section.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSection = selectedSection === 'All' || note.section === selectedSection;
+    return matchesSearch && matchesSection;
+  });
 
-  const filteredNotes = notes.filter(note =>
-    note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    note.content.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const pinnedNotes = filteredNotes.filter(n => n.pinned);
-  const unpinnedNotes = filteredNotes.filter(n => !n.pinned);
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatDate = (timestamp: number) => {
+    const date = new Date(timestamp);
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 
     if (date.toDateString() === today.toDateString()) {
-      return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      return `Today at ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
     } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
+      return `Yesterday at ${date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
     } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric',
+        year: date.getFullYear() !== today.getFullYear() ? 'numeric' : undefined
+      });
     }
+  };
+
+  const getStatusColor = (section: string) => {
+    const colors: Record<string, string> = {
+      'Content': 'bg-blue-50 border-blue-200',
+      'Newsletter': 'bg-purple-50 border-purple-200',
+      'Meals': 'bg-green-50 border-green-200',
+      'Cleaning': 'bg-orange-50 border-orange-200',
+      'Appointments': 'bg-pink-50 border-pink-200',
+      'Tasks': 'bg-yellow-50 border-yellow-200',
+      'Decisions': 'bg-indigo-50 border-indigo-200',
+      'Campaigns': 'bg-red-50 border-red-200',
+    };
+    return colors[section] || 'bg-gray-50 border-gray-200';
+  };
+
+  const getSectionBadgeColor = (section: string) => {
+    const colors: Record<string, string> = {
+      'Content': 'bg-blue-100 text-blue-800',
+      'Newsletter': 'bg-purple-100 text-purple-800',
+      'Meals': 'bg-green-100 text-green-800',
+      'Cleaning': 'bg-orange-100 text-orange-800',
+      'Appointments': 'bg-pink-100 text-pink-800',
+      'Tasks': 'bg-yellow-100 text-yellow-800',
+      'Decisions': 'bg-indigo-100 text-indigo-800',
+      'Campaigns': 'bg-red-100 text-red-800',
+    };
+    return colors[section] || 'bg-gray-100 text-gray-800';
   };
 
   return (
@@ -124,62 +98,7 @@ export default function Notes() {
       {/* Header */}
       <div>
         <h2 className="text-3xl font-bold text-jade-purple mb-2">📝 Notes</h2>
-        <p className="text-gray-600">Capture thoughts, ideas, reminders. Quick and searchable.</p>
-      </div>
-
-      {/* Quick Add Section */}
-      <div className="bg-gradient-to-br from-jade-light to-white border border-jade-light rounded-xl p-6 space-y-4">
-        <h3 className="font-semibold text-jade-purple">Quick Add Note</h3>
-
-        <textarea
-          value={newNoteContent}
-          onChange={(e) => setNewNoteContent(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && e.metaKey) {
-              addNote();
-            }
-          }}
-          placeholder="What's on your mind? Type here... (Cmd+Enter to save)"
-          className="w-full h-24 p-4 border border-jade-light rounded-lg focus:ring-2 focus:ring-jade-purple focus:border-transparent resize-none text-sm"
-        />
-
-        <div className="flex items-center justify-between">
-          <div className="flex gap-2">
-            {Object.entries(noteColors).map(([key, color]) => (
-              <button
-                key={key}
-                onClick={() => setSelectedColor(key as any)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
-                  selectedColor === key
-                    ? `${color.bg} ${color.text} ring-2 ring-offset-2 ring-jade-purple`
-                    : `${color.bg} ${color.text} opacity-60 hover:opacity-100`
-                }`}
-              >
-                {color.label}
-              </button>
-            ))}
-          </div>
-
-          <button
-            onClick={addNote}
-            disabled={!newNoteContent.trim()}
-            className="flex items-center gap-2 px-4 py-2 bg-jade-purple text-white rounded-lg hover:bg-jade-purple/90 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-          >
-            <Plus size={16} /> Save Note
-          </button>
-        </div>
-      </div>
-
-      {/* Search */}
-      <div className="relative">
-        <Search size={18} className="absolute left-3 top-3 text-gray-400" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search notes..."
-          className="w-full pl-10 pr-4 py-2 border border-jade-light rounded-lg focus:ring-2 focus:ring-jade-purple focus:border-transparent"
-        />
+        <p className="text-gray-600">View and manage all notes from across Mission Control</p>
       </div>
 
       {/* Stats */}
@@ -189,161 +108,108 @@ export default function Notes() {
           <p className="text-2xl font-bold text-jade-purple">{notes.length}</p>
         </div>
         <div className="bg-white border border-jade-light rounded-lg p-4">
-          <p className="text-sm text-gray-600">Pinned</p>
-          <p className="text-2xl font-bold text-jade-purple">{pinnedNotes.length}</p>
+          <p className="text-sm text-gray-600">Sections</p>
+          <p className="text-2xl font-bold text-jade-purple">{sections.length - 1}</p>
         </div>
         <div className="bg-white border border-jade-light rounded-lg p-4">
           <p className="text-sm text-gray-600">Today</p>
           <p className="text-2xl font-bold text-jade-purple">
-            {notes.filter(n => new Date(n.createdAt).toDateString() === new Date().toDateString()).length}
+            {notes.filter(n => {
+              const noteDate = new Date(n.timestamp);
+              const today = new Date();
+              return noteDate.toDateString() === today.toDateString();
+            }).length}
           </p>
         </div>
       </div>
 
-      {/* Pinned Notes */}
-      {pinnedNotes.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">Pinned</h3>
-          <div className="space-y-3">
-            {pinnedNotes.map(note => (
-              <NoteCard
-                key={note.id}
-                note={note}
-                onTogglePin={togglePin}
-                onDelete={deleteNote}
-                onCopy={copyNote}
-                isCopied={copiedId === note.id}
-                isExpanded={expandedId === note.id}
-                onToggleExpand={() =>
-                  setExpandedId(expandedId === note.id ? null : note.id)
-                }
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Unpinned Notes */}
-      {unpinnedNotes.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-gray-600 uppercase tracking-wide">
-            {pinnedNotes.length > 0 ? 'Other Notes' : 'All Notes'}
-          </h3>
-          <div className="space-y-3">
-            {unpinnedNotes.map(note => (
-              <NoteCard
-                key={note.id}
-                note={note}
-                onTogglePin={togglePin}
-                onDelete={deleteNote}
-                onCopy={copyNote}
-                isCopied={copiedId === note.id}
-                isExpanded={expandedId === note.id}
-                onToggleExpand={() =>
-                  setExpandedId(expandedId === note.id ? null : note.id)
-                }
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {filteredNotes.length === 0 && (
-        <div className="text-center py-12">
-          <p className="text-gray-500 text-lg">
-            {searchQuery ? 'No notes found.' : 'No notes yet. Start by adding one above! 💭'}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
-
-interface NoteCardProps {
-  note: Note;
-  onTogglePin: (id: string) => void;
-  onDelete: (id: string) => void;
-  onCopy: (content: string, id: string) => void;
-  isCopied: boolean;
-  isExpanded: boolean;
-  onToggleExpand: () => void;
-}
-
-function NoteCard({
-  note,
-  onTogglePin,
-  onDelete,
-  onCopy,
-  isCopied,
-  isExpanded,
-  onToggleExpand,
-}: NoteCardProps) {
-  const colorConfig = noteColors[note.color];
-  const preview = note.content.substring(0, 100);
-  const needsExpansion = note.content.length > 100;
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    if (date.toDateString() === today.toDateString()) {
-      return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
-    } else {
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-  };
-
-  return (
-    <div className={`border-l-4 rounded-lg p-4 transition-all ${colorConfig.bg} border border-gray-200`}>
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-gray-900 mb-1">{note.title}</h4>
-          <p className={`text-sm ${colorConfig.text} mb-2`}>
-            {isExpanded ? note.content : preview + (needsExpansion ? '...' : '')}
-          </p>
-          <p className="text-xs text-gray-500">{formatDate(note.updatedAt)}</p>
+      {/* Search and Filter */}
+      <div className="space-y-4">
+        <div className="relative">
+          <Search size={18} className="absolute left-3 top-3 text-gray-400" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search notes by text or section..."
+            className="w-full pl-10 pr-4 py-2 border border-jade-light rounded-lg focus:ring-2 focus:ring-jade-purple focus:border-transparent"
+          />
         </div>
 
-        <div className="flex gap-2">
-          {needsExpansion && (
+        {/* Section Filter */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2">
+          <Filter size={18} className="text-gray-600 flex-shrink-0" />
+          {sections.map(section => (
             <button
-              onClick={onToggleExpand}
-              className="p-1.5 hover:bg-gray-200/50 rounded transition-colors"
-              title={isExpanded ? 'Show less' : 'Show more'}
+              key={section}
+              onClick={() => setSelectedSection(section)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex-shrink-0 ${
+                selectedSection === section
+                  ? 'bg-jade-purple text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
             >
-              {isExpanded ? '▲' : '▼'}
+              {section}
+              {section !== 'All' && (
+                <span className="ml-2 opacity-75">
+                  {notes.filter(n => n.section === section).length}
+                </span>
+              )}
             </button>
-          )}
-
-          <button
-            onClick={() => onCopy(note.content, note.id)}
-            className="p-1.5 hover:bg-gray-200/50 rounded transition-colors"
-            title="Copy note"
-          >
-            {isCopied ? <Check size={16} className="text-green-600" /> : <Copy size={16} />}
-          </button>
-
-          <button
-            onClick={() => onTogglePin(note.id)}
-            className="p-1.5 hover:bg-gray-200/50 rounded transition-colors"
-            title={note.pinned ? 'Unpin' : 'Pin note'}
-          >
-            {note.pinned ? <PinOff size={16} /> : <Pin size={16} />}
-          </button>
-
-          <button
-            onClick={() => onDelete(note.id)}
-            className="p-1.5 hover:bg-red-100 text-red-600 rounded transition-colors"
-            title="Delete note"
-          >
-            <Trash2 size={16} />
-          </button>
+          ))}
         </div>
+      </div>
+
+      {/* Notes List */}
+      <div className="space-y-3">
+        {isLoading ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500">Loading notes...</p>
+          </div>
+        ) : filteredNotes.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">
+              {searchQuery || selectedSection !== 'All'
+                ? 'No notes found. Try adjusting your filters.'
+                : 'No notes yet. Add notes from any tab to see them here! 💭'}
+            </p>
+          </div>
+        ) : (
+          filteredNotes.map(note => (
+            <div
+              key={note.id}
+              className={`border rounded-lg p-4 transition-all hover:shadow-md ${getStatusColor(note.section)}`}
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  {/* Section Badge and Date */}
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${getSectionBadgeColor(note.section)}`}>
+                      {note.section}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {formatDate(note.timestamp)}
+                    </span>
+                  </div>
+
+                  {/* Note Text */}
+                  <p className="text-sm text-gray-800 break-words leading-relaxed">
+                    {note.text}
+                  </p>
+                </div>
+
+                {/* Delete Button */}
+                <button
+                  onClick={() => handleDelete(note.id)}
+                  className="p-2 hover:bg-red-100 text-red-600 rounded-lg transition-colors flex-shrink-0"
+                  title="Delete note"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

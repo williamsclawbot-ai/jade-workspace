@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { GitBranch, Plus, CheckCircle2, Clock, Pause } from 'lucide-react';
+import NotesButton from './NotesButton';
 
 interface Decision {
   id: string;
@@ -210,13 +211,16 @@ export default function Decisions() {
       {/* Add Decision Button */}
       <div>
         {!showForm ? (
-          <button
-            onClick={() => setShowForm(true)}
-            className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-jade-purple text-white rounded-lg font-semibold hover:bg-jade-purple/90 transition-colors shadow-md"
-          >
-            <Plus size={20} />
-            <span>Add Decision</span>
-          </button>
+          <div className="flex gap-3">
+            <NotesButton section="Decisions" />
+            <button
+              onClick={() => setShowForm(true)}
+              className="flex-1 flex items-center justify-center space-x-2 px-6 py-3 bg-jade-purple text-white rounded-lg font-semibold hover:bg-jade-purple/90 transition-colors shadow-md"
+            >
+              <Plus size={20} />
+              <span>Add Decision</span>
+            </button>
+          </div>
         ) : (
           <div className="bg-white rounded-lg shadow-md p-6 border-2 border-jade-light">
             <h3 className="text-lg font-semibold text-jade-purple mb-4">New Decision</h3>
