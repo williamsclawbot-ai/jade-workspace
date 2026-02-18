@@ -27,6 +27,8 @@ import StripeRevenue from '@/components/StripeRevenue';
 import CombinedMetrics from '@/components/CombinedMetrics';
 import PersonalTasks from '@/components/PersonalTasks';
 import Notes from '@/components/Notes';
+import TodayCommandCenter from '@/components/TodayCommandCenter';
+import WeeklyContentView from '@/components/WeeklyContentView';
 import weeklyContentData from '@/lib/weeklyContentData.json';
 import { initializeWeeklyContent } from '@/lib/initializeContentData';
 
@@ -49,6 +51,8 @@ export default function Home() {
         return <Guides />;
       case 'content':
         return <Content />;
+      case 'weekly-view':
+        return <WeeklyContentView />;
       case 'weekly-newsletter':
         return <WeeklyNewsletter />;
       case 'campaigns':
@@ -64,7 +68,7 @@ export default function Home() {
       case 'ghl':
         return <GoHighLevel />;
       case 'today':
-        return <Today />;
+        return <TodayCommandCenter />;
       case 'hls-tasks':
         return <HLSPipeline />;
       case 'tasks':

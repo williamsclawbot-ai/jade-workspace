@@ -63,9 +63,14 @@ export default function Content() {
   const handleSaveFeedback = () => {
     if (!selectedItem || !feedbackText.trim()) return;
     
+    const now = new Date().toISOString();
+    
     ContentStore.update(selectedItem.id, {
       feedback: feedbackText,
-      status: 'Feedback Given'
+      feedbackDate: now,
+      status: 'Feedback Given',
+      lastUpdated: now,
+      waitingOn: 'you' // Now waiting on content creator to revise
     });
     
     setItems(ContentStore.getAll());

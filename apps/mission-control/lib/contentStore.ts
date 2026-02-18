@@ -19,9 +19,17 @@ export interface ContentItem {
   reviewDueDate?: string;
   onScreenText?: string;
   feedback?: string; // Jade's notes/feedback
+  feedbackDate?: string; // timestamp when feedback was given
+  revisionDate?: string; // timestamp when revision was completed
   aiGenerated?: boolean;
   generatedAt?: string; // timestamp
   lastUpdated?: string; // timestamp
+  createdAt?: string; // timestamp when content was created
+  approvedAt?: string; // timestamp when approved
+  filmedAt?: string; // timestamp when filmed
+  scheduledAt?: string; // timestamp when scheduled
+  postedAt?: string; // timestamp when posted
+  waitingOn?: 'you' | 'felicia'; // who needs to take next action
 }
 
 const STORAGE_KEY = 'jade_content_items';
@@ -41,7 +49,9 @@ const DEFAULT_CONTENT: ContentItem[] = [
     script: 'Hook: "Does your toddler refuse to use a pillow?"\n\nContent: "Here\'s the thing - toddlers under 2 shouldn\'t have pillows at all. It\'s a safety thing. But I know what you\'re thinking - my kid\'s thrashing around and looks super uncomfortable.\n\nHere\'s the safe sleep setup:\n- Under 2 years: NO pillows, NO blankets, just a fitted sheet\n- 2-3 years: You can introduce a pillow NOW, but keep it FLAT and FIRM\n- Over 3: Regular pillow, but keep it simple\n\nWhat helps comfort instead? A lovey or stuffed animal they can snuggle. That gives them something without the risk.\n\nThe hardest part? Letting go of that picture-perfect nursery look. But safe sleep beats cute every time."\n\nCTA: "What\'s your toddler sleep hack? Drop it below - I read every comment!"',
     caption: 'The pillow question! 🛏️ Here\'s what you need to know about toddler sleep safety and what actually works. Under 2? NO pillows. 2-3? FLAT and FIRM. Over 3? Regular pillow is fine. Stop stressing about the Pinterest-perfect nursery - your baby just needs to be safe and comfy! 🤍',
     reviewStatus: 'needs-review',
-    reviewDueDate: '2026-02-18'
+    reviewDueDate: '2026-02-18',
+    createdAt: '2026-02-17T10:00:00Z',
+    waitingOn: 'felicia'
   },
   {
     id: '2',
