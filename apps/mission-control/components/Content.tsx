@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { FileText, X, Save, ChevronDown, MessageSquare, Calendar, TrendingUp } from 'lucide-react';
 import ContentStore, { ContentItem } from '@/lib/contentStore';
+import ContentWorkflowTimeline from './ContentWorkflowTimeline';
 
 export default function Content() {
   const [items, setItems] = useState<ContentItem[]>([]);
@@ -574,6 +575,11 @@ export default function Content() {
                   </div>
                 </div>
               )}
+
+              {/* Workflow Timeline */}
+              <div className="border-t pt-6">
+                <ContentWorkflowTimeline item={selectedItem} />
+              </div>
 
               <div className="flex gap-3 border-t pt-6">
                 <button
