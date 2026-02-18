@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FileText, X, Save, ChevronDown, MessageSquare, Calendar, TrendingUp } from 'lucide-react';
+import { FileText, X, Save, ChevronDown, MessageSquare, Calendar, TrendingUp, StickyNote } from 'lucide-react';
 import ContentStore, { ContentItem } from '@/lib/contentStore';
 import ContentWorkflowTimeline from './ContentWorkflowTimeline';
+import QuickNotesModal from './QuickNotesModal';
 
 export default function Content() {
   const [items, setItems] = useState<ContentItem[]>([]);
@@ -24,6 +25,7 @@ export default function Content() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('');
   const [filterType, setFilterType] = useState<string>('');
+  const [notesModalOpen, setNotesModalOpen] = useState(false);
 
   // Load data on mount
   useEffect(() => {
@@ -204,6 +206,14 @@ export default function Content() {
           <p className="text-gray-600">Plan, create, and schedule your weekly content</p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => setNotesModalOpen(true)}
+            className="px-4 py-2 bg-amber-100 text-amber-700 rounded-lg font-medium hover:bg-amber-200 transition-colors flex items-center gap-2"
+            title="Add notes for this section"
+          >
+            <StickyNote size={18} />
+            Notes
+          </button>
           <button
             onClick={() => setAddContentModal(true)}
             className="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors"
@@ -874,6 +884,13 @@ export default function Content() {
           </div>
         </div>
       )}
+
+      {/* Quick Notes Modal */}
+      <QuickNotesModal
+        isOpen={notesModalOpen}
+        onClose={() => setNotesModalOpen(false)}
+        section="Content"
+      />
     </div>
   );
 }

@@ -1,9 +1,10 @@
 'use client';
 
-import { Mail, Plus, CheckCircle2, FileText, Code, AlertCircle } from 'lucide-react';
+import { Mail, Plus, CheckCircle2, FileText, Code, AlertCircle, StickyNote } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useNewsletterTopic } from '@/lib/useNewsletterTopic';
 import { type NewsletterTopicIdea } from '@/lib/newsletterTopicUtils';
+import QuickNotesModal from './QuickNotesModal';
 
 interface NewsletterStage {
   stage: 1 | 2 | 3 | 4;
@@ -31,6 +32,7 @@ export default function WeeklyNewsletter() {
   const [editingWeek, setEditingWeek] = useState<string | null>(null);
   const [showNewForm, setShowNewForm] = useState(false);
   const [generatingDraft, setGeneratingDraft] = useState<string | null>(null);
+  const [notesModalOpen, setNotesModalOpen] = useState(false);
   
   // Use shared newsletter topic hook
   const { topicData, selectTopic: handleSelectTopicUtil } = useNewsletterTopic();
@@ -214,13 +216,17 @@ export default function WeeklyNewsletter() {
         body: JSON.stringify({ topic: newsletter.selectedTopic }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        alert('Failed to generate draft. Make sure API key is configured.');
+        console.error('API error response:', data);
+        const errorMsg = data.details ? 
+          `API Error: ${JSON.stringify(data.details).substring(0, 100)}...` : 
+          'Failed to generate draft. Make sure API key is configured.';
+        alert(errorMsg);
         setGeneratingDraft(null);
         return;
       }
-
-      const data = await response.json();
 
       if (data.success) {
         // Update newsletter with generated content
@@ -236,10 +242,12 @@ export default function WeeklyNewsletter() {
 
         setNewsletters(updated);
         saveData(updated);
+      } else {
+        alert('Generation did not complete successfully. Please try again.');
       }
     } catch (error) {
       console.error('Draft generation error:', error);
-      alert('Error generating draft. Please try again.');
+      alert('Error generating draft. Please try again. ' + String(error).substring(0, 50));
     } finally {
       setGeneratingDraft(null);
     }
@@ -257,13 +265,23 @@ export default function WeeklyNewsletter() {
               <p className="text-sm text-gray-600">Track newsletter stages: outline → draft → review → HTML ready</p>
             </div>
           </div>
-          <button
-            onClick={() => setShowNewForm(true)}
-            className="flex items-center space-x-2 bg-jade-purple text-jade-cream px-4 py-2 rounded-lg hover:bg-jade-light hover:text-jade-purple transition-colors"
-          >
-            <Plus size={20} />
-            <span>New Week</span>
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setNotesModalOpen(true)}
+              className="flex items-center space-x-2 bg-amber-100 text-amber-700 px-4 py-2 rounded-lg hover:bg-amber-200 transition-colors"
+              title="Add notes for this section"
+            >
+              <StickyNote size={20} />
+              <span>Notes</span>
+            </button>
+            <button
+              onClick={() => setShowNewForm(true)}
+              className="flex items-center space-x-2 bg-jade-purple text-jade-cream px-4 py-2 rounded-lg hover:bg-jade-light hover:text-jade-purple transition-colors"
+            >
+              <Plus size={20} />
+              <span>New Week</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -519,6 +537,13 @@ export default function WeeklyNewsletter() {
             })}
           </div>
         )}
+
+        {/* Quick Notes Modal */}
+        <QuickNotesModal
+          isOpen={notesModalOpen}
+          onClose={() => setNotesModalOpen(false)}
+          section="Newsletter"
+        />
       </div>
     </div>
   );

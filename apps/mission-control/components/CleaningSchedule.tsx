@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CheckCircle2, Plus, Trash2, X } from 'lucide-react';
+import { CheckCircle2, Plus, Trash2, X, StickyNote } from 'lucide-react';
+import QuickNotesModal from './QuickNotesModal';
 
 interface CleaningTask {
   id: string;
@@ -48,6 +49,7 @@ export default function CleaningSchedule() {
     selectedTaskId: null,
   });
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
+  const [notesModalOpen, setNotesModalOpen] = useState(false);
 
   // Load from localStorage on mount
   useEffect(() => {

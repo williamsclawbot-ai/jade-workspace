@@ -9,8 +9,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -23,7 +21,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
     if (!ANTHROPIC_API_KEY) {
+      console.error('ANTHROPIC_API_KEY not found in environment');
       return NextResponse.json(
         { error: 'API key not configured' },
         { status: 500 }
@@ -73,12 +73,19 @@ Remember: Our voice is emotionally grounded, practical, and validating. We suppo
       const error = await response.json();
       console.error('Claude API error:', error);
       return NextResponse.json(
-        { error: 'Draft generation failed' },
-        { status: 500 }
+        { error: 'Draft generation failed', details: error },
+        { status: response.status }
       );
     }
 
     const data = (await response.json()) as any;
+    if (!data.content || !data.content[0] || !data.content[0].text) {
+      console.error('Unexpected API response format:', data);
+      return NextResponse.json(
+        { error: 'Unexpected API response format' },
+        { status: 500 }
+      );
+    }
     const text = data.content[0].text;
 
     // Parse outline and copy
