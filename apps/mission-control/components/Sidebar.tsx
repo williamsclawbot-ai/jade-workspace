@@ -26,6 +26,8 @@ import {
   CreditCard,
   ListTodo,
   StickyNote,
+  TrendingUp,
+  ShoppingBag,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -35,52 +37,70 @@ interface SidebarProps {
 
 export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({
+    business: true,
+    home: true,
+    management: true,
+  });
 
-  const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const toggleSection = (section: string) => {
+    setExpandedSections((prev) => {
+      const key = section as keyof typeof prev;
+      return {
+        ...prev,
+        [key]: !prev[key],
+      };
+    });
+  };
 
   const navSections = [
     {
-      name: 'PRIMARY',
-      section: 'primary',
-      items: [
-        { id: 'today', label: 'Today', icon: Sun },
-        { id: 'content', label: 'Content', icon: FileText },
-        { id: 'weekly-newsletter', label: 'Newsletter', icon: Mail },
-      ],
+      id: 'today',
+      name: 'TODAY',
+      section: 'today',
+      items: [{ id: 'today', label: 'Command Center', icon: Sun }],
     },
     {
+      id: 'business',
       name: 'BUSINESS',
+      subtext: 'Hello Little Sleepers',
       section: 'business',
       items: [
-        { id: 'guides', label: 'Guides', icon: BookOpen },
-        { id: 'campaigns', label: 'Campaigns', icon: Zap },
-        { id: 'combined-metrics', label: 'Metrics', icon: BarChart3 },
+        { id: 'content', label: 'Content', icon: FileText },
+        { id: 'weekly-newsletter', label: 'Newsletter', icon: Mail },
         { id: 'hls-tasks', label: 'Pipeline', icon: CheckSquare },
+        { id: 'combined-metrics', label: 'Metrics', icon: BarChart3 },
+        { id: 'campaigns', label: 'Campaigns', icon: Zap },
+        { id: 'ghl', label: 'GHL', icon: Building },
+        { id: 'stripe-revenue', label: 'Stripe', icon: CreditCard },
+        { id: 'meta-ads', label: 'Ads', icon: TrendingUp },
       ],
     },
     {
-      name: 'MANAGEMENT',
-      section: 'management',
+      id: 'home',
+      name: 'HOME',
+      subtext: 'Personal/Household',
+      section: 'home',
       items: [
-        { id: 'inbox', label: 'Quick Capture', icon: Inbox },
-        { id: 'calendar', label: 'Calendar', icon: Calendar },
-        { id: 'memory', label: 'Memory', icon: Brain },
-      ],
-    },
-    {
-      name: 'MORE',
-      section: 'more',
-      items: [
-        { id: 'notes', label: 'Notes', icon: StickyNote },
-        { id: 'decisions', label: 'Decisions', icon: GitBranch },
-        { id: 'personal-tasks', label: 'Tasks', icon: ListTodo },
-        { id: 'office', label: 'Office', icon: Building },
         { id: 'appointments', label: 'Appointments', icon: Calendar },
         { id: 'cleaning-schedule', label: 'Cleaning', icon: CheckCircle2 },
-        { id: 'reminders-john', label: 'Reminders', icon: Clock },
-        { id: 'household-todos', label: 'To-Dos', icon: ClipboardList },
+        { id: 'reminders-john', label: 'Reminders for John', icon: Clock },
         { id: 'meal-planning', label: 'Meals', icon: UtensilsCrossed },
         { id: 'woolworths', label: 'Shopping', icon: ShoppingCart },
+        { id: 'household-todos', label: 'To-Do Lists', icon: ListTodo },
+      ],
+    },
+    {
+      id: 'management',
+      name: 'MANAGEMENT',
+      subtext: 'Overarching',
+      section: 'management',
+      items: [
+        { id: 'decisions', label: 'Decisions', icon: GitBranch },
+        { id: 'personal-tasks', label: 'Tasks', icon: CheckSquare },
+        { id: 'notes', label: 'Notes', icon: StickyNote },
+        { id: 'calendar', label: 'Calendar', icon: Calendar },
+        { id: 'inbox', label: 'Quick Capture', icon: Inbox },
       ],
     },
   ];
@@ -96,7 +116,10 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         {!isCollapsed && (
           <div className="flex items-center space-x-2">
             <span className="text-2xl">🎯</span>
-            <h1 className="text-lg font-bold text-jade-purple">Mission Control</h1>
+            <div>
+              <h1 className="text-lg font-bold text-jade-purple">Mission Control</h1>
+              <p className="text-xs text-gray-500">Command Center</p>
+            </div>
           </div>
         )}
         <button
@@ -111,59 +134,59 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       {/* Navigation Content */}
       <div className="flex flex-col h-[calc(100vh-64px)] overflow-y-auto">
         {navSections.map((section) => {
-          // Handle MORE section differently - show as collapsible or hidden on mobile
-          const isMoreSection = section.section === 'more';
-          const shouldShow = !isMoreSection || (isMoreSection && (showMoreMenu || !isCollapsed));
-
-          if (!shouldShow && isMoreSection) return null;
+          const isExpanded =
+            section.section === 'today' ||
+            (section.section !== 'today' && expandedSections[section.section as keyof typeof expandedSections]);
 
           return (
-            <nav key={section.section} className="px-2 py-4 space-y-1 border-b border-jade-light">
-              {!isCollapsed && (
-                <p className="text-xs font-semibold text-gray-500 uppercase px-4 mb-2">
-                  {section.name}
-                </p>
+            <div key={section.id} className="border-b border-jade-light">
+              {/* Section Header */}
+              {section.section !== 'today' && (
+                <button
+                  onClick={() => toggleSection(section.section)}
+                  className={`w-full px-4 py-3 flex items-center justify-between hover:bg-jade-cream transition-colors ${
+                    !isCollapsed ? 'text-left' : 'justify-center'
+                  }`}
+                >
+                  <div className={!isCollapsed ? 'flex-1' : 'hidden'}>
+                    <p className="text-xs font-semibold text-gray-600 uppercase">{section.name}</p>
+                    {section.subtext && <p className="text-xs text-gray-400">{section.subtext}</p>}
+                  </div>
+                  {!isCollapsed && (
+                    <span className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`}>▼</span>
+                  )}
+                </button>
               )}
-              {section.items.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      onTabChange(item.id);
-                      if (isMoreSection && isCollapsed) {
-                        setShowMoreMenu(false);
-                      }
-                    }}
-                    title={isCollapsed ? item.label : ''}
-                    className={`w-full flex items-center ${
-                      isCollapsed ? 'justify-center' : 'justify-start'
-                    } space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                      isActive
-                        ? 'bg-jade-purple text-jade-cream'
-                        : 'text-gray-700 hover:bg-jade-cream'
-                    }`}
-                  >
-                    <Icon size={20} />
-                    {!isCollapsed && <span className="text-sm font-medium">{item.label}</span>}
-                  </button>
-                );
-              })}
-            </nav>
+
+              {/* Section Items */}
+              {(isExpanded || section.section === 'today') && (
+                <nav className={`px-2 py-2 space-y-1 ${section.section === 'today' ? 'py-4' : ''}`}>
+                  {section.items.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => onTabChange(item.id)}
+                        title={isCollapsed ? item.label : ''}
+                        className={`w-full flex items-center ${
+                          isCollapsed ? 'justify-center' : 'justify-start'
+                        } space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                          isActive
+                            ? 'bg-jade-purple text-jade-cream'
+                            : 'text-gray-700 hover:bg-jade-cream'
+                        }`}
+                      >
+                        <Icon size={20} />
+                        {!isCollapsed && <span className="text-sm font-medium">{item.label}</span>}
+                      </button>
+                    );
+                  })}
+                </nav>
+              )}
+            </div>
           );
         })}
-
-        {/* MORE Toggle Button (when collapsed) */}
-        {isCollapsed && (
-          <button
-            onClick={() => setShowMoreMenu(!showMoreMenu)}
-            className="mx-2 my-2 p-2 hover:bg-jade-cream rounded-lg transition-colors text-jade-purple text-center text-xs font-bold"
-            title="Show More"
-          >
-            ⋯
-          </button>
-        )}
 
         {/* Footer */}
         {!isCollapsed && (

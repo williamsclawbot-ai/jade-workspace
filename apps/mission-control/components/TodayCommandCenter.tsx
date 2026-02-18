@@ -12,353 +12,462 @@ import {
   ChevronRight,
   Edit2,
   Eye,
+  Send,
 } from 'lucide-react';
-import ContentStore, { ContentItem } from '@/lib/contentStore';
-import { useNewsletterTopic } from '@/lib/useNewsletterTopic';
+import ContentStore from '@/lib/contentStore';
+import { mealsStore } from '@/lib/mealsStore';
+import { cleaningStore } from '@/lib/cleaningStore';
+import { appointmentsStore } from '@/lib/appointmentsStore';
+import { remindersStore } from '@/lib/remindersStore';
+import { todoStore } from '@/lib/todoStore';
+import { shoppingStore } from '@/lib/shoppingStore';
+import { tasksStore } from '@/lib/tasksStore';
+import { notesStore } from '@/lib/notesStore';
+import { decisionsStore } from '@/lib/decisionsStore';
 
 interface UrgentItem {
   id: string;
   title: string;
-  category: 'content' | 'newsletter' | 'appointment' | 'task' | 'household';
-  dueDate?: string;
-  status: string;
-  feedback?: string;
-  feedbackDate?: string;
-  revisionDate?: string;
-  content?: ContentItem;
-  action: () => void;
+  source: string;
+  priority: 'low' | 'medium' | 'high';
+  actionButton?: {
+    label: string;
+    icon: React.ReactNode;
+    onClick: () => void;
+  };
 }
 
 export default function TodayCommandCenter() {
+  const [dayProgress, setDayProgress] = useState(0);
   const [urgentItems, setUrgentItems] = useState<UrgentItem[]>([]);
-  const [weekOutlook, setWeekOutlook] = useState({
-    contentDueForReview: 0,
-    contentReadyToFilm: 0,
-    contentScheduled: 0,
-    newsletterTopicSelected: false,
-    progressPercent: 0,
-  });
-  const [selectedItem, setSelectedItem] = useState<UrgentItem | null>(null);
+  const [contentDueForReview, setContentDueForReview] = useState<any[]>([]);
+  const [todayMeals, setTodayMeals] = useState<any[]>([]);
+  const [todayCleaningTasks, setTodayCleaningTasks] = useState<any[]>([]);
+  const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
+  const [unsentReminders, setUnsentReminders] = useState<any[]>([]);
+  const [todayTodos, setTodayTodos] = useState<any[]>([]);
+  const [shoppingItems, setShoppingItems] = useState<any[]>([]);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const { topicData } = useNewsletterTopic();
-
-  // Load newsletter data
-  const [newsletterData, setNewsletterData] = useState<any>(null);
-
+  // Calculate day progress
   useEffect(() => {
-    // Load newsletter
-    const saved = localStorage.getItem('jadeNewsletterData');
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        setNewsletterData(data[0]); // Current week
-      } catch (e) {
-        console.log('No newsletter data');
-      }
-    }
-  }, []);
+    const updateProgress = () => {
+      const now = new Date();
+      const start = new Date(now);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(now);
+      end.setHours(23, 59, 59, 999);
 
-  useEffect(() => {
-    loadUrgentItems();
+      const elapsed = now.getTime() - start.getTime();
+      const total = end.getTime() - start.getTime();
+      const percent = Math.round((elapsed / total) * 100);
 
-    // Refresh every second for real-time sync
-    const interval = setInterval(() => {
-      loadUrgentItems();
-      setRefreshKey(k => k + 1);
-    }, 1000);
+      setDayProgress(Math.min(percent, 100));
+    };
 
+    updateProgress();
+    const interval = setInterval(updateProgress, 60000); // Update every minute
     return () => clearInterval(interval);
   }, []);
 
-  const loadUrgentItems = () => {
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+  // Load all data
+  useEffect(() => {
+    const loadAllData = () => {
+      // Content due for review
+      const contentItems = ContentStore.getAll().filter(
+        (item) => item.status === 'Due for Review' || item.status === 'Feedback Given'
+      );
+      setContentDueForReview(contentItems);
 
+      // Meals for today
+      const meals = mealsStore.getTodayMeals();
+      setTodayMeals(meals);
+
+      // Cleaning tasks for today
+      const cleaning = cleaningStore.getTodayTasks();
+      setTodayCleaningTasks(cleaning);
+
+      // Appointments for today
+      const appointments = appointmentsStore.getTodayAppointments();
+      setTodayAppointments(appointments);
+
+      // Unsent reminders
+      const reminders = remindersStore.getUnsentReminders();
+      setUnsentReminders(reminders);
+
+      // To-do items for today
+      const todos = todoStore.getTodayTodos();
+      setTodayTodos(todos);
+
+      // Shopping items (incomplete)
+      const shopping = shoppingStore.getIncompleted();
+      setShoppingItems(shopping);
+    };
+
+    loadAllData();
+
+    // Subscribe to changes (1 second polling)
+    const interval = setInterval(loadAllData, 1000);
+    return () => clearInterval(interval);
+  }, [refreshKey]);
+
+  // Build urgent items list
+  useEffect(() => {
     const items: UrgentItem[] = [];
 
-    // 1. CONTENT DUE FOR REVIEW
-    const allContent = ContentStore.getAll();
-    const duForReview = allContent.filter(c => c.status === 'Due for Review');
-    duForReview.forEach(item => {
+    // Content items
+    contentDueForReview.forEach((item) => {
       items.push({
-        id: `content-${item.id}`,
-        title: `Review: ${item.title}`,
-        category: 'content',
-        dueDate: item.reviewDueDate,
-        status: 'Due for Review',
-        content: item,
-        action: () => {
-          // This will trigger content modal
-          console.log('Review content:', item);
+        id: item.id,
+        title: `Review "${item.title}" script [Content]`,
+        source: 'Content',
+        priority: 'high',
+        actionButton: {
+          label: 'Review',
+          icon: <Eye size={16} />,
+          onClick: () => {
+            // Would navigate to content tab and open modal
+          },
         },
       });
     });
 
-    // 2. CONTENT WITH FEEDBACK (Awaiting Revision)
-    const withFeedback = allContent.filter(c => c.status === 'Feedback Given');
-    withFeedback.forEach(item => {
-      items.push({
-        id: `feedback-${item.id}`,
-        title: `Revise: ${item.title}`,
-        category: 'content',
-        feedback: item.feedback,
-        feedbackDate: item.feedbackDate,
-        status: 'Feedback Given',
-        content: item,
-        action: () => {
-          console.log('Revise content:', item);
-        },
-      });
-    });
-
-    // 3. NEWSLETTER STATUS
-    const saved = localStorage.getItem('jadeNewsletterData');
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-        const currentWeek = data[0];
-        if (!currentWeek.selectedTopic) {
-          items.push({
-            id: 'newsletter-topic',
-            title: '📧 Newsletter: Pick topic for this week',
-            category: 'newsletter',
-            status: 'Topic not selected',
-            action: () => {
-              console.log('Pick newsletter topic');
+    // Cleaning tasks
+    todayCleaningTasks
+      .filter((t) => !t.completed)
+      .forEach((task) => {
+        items.push({
+          id: task.id,
+          title: `${task.title} [Cleaning]`,
+          source: 'Cleaning',
+          priority: task.priority === 'high' ? 'high' : 'medium',
+          actionButton: {
+            label: 'Done',
+            icon: <CheckCircle2 size={16} />,
+            onClick: () => {
+              cleaningStore.toggleTask(task.id);
+              setRefreshKey((k) => k + 1);
             },
-          });
-        }
-      } catch (e) {}
-    }
+          },
+        });
+      });
 
-    // 4. CALCULATE WEEK OUTLOOK
-    const contentDueForReview = allContent.filter(
-      c => c.status === 'Due for Review'
-    ).length;
-    const contentReadyToFilm = allContent.filter(
-      c => c.status === 'Ready to Film'
-    ).length;
-    const contentScheduled = allContent.filter(
-      c => c.status === 'Scheduled'
-    ).length;
-
-    const totalContent = allContent.length;
-    const progressPercent =
-      totalContent > 0
-        ? Math.round(
-            ((contentScheduled + allContent.filter(c => c.status === 'Posted').length) / totalContent) * 100
-          )
-        : 0;
-
-    setWeekOutlook({
-      contentDueForReview,
-      contentReadyToFilm,
-      contentScheduled,
-      newsletterTopicSelected: !!newsletterData?.selectedTopic,
-      progressPercent,
+    // Appointments
+    todayAppointments.forEach((apt) => {
+      items.push({
+        id: apt.id,
+        title: `${apt.time} - ${apt.title} [Appointment]`,
+        source: 'Appointments',
+        priority: 'high',
+      });
     });
+
+    // Unsent reminders
+    unsentReminders.forEach((reminder) => {
+      items.push({
+        id: reminder.id,
+        title: `Send reminder: ${reminder.text} [Reminders]`,
+        source: 'Reminders',
+        priority: reminder.priority || 'medium',
+        actionButton: {
+          label: 'Send Now',
+          icon: <Send size={16} />,
+          onClick: () => {
+            remindersStore.sendReminder(reminder.id);
+            setRefreshKey((k) => k + 1);
+          },
+        },
+      });
+    });
+
+    // High priority todos
+    todayTodos
+      .filter((t) => t.priority === 'high' && !t.completed)
+      .forEach((todo) => {
+        items.push({
+          id: todo.id,
+          title: `${todo.title} [To-Do]`,
+          source: 'To-Dos',
+          priority: 'high',
+        });
+      });
 
     setUrgentItems(items);
+  }, [contentDueForReview, todayCleaningTasks, todayAppointments, unsentReminders, todayTodos]);
+
+  const metrics = {
+    contentDueForReview: contentDueForReview.length,
+    appointmentsToday: todayAppointments.length,
+    urgentTodos: todayTodos.filter((t) => t.priority === 'high' && !t.completed).length,
+    unsentReminders: unsentReminders.length,
+    cleaningRemaining: todayCleaningTasks.filter((t) => !t.completed).length,
+    mealsToday: todayMeals.length,
   };
 
   return (
-    <div key={refreshKey} className="h-full flex flex-col bg-white overflow-y-auto">
+    <div className="space-y-8">
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-gradient-to-r from-jade-purple to-jade-light px-4 md:px-6 py-4 md:py-6 text-jade-cream shadow-sm">
-        <div className="flex items-center space-x-2 md:space-x-3 mb-2">
-          <Sun size={28} className="md:w-8 md:h-8 text-jade-cream" />
-          <h1 className="text-2xl md:text-3xl font-bold">Today</h1>
+      <div className="flex items-center space-x-3">
+        <Sun className="text-yellow-500" size={32} />
+        <div>
+          <h1 className="text-3xl font-bold text-jade-purple">Your Day at a Glance</h1>
+          <p className="text-gray-600">Command center for what matters today</p>
         </div>
-        <p className="text-jade-cream/90 text-xs md:text-sm">
-          {new Date().toLocaleDateString('en-US', {
-            weekday: 'long',
-            month: 'long',
-            day: 'numeric',
-          })}
+      </div>
+
+      {/* Day Progress */}
+      <div className="bg-gradient-to-r from-jade-purple to-jade-light rounded-lg p-6 text-white">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">Day Progress</h2>
+          <span className="text-3xl font-bold">{dayProgress}%</span>
+        </div>
+        <div className="w-full bg-white/30 rounded-full h-3 overflow-hidden">
+          <div
+            className="bg-white h-full rounded-full transition-all duration-300"
+            style={{ width: `${dayProgress}%` }}
+          />
+        </div>
+        <p className="text-sm mt-2">
+          {Math.round((24 * dayProgress) / 100)} hours into your day
         </p>
       </div>
 
-      {/* Main Sections */}
-      <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-6 space-y-4 md:space-y-6 max-w-4xl mx-auto w-full">
-        {/* 1. URGENT TODAY - Top Priority Items */}
-        <section>
-          <h2 className="text-xl font-bold text-jade-purple mb-4 flex items-center space-x-2">
-            <AlertCircle size={24} />
-            <span>⚡ URGENT TODAY</span>
-          </h2>
+      {/* Key Metrics */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+          <div className="text-3xl font-bold text-blue-600">{metrics.contentDueForReview}</div>
+          <p className="text-sm text-gray-600 mt-1">Content for Review</p>
+        </div>
+        <div className="bg-purple-50 rounded-lg p-4 border border-purple-200">
+          <div className="text-3xl font-bold text-purple-600">{metrics.appointmentsToday}</div>
+          <p className="text-sm text-gray-600 mt-1">Appointments</p>
+        </div>
+        <div className="bg-red-50 rounded-lg p-4 border border-red-200">
+          <div className="text-3xl font-bold text-red-600">{metrics.urgentTodos}</div>
+          <p className="text-sm text-gray-600 mt-1">Urgent To-Dos</p>
+        </div>
+        <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+          <div className="text-3xl font-bold text-orange-600">{metrics.unsentReminders}</div>
+          <p className="text-sm text-gray-600 mt-1">Reminders to Send</p>
+        </div>
+        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+          <div className="text-3xl font-bold text-green-600">{metrics.cleaningRemaining}</div>
+          <p className="text-sm text-gray-600 mt-1">Cleaning Tasks</p>
+        </div>
+        <div className="bg-teal-50 rounded-lg p-4 border border-teal-200">
+          <div className="text-3xl font-bold text-teal-600">{metrics.mealsToday}</div>
+          <p className="text-sm text-gray-600 mt-1">Meals Today</p>
+        </div>
+      </div>
 
-          {urgentItems.length === 0 ? (
-            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6 text-center">
-              <CheckCircle2 size={48} className="mx-auto text-green-600 mb-3" />
-              <h3 className="text-lg font-bold text-green-700 mb-2">All Clear!</h3>
-              <p className="text-green-600">No urgent items today. Great work! 🎉</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {urgentItems.slice(0, 5).map(item => (
-                <div
-                  key={item.id}
-                  className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
-                    item.category === 'content'
-                      ? 'border-blue-300 bg-blue-50 hover:bg-blue-100'
-                      : item.category === 'newsletter'
-                      ? 'border-purple-300 bg-purple-50 hover:bg-purple-100'
-                      : 'border-orange-300 bg-orange-50 hover:bg-orange-100'
-                  }`}
-                  onClick={item.action}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <h3 className="font-bold text-gray-900 mb-1">{item.title}</h3>
-                      {item.feedback && (
-                        <p className="text-sm text-gray-700 mb-2">
-                          <span className="font-semibold">Feedback:</span> {item.feedback.substring(0, 100)}
-                          {item.feedback.length > 100 ? '...' : ''}
-                        </p>
-                      )}
-                      {item.feedbackDate && (
-                        <p className="text-xs text-gray-600">
-                          Feedback given: {new Date(item.feedbackDate).toLocaleDateString()}
-                        </p>
-                      )}
-                      {item.dueDate && (
-                        <p className="text-xs text-gray-600">
-                          Due: {new Date(item.dueDate).toLocaleDateString()}
-                        </p>
-                      )}
-                    </div>
-                    <ChevronRight size={20} className="text-gray-400 flex-shrink-0" />
-                  </div>
+      {/* Urgent Items */}
+      {urgentItems.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-jade-purple flex items-center space-x-2">
+            <AlertCircle className="text-red-600" size={28} />
+            <span>Urgent Today</span>
+          </h2>
+          <div className="space-y-3">
+            {urgentItems.map((item) => (
+              <div
+                key={item.id}
+                className={`p-4 rounded-lg border-l-4 flex items-center justify-between ${
+                  item.priority === 'high'
+                    ? 'bg-red-50 border-red-500'
+                    : item.priority === 'medium'
+                    ? 'bg-yellow-50 border-yellow-500'
+                    : 'bg-gray-50 border-gray-500'
+                }`}
+              >
+                <div className="flex-1">
+                  <p className="font-semibold text-gray-800">{item.title}</p>
+                  <p className="text-sm text-gray-600">{item.source}</p>
                 </div>
-              ))}
+                {item.actionButton && (
+                  <button
+                    onClick={item.actionButton.onClick}
+                    className="ml-4 flex items-center space-x-2 px-4 py-2 bg-jade-purple text-white rounded-lg hover:bg-jade-dark transition-colors"
+                  >
+                    {item.actionButton.icon}
+                    <span className="text-sm font-medium">{item.actionButton.label}</span>
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Content & Newsletter Section */}
+      {contentDueForReview.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-jade-purple">Content & Newsletter</h2>
+          <div className="space-y-3">
+            {contentDueForReview.slice(0, 3).map((item) => (
+              <div key={item.id} className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold text-gray-800">{item.title}</p>
+                    <p className="text-sm text-gray-600">
+                      {item.type} • {item.status}
+                    </p>
+                  </div>
+                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
+                    <Eye size={16} />
+                    <span>Review</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Household & Life Section */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-jade-purple">Household & Life</h2>
+        <div className="grid md:grid-cols-2 gap-4">
+          {/* Cleaning */}
+          {todayCleaningTasks.length > 0 && (
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <h3 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                <CheckCircle2 size={20} className="text-green-600" />
+                <span>Cleaning</span>
+              </h3>
+              <ul className="space-y-2">
+                {todayCleaningTasks.map((task) => (
+                  <li key={task.id} className="text-sm flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={task.completed}
+                      onChange={() => {
+                        cleaningStore.toggleTask(task.id);
+                        setRefreshKey((k) => k + 1);
+                      }}
+                      className="rounded"
+                    />
+                    <span className={task.completed ? 'line-through text-gray-400' : ''}>
+                      {task.title}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
-        </section>
 
-        {/* 2. THIS WEEK'S OUTLOOK */}
-        <section>
-          <h2 className="text-xl font-bold text-jade-purple mb-4 flex items-center space-x-2">
-            <TrendingUp size={24} />
-            <span>📊 THIS WEEK'S OUTLOOK</span>
+          {/* Meals */}
+          {todayMeals.length > 0 && (
+            <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+              <h3 className="font-semibold text-gray-800 mb-2">🍽️ Meals</h3>
+              <ul className="space-y-2 text-sm">
+                {todayMeals.map((meal) => (
+                  <li key={meal.id}>
+                    <p className="font-medium capitalize">{meal.type}</p>
+                    {meal.harveyMeal && <p className="text-xs text-gray-600">Harvey: {meal.harveyMeal}</p>}
+                    {meal.familyMeal && <p className="text-xs text-gray-600">Family: {meal.familyMeal}</p>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Appointments */}
+          {todayAppointments.length > 0 && (
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <h3 className="font-semibold text-gray-800 mb-2 flex items-center space-x-2">
+                <Calendar size={20} className="text-purple-600" />
+                <span>Appointments</span>
+              </h3>
+              <ul className="space-y-2 text-sm">
+                {todayAppointments.map((apt) => (
+                  <li key={apt.id}>
+                    <p className="font-medium">{apt.time} - {apt.title}</p>
+                    {apt.location && <p className="text-xs text-gray-600">{apt.location}</p>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Shopping */}
+          {shoppingItems.length > 0 && (
+            <div className="bg-teal-50 p-4 rounded-lg border border-teal-200">
+              <h3 className="font-semibold text-gray-800 mb-2">🛒 Shopping</h3>
+              <ul className="space-y-2 text-sm">
+                {shoppingItems.slice(0, 4).map((item) => (
+                  <li key={item.id} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={item.completed}
+                      onChange={() => {
+                        shoppingStore.toggleItem(item.id);
+                        setRefreshKey((k) => k + 1);
+                      }}
+                      className="rounded"
+                    />
+                    <span className={item.completed ? 'line-through text-gray-400' : ''}>
+                      {item.title}
+                    </span>
+                  </li>
+                ))}
+                {shoppingItems.length > 4 && (
+                  <li className="text-xs text-gray-600 italic">+{shoppingItems.length - 4} more</li>
+                )}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Reminders for John */}
+      {unsentReminders.length > 0 && (
+        <div className="space-y-4">
+          <h2 className="text-2xl font-bold text-jade-purple flex items-center space-x-2">
+            <Clock size={28} />
+            <span>Reminders to Send</span>
           </h2>
-
-          {/* Progress Bar */}
-          <div className="bg-white border-2 border-jade-light rounded-lg p-6 mb-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-semibold text-gray-900">Weekly Progress</h3>
-              <span className="text-2xl font-bold text-jade-purple">
-                {weekOutlook.progressPercent}%
-              </span>
-            </div>
-            <div className="w-full bg-gray-300 rounded-full h-4 overflow-hidden">
-              <div
-                className="bg-gradient-to-r from-jade-purple to-jade-light h-full transition-all"
-                style={{ width: `${weekOutlook.progressPercent}%` }}
-              />
-            </div>
-            <p className="text-sm text-gray-600 mt-2">
-              {weekOutlook.contentScheduled} scheduled • Newsletter{' '}
-              {weekOutlook.newsletterTopicSelected ? '✅ ready' : '❌ topic needed'}
-            </p>
-          </div>
-
-          {/* Status Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-              <p className="text-xs font-bold text-blue-700 uppercase">Due for Review</p>
-              <p className="text-3xl font-bold text-blue-700 my-2">
-                {weekOutlook.contentDueForReview}
-              </p>
-              <p className="text-sm text-blue-600">pieces awaiting review</p>
-            </div>
-
-            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
-              <p className="text-xs font-bold text-green-700 uppercase">Ready to Film</p>
-              <p className="text-3xl font-bold text-green-700 my-2">
-                {weekOutlook.contentReadyToFilm}
-              </p>
-              <p className="text-sm text-green-600">pieces approved & ready</p>
-            </div>
-
-            <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4">
-              <p className="text-xs font-bold text-purple-700 uppercase">Scheduled</p>
-              <p className="text-3xl font-bold text-purple-700 my-2">
-                {weekOutlook.contentScheduled}
-              </p>
-              <p className="text-sm text-purple-600">pieces scheduled this week</p>
-            </div>
-          </div>
-
-          {/* Key Dates */}
-          <div className="mt-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
-            <h4 className="font-bold text-yellow-900 mb-2">📅 Key Dates This Week</h4>
-            <div className="space-y-2 text-sm text-yellow-800">
-              <p>✉️ Newsletter goes out: Friday 11pm</p>
-              <p>🎬 Content filming window: Mon-Wed</p>
-              <p>📤 Scheduling deadline: Thursday</p>
-            </div>
-          </div>
-        </section>
-
-        {/* 3. QUICK ACTIONS */}
-        <section>
-          <h2 className="text-xl font-bold text-jade-purple mb-4 flex items-center space-x-2">
-            <ChevronRight size={24} />
-            <span>⚡ QUICK ACTIONS</span>
-          </h2>
-
           <div className="space-y-3">
-            {weekOutlook.contentDueForReview > 0 && (
-              <button className="w-full bg-blue-600 text-white rounded-lg p-4 hover:bg-blue-700 transition-colors text-left">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-bold">Review {weekOutlook.contentDueForReview} Script(s)</p>
-                    <p className="text-sm text-blue-200">
-                      Open Content tab to start review
-                    </p>
-                  </div>
-                  <Eye size={24} />
+            {unsentReminders.map((reminder) => (
+              <div key={reminder.id} className="bg-indigo-50 p-4 rounded-lg border border-indigo-200 flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-gray-800">{reminder.text}</p>
+                  {reminder.dueTime && <p className="text-sm text-gray-600">Due: {reminder.dueTime}</p>}
                 </div>
-              </button>
-            )}
-
-            {!weekOutlook.newsletterTopicSelected && (
-              <button className="w-full bg-purple-600 text-white rounded-lg p-4 hover:bg-purple-700 transition-colors text-left">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-bold">Pick Newsletter Topic</p>
-                    <p className="text-sm text-purple-200">
-                      Select from suggested topics
-                    </p>
-                  </div>
-                  <Mail size={24} />
-                </div>
-              </button>
-            )}
-
-            {weekOutlook.contentReadyToFilm > 0 && (
-              <button className="w-full bg-green-600 text-white rounded-lg p-4 hover:bg-green-700 transition-colors text-left">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-bold">Mark {weekOutlook.contentReadyToFilm} Filmed</p>
-                    <p className="text-sm text-green-200">
-                      Update status after filming
-                    </p>
-                  </div>
-                  <CheckCircle2 size={24} />
-                </div>
-              </button>
-            )}
+                <button
+                  onClick={() => {
+                    remindersStore.sendReminder(reminder.id);
+                    setRefreshKey((k) => k + 1);
+                  }}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center space-x-2"
+                >
+                  <Send size={16} />
+                  <span>Send Now</span>
+                </button>
+              </div>
+            ))}
           </div>
-        </section>
+        </div>
+      )}
 
-        {/* Mobile Note */}
-        <div className="md:hidden bg-jade-cream/50 border border-jade-light rounded-lg p-4 text-center text-sm text-gray-700">
-          💡 <strong>Tip:</strong> Tap any urgent item to open editor or navigate to detailed view
+      {/* This Week's Outlook */}
+      <div className="space-y-4">
+        <h2 className="text-2xl font-bold text-jade-purple flex items-center space-x-2">
+          <TrendingUp size={28} />
+          <span>This Week's Outlook</span>
+        </h2>
+        <div className="bg-gradient-to-br from-jade-cream to-white rounded-lg p-6 border border-jade-light">
+          <p className="text-gray-600">
+            ✓ {contentDueForReview.length} content pieces to review
+          </p>
+          <p className="text-gray-600">
+            ✓ {todayAppointments.length} appointments on your calendar
+          </p>
+          <p className="text-gray-600">
+            ✓ {todayMeals.length} meals planned for today
+          </p>
+          <p className="text-gray-600 mt-4 text-sm italic">
+            Stay focused on what matters. You've got this! 💪
+          </p>
         </div>
       </div>
     </div>
