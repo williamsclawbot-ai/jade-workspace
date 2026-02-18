@@ -67,6 +67,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       section: 'business',
       items: [
         { id: 'content', label: 'Content', icon: FileText },
+        { id: 'calendar', label: 'Calendar', icon: Calendar },
         { id: 'weekly-newsletter', label: 'Newsletter', icon: Mail },
         { id: 'hls-tasks', label: 'Pipeline', icon: CheckSquare },
         { id: 'combined-metrics', label: 'Metrics', icon: BarChart3 },
@@ -99,7 +100,6 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         { id: 'decisions', label: 'Decisions', icon: GitBranch },
         { id: 'personal-tasks', label: 'Tasks', icon: CheckSquare },
         { id: 'notes', label: 'Notes', icon: StickyNote },
-        { id: 'calendar', label: 'Calendar', icon: Calendar },
         { id: 'inbox', label: 'Quick Capture', icon: Inbox },
       ],
     },

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { X, StickyNote } from 'lucide-react';
-import { notesStore, type Note } from '@/lib/notesStore';
+import { sectionNotesStore, type SectionNote } from '@/lib/notesStore';
 
 interface QuickNotesModalProps {
   isOpen: boolean;
@@ -12,13 +12,12 @@ interface QuickNotesModalProps {
 
 export default function QuickNotesModal({ isOpen, onClose, section }: QuickNotesModalProps) {
   const [noteContent, setNoteContent] = useState('');
-  const [noteTitle, setNoteTitle] = useState('');
-  const [sectionNotes, setSectionNotes] = useState<Note[]>([]);
+  const [sectionNotes, setSectionNotes] = useState<SectionNote[]>([]);
   const [viewMode, setViewMode] = useState<'add' | 'view'>('add');
 
   const handleOpen = () => {
     // Load notes for this section when modal opens
-    const notes = notesStore.getByCategory(section.toLowerCase());
+    const notes = sectionNotesStore.getBySection(section);
     setSectionNotes(notes);
     setViewMode(notes.length > 0 ? 'view' : 'add');
   };
@@ -26,31 +25,24 @@ export default function QuickNotesModal({ isOpen, onClose, section }: QuickNotes
   const handleAddNote = () => {
     if (!noteContent.trim()) return;
 
-    notesStore.addNote({
-      title: noteTitle || noteContent.substring(0, 50),
-      content: noteContent,
-      category: section.toLowerCase(),
-      tags: [section.toLowerCase()],
-    });
+    sectionNotesStore.addNote(section, noteContent);
 
     setNoteContent('');
-    setNoteTitle('');
-    const updatedNotes = notesStore.getByCategory(section.toLowerCase());
+    const updatedNotes = sectionNotesStore.getBySection(section);
     setSectionNotes(updatedNotes);
     setViewMode('view');
   };
 
   const handleDeleteNote = (id: string) => {
     if (confirm('Delete this note?')) {
-      notesStore.deleteNote(id);
-      const updatedNotes = notesStore.getByCategory(section.toLowerCase());
+      sectionNotesStore.deleteNote(id);
+      const updatedNotes = sectionNotesStore.getBySection(section);
       setSectionNotes(updatedNotes);
     }
   };
 
   const handleClose = () => {
     setNoteContent('');
-    setNoteTitle('');
     setViewMode('add');
     onClose();
   };
@@ -76,17 +68,6 @@ export default function QuickNotesModal({ isOpen, onClose, section }: QuickNotes
           {viewMode === 'add' ? (
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-bold text-gray-700 mb-2 block">Note Title (optional)</label>
-                <input
-                  type="text"
-                  value={noteTitle}
-                  onChange={(e) => setNoteTitle(e.target.value)}
-                  placeholder={`e.g., Quick reminder for ${section}`}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
                 <label className="text-sm font-bold text-gray-700 mb-2 block">Your Note</label>
                 <textarea
                   value={noteContent}
@@ -111,7 +92,6 @@ export default function QuickNotesModal({ isOpen, onClose, section }: QuickNotes
                 <button
                   onClick={() => {
                     setNoteContent('');
-                    setNoteTitle('');
                     setViewMode('add');
                   }}
                   className="px-3 py-1 bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 text-sm font-medium"
@@ -125,13 +105,10 @@ export default function QuickNotesModal({ isOpen, onClose, section }: QuickNotes
                   {sectionNotes.map((note) => (
                     <div key={note.id} className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                       <div className="flex items-start justify-between mb-2">
-                        <div className="flex-1">
-                          <h4 className="font-bold text-gray-900">{note.title}</h4>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {new Date(note.createdAt || '').toLocaleDateString()} at{' '}
-                            {new Date(note.createdAt || '').toLocaleTimeString()}
-                          </p>
-                        </div>
+                        <p className="text-xs text-gray-500">
+                          {new Date(note.date).toLocaleDateString()} at{' '}
+                          {new Date(note.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </p>
                         <button
                           onClick={() => handleDeleteNote(note.id)}
                           className="text-gray-400 hover:text-red-600 transition-colors"
@@ -140,7 +117,7 @@ export default function QuickNotesModal({ isOpen, onClose, section }: QuickNotes
                           <X size={18} />
                         </button>
                       </div>
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{note.content}</p>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{note.text}</p>
                     </div>
                   ))}
                 </div>

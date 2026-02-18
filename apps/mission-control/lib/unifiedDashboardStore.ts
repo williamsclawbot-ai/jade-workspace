@@ -11,7 +11,7 @@ import { Reminder } from './remindersStore';
 import { TodoItem } from './todoStore';
 import { ShoppingItem } from './shoppingStore';
 import { Task } from './tasksStore';
-import { Note } from './notesStore';
+import { SectionNote } from './notesStore';
 import { Decision } from './decisionsStore';
 import { QuickAction } from './quickActionsStore';
 

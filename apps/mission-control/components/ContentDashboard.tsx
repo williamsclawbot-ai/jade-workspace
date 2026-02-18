@@ -190,7 +190,7 @@ export default function ContentDashboard() {
         id: post.id,
         title: post.title,
         platform: post.platform,
-        description: post.description,
+        description: (post as any).script || (post as any).caption || 'No description',
         status: (post.status as any),
         created: post.dateStr || new Date().toLocaleDateString(),
         date: post.date,

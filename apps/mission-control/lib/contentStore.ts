@@ -78,7 +78,7 @@ class ContentStoreClass {
   }
 
   add(item: Omit<ContentItem, 'id'>): ContentItem {
-    const newItem = { ...item, id: Date.now().toString() };
+    const newItem: ContentItem = { ...item, id: Date.now().toString() } as ContentItem;
     this.items.push(newItem);
     this.save();
     return newItem;

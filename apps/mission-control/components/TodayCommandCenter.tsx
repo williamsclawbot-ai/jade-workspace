@@ -22,7 +22,7 @@ import { remindersStore } from '@/lib/remindersStore';
 import { todoStore } from '@/lib/todoStore';
 import { shoppingStore } from '@/lib/shoppingStore';
 import { tasksStore } from '@/lib/tasksStore';
-import { notesStore } from '@/lib/notesStore';
+import { sectionNotesStore } from '@/lib/notesStore';
 import { decisionsStore } from '@/lib/decisionsStore';
 
 interface UrgentItem {
