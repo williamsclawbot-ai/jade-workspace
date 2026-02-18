@@ -57,7 +57,7 @@ class CalendarStoreClass {
       // March
       { date: '2026-03-01', title: 'Autumn Begins (Southern Hemisphere)', type: 'seasonal' as const, importance: 'medium' },
       { date: '2026-03-08', title: 'International Women\'s Day', type: 'awareness' as const, importance: 'high' },
-      { date: '2026-03-14', title: 'World Sleep Day', type: 'awareness' as const, importance: 'high' },
+      { date: '2026-03-13', title: 'World Sleep Day', type: 'awareness' as const, importance: 'high' },
       { date: '2026-03-01', title: 'Gidget Foundation 100km Walk', type: 'campaign' as const, importance: 'high', endDate: '2026-03-31' },
 
       // April

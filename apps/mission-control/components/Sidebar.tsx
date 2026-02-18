@@ -87,7 +87,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         { id: 'cleaning-schedule', label: 'Cleaning', icon: CheckCircle2 },
         { id: 'reminders-john', label: 'Reminders for John', icon: Clock },
         { id: 'meal-planning', label: 'Meals', icon: UtensilsCrossed },
-        { id: 'woolworths', label: 'Shopping', icon: ShoppingCart },
+        { id: 'woolworths', label: 'Shopping Cart (Checkout)', icon: ShoppingCart },
         { id: 'household-todos', label: 'To-Do Lists', icon: ListTodo },
       ],
     },

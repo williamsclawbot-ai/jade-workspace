@@ -29,6 +29,7 @@ import PersonalTasks from '@/components/PersonalTasks';
 import Notes from '@/components/Notes';
 import TodayCommandCenter from '@/components/TodayCommandCenter';
 import WeeklyContentView from '@/components/WeeklyContentView';
+import ShoppingCart from '@/components/ShoppingCart';
 import weeklyContentData from '@/lib/weeklyContentData.json';
 import { initializeWeeklyContent } from '@/lib/initializeContentData';
 
@@ -92,7 +93,7 @@ export default function Home() {
       case 'personal-tasks':
         return <PersonalTasks />;
       case 'woolworths':
-        return <div className="p-8 text-center"><p className="text-gray-600">🛒 Woolworths integration coming soon</p></div>;
+        return <ShoppingCart />;
       case 'notes':
         return <Notes />;
       case 'memory':
