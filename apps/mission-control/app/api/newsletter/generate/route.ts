@@ -21,34 +21,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Try multiple ways to get the API key
-    const ANTHROPIC_API_KEY = 
-      process.env.ANTHROPIC_API_KEY || 
-      process.env['ANTHROPIC_API_KEY'];
+    // Get OpenAI API key
+    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
     
-    console.log('Checking for ANTHROPIC_API_KEY...');
-    console.log('process.env.ANTHROPIC_API_KEY exists:', !!process.env.ANTHROPIC_API_KEY);
-    console.log('Key length:', ANTHROPIC_API_KEY ? ANTHROPIC_API_KEY.length : 0);
-    
-    if (!ANTHROPIC_API_KEY) {
-      console.error('ANTHROPIC_API_KEY not found in environment');
-      console.error('Available env vars:', Object.keys(process.env).filter(k => k.includes('ANTHROPIC')));
+    if (!OPENAI_API_KEY) {
+      console.error('OPENAI_API_KEY not found in environment');
       return NextResponse.json(
-        { error: 'API key not configured', debug: 'Missing ANTHROPIC_API_KEY in environment' },
+        { error: 'API key not configured' },
         { status: 500 }
       );
     }
 
-    // Generate newsletter outline and full copy
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    // Generate newsletter outline and full copy using OpenAI
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'gpt-4-turbo',
         max_tokens: 2500,
         messages: [
           {
@@ -80,7 +72,7 @@ Remember: Our voice is emotionally grounded, practical, and validating. We suppo
 
     if (!response.ok) {
       const error = await response.json();
-      console.error('Claude API error:', error);
+      console.error('OpenAI API error:', error);
       return NextResponse.json(
         { error: 'Draft generation failed', details: error },
         { status: response.status }
@@ -88,14 +80,14 @@ Remember: Our voice is emotionally grounded, practical, and validating. We suppo
     }
 
     const data = (await response.json()) as any;
-    if (!data.content || !data.content[0] || !data.content[0].text) {
+    if (!data.choices || !data.choices[0] || !data.choices[0].message) {
       console.error('Unexpected API response format:', data);
       return NextResponse.json(
         { error: 'Unexpected API response format' },
         { status: 500 }
       );
     }
-    const text = data.content[0].text;
+    const text = data.choices[0].message.content;
 
     // Parse outline and copy
     const outlineMatch = text.match(/\*\*OUTLINE\*\*([\s\S]*?)(?=\*\*FULL COPY\*\*)/);
