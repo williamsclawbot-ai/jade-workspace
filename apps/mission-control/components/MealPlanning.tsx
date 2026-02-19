@@ -1,53 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { UtensilsCrossed, Plus, Trash2, Search, ShoppingCart, X, AlertCircle, CheckCircle, ExternalLink } from 'lucide-react';
-import { woolworthsMappings, getWoolworthsMapping, getUnmappedItems, isItemFlagged } from '../lib/woolworthsMapping';
-import { jadesMealsStorage, populateWeeklyLunches } from '../lib/jadesMealsStorage';
-import { shoppingListStore } from '../lib/shoppingListStore';
+import { UtensilsCrossed, Plus, Trash2, ShoppingCart, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { weeklyMealPlanStorage, WeeklyMealPlan, ShoppingItem } from '../lib/weeklyMealPlanStorage';
+import { recipeDatabase } from '../lib/recipeDatabase';
+import { 
+  calculateDayMacros,
+  getRecipeDetails,
+  overrideMealForDay,
+  removeMealFromDay,
+} from '../lib/mealPlanningHelpers';
+import { woolworthsMappings, getWoolworthsMapping, isItemFlagged } from '../lib/woolworthsMapping';
+import RecipeModal from './RecipeModal';
+import MacrosDisplay from './MacrosDisplay';
 import NotesButton from './NotesButton';
-
-interface MealDatabaseEntry {
-  calories: number;
-  protein: number;
-  fats: number;
-  carbs: number;
-  ingredients: Array<{ name: string; qty: string; unit: string }>;
-}
-
-interface ShoppingItem {
-  id: number;
-  name: string;
-  qty: string;
-  unit: string;
-  woolworthsUrl?: string;
-  woolworthsProductName?: string;
-  hasMapping?: boolean;
-  isFlagged?: boolean;
-  category?: string;
-}
-
-interface Staple {
-  id: number;
-  name: string;
-  brand: string;
-  checked: boolean;
-}
-
-interface MealsState {
-  jades: Record<string, string>;
-  harveys: Record<string, string>;
-  harveysAssignedMeals: Record<string, Record<string, string[]>>;
-  shopping: ShoppingItem[];
-  staples: Staple[];
-}
-
-interface AssignmentModalState {
-  isOpen: boolean;
-  selectedItem: string | null;
-  selectedDay: string | null;
-  selectedMeal: string | null;
-}
 
 const JADE_TARGETS = {
   calories: 1550,
@@ -60,612 +26,433 @@ const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 const jadesMealTypes = ['Breakfast', 'Lunch', 'Snack', 'Dinner', 'Dessert'];
 const harveysMealTypes = ['Breakfast', 'Lunch', 'Snack', 'Dinner'];
 
-// Initialize empty assigned meals structure
-const initializeAssignedMeals = () => {
-  const structure: Record<string, Record<string, string[]>> = {};
-  days.forEach((day) => {
-    structure[day] = {
-      breakfast: [],
-      lunch: [],
-      snack: [],
-      dinner: [],
-    };
-  });
-  return structure;
-};
-
-const mealDatabase: Record<string, MealDatabaseEntry> = {
-  'Double Cheeseburger': {
-    calories: 507,
-    protein: 49,
-    fats: 22,
-    carbs: 29,
-    ingredients: [
-      { name: 'Extra Lean Beef Mince (5 Star)', qty: '180', unit: 'g' },
-      { name: '50% Less Fat Cheese Slice - Bega', qty: '1', unit: 'slice' },
-      { name: 'Brioche Bun - Bakery Du Jour', qty: '1', unit: 'bun' },
-      { name: 'Lettuce', qty: '10', unit: 'g' },
-      { name: 'Onion', qty: '15', unit: 'g' },
-      { name: 'Special Burger Pickles - Coles', qty: '5', unit: 'g' },
-      { name: 'Special Burger Sauce - Coles Brand', qty: '10', unit: 'ml' },
-      { name: 'Tomato', qty: '15', unit: 'g' },
-    ],
-  },
-  'Chicken Enchilada (GF)': {
-    calories: 543,
-    protein: 42,
-    fats: 21,
-    carbs: 44,
-    ingredients: [
-      { name: 'Avocado', qty: '30', unit: 'g' },
-      { name: 'Chicken Breast (Weighed Raw)', qty: '100', unit: 'g' },
-      { name: 'Light Mozzarella Cheese (Coles) OR Bega 50% light Shredded Cheese (Woolworths)', qty: '35', unit: 'g' },
-      { name: 'Mild Salsa - Old El Paso', qty: '35', unit: 'g' },
-      { name: 'Refried Beans - Old El Paso', qty: '60', unit: 'g' },
-      { name: 'Sour Cream Light', qty: '30', unit: 'g' },
-      { name: 'Taco Spice Mix (Old El Paso) - Gluten free', qty: '5', unit: 'g' },
-      { name: 'White Wraps (50g) - Free From Gluten (Woolworths Only)', qty: '1', unit: 'wrap' },
-    ],
-  },
+// Harvey's meal options (unchanged from original)
+const harveysMealOptions: Record<string, string[]> = {
+  '🥣 Carb/Protein': [
+    'ABC Muffins', 'Banana Muffins', 'Muesli Bar', 'Carmans Oat Bar',
+    'Rice Bubble Bars (homemade)', 'Ham & Cheese Scroll', 'Pizza Scroll',
+    'Cheese & Vegemite (+backup)', 'Ham & Cheese Sandwich', 'Nut Butter & Honey (+backup)',
+    'Pasta & Boiled Egg (+backup)', 'Avo & Cream Cheese (+backup)', 'Sweet Potato & Chicken',
+    'Choc Chip Muffins', 'Weekly New Muffin', 'Weekly New Bar',
+  ],
+  '🍎 Fruit': [
+    'Apple (introduce)', 'Pear', 'Oranges', 'Banana', 'Grapes',
+    'Strawberries', 'Raspberries', 'Blueberries', 'Kiwi Fruit', 'Plum', 'Nectarine',
+  ],
+  '🥦 Vegetable': [
+    'Mixed Frozen Veg ⭐ LOVES', 'Cucumber (keep trying)', 'Tomato (keep trying)',
+    'Capsicum', 'Broccoli (new)', 'Green Beans (new)', 'Roasted Sweet Potato (new)',
+  ],
+  '🍪 Crunch': [
+    'Star Crackers', 'Rice Cakes', 'Pikelets/Pancakes', 'Veggie Chips',
+    'Soft Pretzels', 'Cheese Crackers', 'Breadsticks/Grissini',
+  ],
+  '🥤 Afternoon Snacks': [
+    'Smoothie (banana, berries, yogurt, milk)', 'Yogurt + Fruit',
+    'Crackers + Cheese', 'Toast + Nut Butter', 'Fruit Salad', 'Rice Cakes + Honey',
+  ],
+  '✅ Everyday': ['Yogurt (every lunch)'],
 };
 
 export default function MealPlanning() {
   const [activeTab, setActiveTab] = useState<'jades-meals' | 'harveys-meals' | 'shopping' | 'harveys-options'>('jades-meals');
-  const [meals, setMeals] = useState<MealsState>({
-    jades: {},
-    harveys: {},
-    harveysAssignedMeals: initializeAssignedMeals(),
-    shopping: [],
-    staples: [],
-  });
+  const [activeWeekTab, setActiveWeekTab] = useState<'this' | 'next' | 'archive'>('this');
+  const [selectedArchivedWeekId, setSelectedArchivedWeekId] = useState<string | null>(null);
 
-  // Debug: Log current meals state on every render
-  useEffect(() => {
-    if (Object.keys(meals.jades).length > 0) {
-      console.log('🎯 RENDER - Current meals.jades:', meals.jades);
-    }
-  });
+  const [currentWeek, setCurrentWeek] = useState<WeeklyMealPlan | null>(null);
+  const [nextWeek, setNextWeek] = useState<WeeklyMealPlan | null>(null);
+  const [archivedWeeks, setArchivedWeeks] = useState<WeeklyMealPlan[]>([]);
 
-  const [assignmentModal, setAssignmentModal] = useState<AssignmentModalState>({
-    isOpen: false,
-    selectedItem: null,
-    selectedDay: null,
-    selectedMeal: null,
-  });
+  const [recipeModalOpen, setRecipeModalOpen] = useState(false);
+  const [selectedMealInfo, setSelectedMealInfo] = useState<{ weekId: string; day: string; mealType: string; recipeName: string } | null>(null);
 
   const [newItemName, setNewItemName] = useState('');
   const [newItemQty, setNewItemQty] = useState('');
   const [newItemUnit, setNewItemUnit] = useState('');
-  const [newStapleName, setNewStapleName] = useState('');
-  const [newStapleBrand, setNewStapleBrand] = useState('');
   const [buildingCart, setBuildingCart] = useState(false);
   const [cartResult, setCartResult] = useState<{ success: boolean; message: string; items?: any[]; total?: number } | null>(null);
 
-  // Load meals from jadesMealsStorage on mount
+  // Load weeks on mount
   useEffect(() => {
-    const loadMeals = () => {
-      try {
-        const allMeals = jadesMealsStorage.getAllMeals();
-        console.log('📦 Loaded meals from storage:', allMeals);
-        const jadesData: Record<string, string> = {};
-        allMeals.forEach((meal) => {
-          const key = `${meal.day}-${meal.mealType}`;
-          jadesData[key] = meal.mealName;
-          console.log(`  ✅ ${key} = ${meal.mealName}`);
-        });
-        console.log('📝 jadesMealsData prepared:', jadesData);
-        console.log('🔄 Updating meals state with', Object.keys(jadesData).length, 'meals');
-        setMeals((prev) => {
-          const updated = { ...prev, jades: jadesData };
-          console.log('✅ State callback - new jades:', Object.keys(updated.jades).length, 'items');
-          return updated;
-        });
-      } catch (err) {
-        console.error('❌ Error loading meals:', err);
-      }
-    };
+    const current = weeklyMealPlanStorage.getCurrentWeek();
+    const next = weeklyMealPlanStorage.getNextWeek();
+    const archived = weeklyMealPlanStorage.getArchivedWeeks();
+    setCurrentWeek(current);
+    setNextWeek(next);
+    setArchivedWeeks(archived);
 
-    loadMeals();
-
-    // Listen for storage changes from jadesMealsStorage
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'jades-meals-storage-v1') {
-        console.log('🔔 Storage changed, reloading meals');
-        loadMeals();
+      if (e.key === 'weekly-meal-plans-v1') {
+        const current = weeklyMealPlanStorage.getCurrentWeek();
+        const next = weeklyMealPlanStorage.getNextWeek();
+        const archived = weeklyMealPlanStorage.getArchivedWeeks();
+        setCurrentWeek(current);
+        setNextWeek(next);
+        setArchivedWeeks(archived);
       }
     };
+
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // All Harvey's meal options (organized by category)
-  const harveysMealOptions: Record<string, string[]> = {
-    '🥣 Carb/Protein': [
-      'ABC Muffins',
-      'Banana Muffins',
-      'Muesli Bar',
-      'Carmans Oat Bar',
-      'Rice Bubble Bars (homemade)',
-      'Ham & Cheese Scroll',
-      'Pizza Scroll',
-      'Cheese & Vegemite (+backup)',
-      'Ham & Cheese Sandwich',
-      'Nut Butter & Honey (+backup)',
-      'Pasta & Boiled Egg (+backup)',
-      'Avo & Cream Cheese (+backup)',
-      'Sweet Potato & Chicken',
-      'Choc Chip Muffins',
-      'Weekly New Muffin',
-      'Weekly New Bar',
-    ],
-    '🍎 Fruit': [
-      'Apple (introduce)',
-      'Pear',
-      'Oranges',
-      'Banana',
-      'Grapes',
-      'Strawberries',
-      'Raspberries',
-      'Blueberries',
-      'Kiwi Fruit',
-      'Plum',
-      'Nectarine',
-    ],
-    '🥦 Vegetable': [
-      'Mixed Frozen Veg ⭐ LOVES',
-      'Cucumber (keep trying)',
-      'Tomato (keep trying)',
-      'Capsicum',
-      'Broccoli (new)',
-      'Green Beans (new)',
-      'Roasted Sweet Potato (new)',
-    ],
-    '🍪 Crunch': [
-      'Star Crackers',
-      'Rice Cakes',
-      'Pikelets/Pancakes',
-      'Veggie Chips',
-      'Soft Pretzels',
-      'Cheese Crackers',
-      'Breadsticks/Grissini',
-    ],
-    '🥤 Afternoon Snacks': [
-      'Smoothie (banana, berries, yogurt, milk)',
-      'Yogurt + Fruit',
-      'Crackers + Cheese',
-      'Toast + Nut Butter',
-      'Fruit Salad',
-      'Rice Cakes + Honey',
-    ],
-    '✅ Everyday': ['Yogurt (every lunch)'],
+  const displayedWeek =
+    activeWeekTab === 'this'
+      ? currentWeek
+      : activeWeekTab === 'next'
+      ? nextWeek
+      : archivedWeeks.find(w => w.weekId === selectedArchivedWeekId);
+
+  const readOnly = activeWeekTab === 'archive' || displayedWeek?.status === 'locked';
+
+  const openRecipeModal = (weekId: string, day: string, mealType: string, recipeName: string) => {
+    setSelectedMealInfo({ weekId, day, mealType, recipeName });
+    setRecipeModalOpen(true);
   };
 
-  // Load from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('jadesMealData');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        // Ensure harveysAssignedMeals structure exists
-        if (!parsed.harveysAssignedMeals) {
-          parsed.harveysAssignedMeals = initializeAssignedMeals();
-        }
-        setMeals(parsed);
-      } catch (e) {
-        console.log('No saved data');
-      }
-    }
-  }, []);
-
-  // Save to localStorage
-  useEffect(() => {
-    localStorage.setItem('jadesMealData', JSON.stringify(meals));
-  }, [meals]);
-
-  const calculateDayMacros = (day: string) => {
-    let totals = { calories: 0, protein: 0, fats: 0, carbs: 0 };
-    jadesMealTypes.forEach((mealType) => {
-      const key = `${day}-${mealType}`;
-      const mealName = meals.jades[key];
-      if (mealName && mealDatabase[mealName]) {
-        const meal = mealDatabase[mealName];
-        totals.calories += meal.calories;
-        totals.protein += meal.protein;
-        totals.fats += meal.fats;
-        totals.carbs += meal.carbs;
-      }
-    });
-    return totals;
-  };
-
-  const updateMeal = (key: string, type: 'jades' | 'harveys', value: string) => {
-    setMeals((prev) => ({
-      ...prev,
-      [type]: { ...prev[type], [key]: value },
-    }));
-
-    // If updating Jade's meal, persist to jadesMealsStorage
-    if (type === 'jades' && value.trim()) {
-      const [day, mealType] = key.split('-');
-      const mealData = mealDatabase[value];
-      jadesMealsStorage.addMeal(
-        day,
-        mealType,
-        value,
-        mealData ? {
-          calories: mealData.calories,
-          protein: mealData.protein,
-          fats: mealData.fats,
-          carbs: mealData.carbs,
-        } : {},
-        mealData ? mealData.ingredients : []
-      );
-    } else if (type === 'jades' && !value.trim()) {
-      // Remove meal if empty
-      const [day, mealType] = key.split('-');
-      jadesMealsStorage.removeMeal(day, mealType);
+  const handleRecipeModalSave = (ingredientOverrides: any[], macroOverrides: any) => {
+    if (!selectedMealInfo) return;
+    const result = overrideMealForDay(
+      selectedMealInfo.weekId,
+      selectedMealInfo.day,
+      selectedMealInfo.mealType,
+      ingredientOverrides,
+      macroOverrides
+    );
+    if (result.success) {
+      const current = weeklyMealPlanStorage.getCurrentWeek();
+      const next = weeklyMealPlanStorage.getNextWeek();
+      setCurrentWeek(current);
+      setNextWeek(next);
     }
   };
 
-  const clearJadesMeals = () => {
-    if (confirm("Clear all of Jade's meals? This cannot be undone.")) {
-      setMeals((prev) => ({ ...prev, jades: {} }));
+  const handleRemoveMeal = (weekId: string, day: string, mealType: string) => {
+    const result = removeMealFromDay(weekId, day, mealType);
+    if (result.success) {
+      const current = weeklyMealPlanStorage.getCurrentWeek();
+      const next = weeklyMealPlanStorage.getNextWeek();
+      setCurrentWeek(current);
+      setNextWeek(next);
     }
   };
 
-  const clearHarveysMeals = () => {
-    if (confirm("Clear all of Harvey's meals? This cannot be undone.")) {
-      setMeals((prev) => ({ ...prev, harveys: {} }));
-    }
-  };
-
-  const addShoppingItem = () => {
-    if (!newItemName.trim()) {
-      alert('Please enter an item name');
-      return;
-    }
-    const item: ShoppingItem = {
-      id: Date.now(),
-      name: newItemName,
-      qty: newItemQty || '1',
-      unit: newItemUnit || 'unit',
-    };
-    setMeals((prev) => ({ ...prev, shopping: [...prev.shopping, item] }));
-    setNewItemName('');
-    setNewItemQty('');
-    setNewItemUnit('');
-  };
-
-  const removeShoppingItem = (id: number) => {
-    setMeals((prev) => ({
-      ...prev,
-      shopping: prev.shopping.filter((item) => item.id !== id),
-    }));
-  };
-
-  const editShoppingItem = (id: number, field: 'name' | 'qty' | 'unit', value: string) => {
-    setMeals((prev) => ({
-      ...prev,
-      shopping: prev.shopping.map((item) => 
-        item.id === id ? { ...item, [field]: value } : item
-      ),
-    }));
-  };
-
-  const addStaple = () => {
-    if (!newStapleName.trim()) {
-      alert('Please enter an item name');
-      return;
-    }
-    const staple: Staple = {
-      id: Date.now(),
-      name: newStapleName,
-      brand: newStapleBrand || 'Any brand',
-      checked: false,
-    };
-    setMeals((prev) => ({ ...prev, staples: [...prev.staples, staple] }));
-    setNewStapleName('');
-    setNewStapleBrand('');
-  };
-
-  const toggleStaple = (id: number) => {
-    setMeals((prev) => ({
-      ...prev,
-      staples: prev.staples.map((s) => (s.id === id ? { ...s, checked: !s.checked } : s)),
-    }));
-  };
-
-  const removeStaple = (id: number) => {
-    setMeals((prev) => ({
-      ...prev,
-      staples: prev.staples.filter((s) => s.id !== id),
-    }));
-  };
-
-  const clearShoppingList = () => {
-    if (confirm('Clear entire shopping list?')) {
-      setMeals((prev) => ({ ...prev, shopping: [] }));
-    }
-  };
-
-  // Modal functions
-  const openAssignmentModal = (item: string) => {
-    setAssignmentModal({
-      isOpen: true,
-      selectedItem: item,
-      selectedDay: days[0],
-      selectedMeal: 'breakfast',
-    });
-  };
-
-  const closeAssignmentModal = () => {
-    setAssignmentModal({
-      isOpen: false,
-      selectedItem: null,
-      selectedDay: null,
-      selectedMeal: null,
-    });
-  };
-
-  const addItemToMeal = () => {
-    const { selectedItem, selectedDay, selectedMeal } = assignmentModal;
-    if (selectedItem && selectedDay && selectedMeal) {
-      setMeals((prev) => {
-        const updated = { ...prev };
-        const mealList = updated.harveysAssignedMeals[selectedDay][selectedMeal as keyof typeof updated.harveysAssignedMeals[string]];
-        if (!mealList.includes(selectedItem)) {
-          mealList.push(selectedItem);
-        }
-        return updated;
-      });
-      closeAssignmentModal();
-    }
-  };
-
-  const removeItemFromMeal = (day: string, mealSlot: string, item: string) => {
-    setMeals((prev) => {
-      const updated = { ...prev };
-      updated.harveysAssignedMeals[day][mealSlot as keyof typeof updated.harveysAssignedMeals[string]] = 
-        updated.harveysAssignedMeals[day][mealSlot as keyof typeof updated.harveysAssignedMeals[string]].filter((i) => i !== item);
-      return updated;
-    });
-  };
-
-  const buildWoolworthsCart = async () => {
+  const handleBuildWoolworthsCart = async () => {
+    if (!displayedWeek) return;
     setBuildingCart(true);
     setCartResult(null);
     try {
-      const response = await fetch('/api/woolworths/build-cart', {
-        method: 'POST',
-      });
+      const response = await fetch('/api/woolworths/build-cart', { method: 'POST' });
       const data = await response.json();
       if (data.success) {
         setCartResult({
           success: true,
-          message: `✅ Cart built successfully! ${data.items.length} items added. Cart total: $${data.total.toFixed(2)}`,
+          message: `✅ Cart built! ${data.items.length} items. Total: $${data.total.toFixed(2)}`,
           items: data.items,
           total: data.total,
         });
+        weeklyMealPlanStorage.lockWeek(displayedWeek.weekId);
+        const current = weeklyMealPlanStorage.getCurrentWeek();
+        const next = weeklyMealPlanStorage.getNextWeek();
+        const archived = weeklyMealPlanStorage.getArchivedWeeks();
+        setCurrentWeek(current);
+        setNextWeek(next);
+        setArchivedWeeks(archived);
       } else {
-        setCartResult({
-          success: false,
-          message: `❌ Error building cart: ${data.error}`,
-        });
+        setCartResult({ success: false, message: `❌ Error: ${data.error}` });
       }
     } catch (error) {
-      setCartResult({
-        success: false,
-        message: `❌ Failed to build cart: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      });
+      setCartResult({ success: false, message: `❌ Failed: ${error instanceof Error ? error.message : 'Unknown error'}` });
     } finally {
       setBuildingCart(false);
     }
   };
 
-  // Extract ingredients from Jade's meals
-  const generateIngredientsFromJadesMeals = () => {
-    const ingredients: ShoppingItem[] = [];
-    let nextId = 9999;
+  if (!displayedWeek) return <div className="text-center py-8">Loading meal plans...</div>;
 
-    Object.entries(meals.jades).forEach(([dayMealKey, mealName]) => {
-      const mealData = mealDatabase[mealName];
-      if (mealData && mealData.ingredients) {
-        mealData.ingredients.forEach((ingredient) => {
-          ingredients.push({
-            id: nextId++,
-            name: ingredient.name,
-            qty: ingredient.qty,
-            unit: ingredient.unit,
-          });
-        });
-      }
-    });
-
-    return ingredients;
-  };
-
-  // Auto-generate shopping list from assigned meals
-  const generateShoppingListFromAssignments = () => {
-    const itemMap: Record<string, { qty: number; category: string }> = {};
-    
-    Object.values(meals.harveysAssignedMeals).forEach((dayMeals) => {
-      Object.values(dayMeals).forEach((items) => {
-        items.forEach((item) => {
-          if (!itemMap[item]) {
-            // Determine category from the options
-            let category = 'Other';
-            for (const [cat, opts] of Object.entries(harveysMealOptions)) {
-              if (opts.includes(item)) {
-                category = cat;
-                break;
-              }
-            }
-            itemMap[item] = { qty: 1, category };
-          } else {
-            itemMap[item].qty += 1;
-          }
-        });
-      });
-    });
-
-    return Object.entries(itemMap).map(([name, data]) => {
-      const mapping = getWoolworthsMapping(name);
-      return {
-        id: Date.now() + Math.random(),
-        name,
-        qty: data.qty.toString(),
-        unit: 'unit',
-        category: data.category,
-        woolworthsUrl: mapping?.woolworthsUrl,
-        woolworthsProductName: mapping?.woolworthsProductName,
-        hasMapping: !!mapping,
-        isFlagged: mapping ? isItemFlagged(name) : false,
-      };
-    });
-  };
-
-  // Jade's Meals Tab
-  const JadesMealsTab = () => (
+  return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-jade-purple mb-2">Jade's Weekly Meal Plan + Macros</h2>
-        <p className="text-gray-600">Plan your meals for the week. See your daily macro balance as you add meals.</p>
+      {/* Main tabs */}
+      <div className="flex gap-4 border-b border-gray-200 overflow-x-auto">
+        <button
+          onClick={() => setActiveTab('jades-meals')}
+          className={`px-4 py-3 font-medium border-b-2 transition whitespace-nowrap ${
+            activeTab === 'jades-meals'
+              ? 'border-jade-purple text-jade-purple'
+              : 'border-transparent text-gray-600'
+          }`}
+        >
+          👩 Jade's Meals
+        </button>
+        <button
+          onClick={() => setActiveTab('harveys-meals')}
+          className={`px-4 py-3 font-medium border-b-2 transition whitespace-nowrap ${
+            activeTab === 'harveys-meals'
+              ? 'border-jade-purple text-jade-purple'
+              : 'border-transparent text-gray-600'
+          }`}
+        >
+          👶 Harvey's Meals
+        </button>
+        <button
+          onClick={() => setActiveTab('harveys-options')}
+          className={`px-4 py-3 font-medium border-b-2 transition whitespace-nowrap ${
+            activeTab === 'harveys-options'
+              ? 'border-jade-purple text-jade-purple'
+              : 'border-transparent text-gray-600'
+          }`}
+        >
+          ✏️ Harvey's Options
+        </button>
+        <button
+          onClick={() => setActiveTab('shopping')}
+          className={`px-4 py-3 font-medium border-b-2 transition whitespace-nowrap ${
+            activeTab === 'shopping'
+              ? 'border-jade-purple text-jade-purple'
+              : 'border-transparent text-gray-600'
+          }`}
+        >
+          🛒 Shopping List
+        </button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {days.map((day) => {
-          const dayMacros = calculateDayMacros(day);
-          const remaining = {
-            calories: Math.max(0, JADE_TARGETS.calories - dayMacros.calories),
-            protein: Math.max(0, JADE_TARGETS.protein - dayMacros.protein),
-            fats: Math.max(0, JADE_TARGETS.fats - dayMacros.fats),
-            carbs: Math.max(0, JADE_TARGETS.carbs - dayMacros.carbs),
-          };
-          const pctCal = Math.min(100, (dayMacros.calories / JADE_TARGETS.calories) * 100);
-          const pctPro = Math.min(100, (dayMacros.protein / JADE_TARGETS.protein) * 100);
-          const pctFat = Math.min(100, (dayMacros.fats / JADE_TARGETS.fats) * 100);
-          const pctCarb = Math.min(100, (dayMacros.carbs / JADE_TARGETS.carbs) * 100);
+
+      {/* Week tabs (shown for Jade's, Harvey's, and Shopping) */}
+      {(activeTab === 'jades-meals' || activeTab === 'harveys-meals' || activeTab === 'shopping') && (
+        <div className="flex gap-2 border-b border-gray-200">
+          <button
+            onClick={() => {
+              setActiveWeekTab('this');
+              setSelectedArchivedWeekId(null);
+            }}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
+              activeWeekTab === 'this'
+                ? 'border-jade-purple text-jade-purple'
+                : 'border-transparent text-gray-600'
+            }`}
+          >
+            This Week {currentWeek?.status === 'locked' && '🔒'}
+          </button>
+          <button
+            onClick={() => {
+              setActiveWeekTab('next');
+              setSelectedArchivedWeekId(null);
+            }}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
+              activeWeekTab === 'next'
+                ? 'border-jade-purple text-jade-purple'
+                : 'border-transparent text-gray-600'
+            }`}
+          >
+            Next Week
+          </button>
+          <button
+            onClick={() => {
+              setActiveWeekTab('archive');
+              if (archivedWeeks.length > 0 && !selectedArchivedWeekId) {
+                setSelectedArchivedWeekId(archivedWeeks[0].weekId);
+              }
+            }}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
+              activeWeekTab === 'archive'
+                ? 'border-jade-purple text-jade-purple'
+                : 'border-transparent text-gray-600'
+            }`}
+          >
+            Archive ({archivedWeeks.length})
+          </button>
+        </div>
+      )}
+
+      {/* Content */}
+      {activeTab === 'jades-meals' && (
+        <>
+          {activeWeekTab === 'archive' ? (
+            <ArchiveView archivedWeeks={archivedWeeks} selectedWeekId={selectedArchivedWeekId} onSelectWeek={setSelectedArchivedWeekId} />
+          ) : (
+            <JadesMealsView week={displayedWeek} readOnly={readOnly} onOpenModal={openRecipeModal} onRemove={handleRemoveMeal} />
+          )}
+        </>
+      )}
+
+      {activeTab === 'harveys-meals' && (
+        <>
+          {activeWeekTab === 'archive' ? (
+            <ArchiveView archivedWeeks={archivedWeeks} selectedWeekId={selectedArchivedWeekId} onSelectWeek={setSelectedArchivedWeekId} />
+          ) : (
+            <HarveysMealsView week={displayedWeek} readOnly={readOnly} />
+          )}
+        </>
+      )}
+
+      {activeTab === 'harveys-options' && (
+        <HarveysOptionsView week={displayedWeek} />
+      )}
+
+      {activeTab === 'shopping' && (
+        <>
+          {activeWeekTab === 'archive' ? (
+            <ArchiveView archivedWeeks={archivedWeeks} selectedWeekId={selectedArchivedWeekId} onSelectWeek={setSelectedArchivedWeekId} />
+          ) : (
+            <ShoppingListView week={displayedWeek} readOnly={readOnly} onBuildCart={handleBuildWoolworthsCart} buildingCart={buildingCart} cartResult={cartResult} />
+          )}
+        </>
+      )}
+
+      {/* Recipe modal */}
+      {selectedMealInfo && (
+        <RecipeModal
+          isOpen={recipeModalOpen}
+          recipe={getRecipeDetails(selectedMealInfo.recipeName)}
+          onClose={() => setRecipeModalOpen(false)}
+          onSave={handleRecipeModalSave}
+          readOnly={readOnly}
+        />
+      )}
+    </div>
+  );
+}
+
+// JADE'S MEALS VIEW
+function JadesMealsView({
+  week,
+  readOnly,
+  onOpenModal,
+  onRemove,
+}: {
+  week: WeeklyMealPlan;
+  readOnly: boolean;
+  onOpenModal: (weekId: string, day: string, mealType: string, recipeName: string) => void;
+  onRemove: (weekId: string, day: string, mealType: string) => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <div className="bg-gradient-to-r from-jade-light to-white border border-jade-light rounded-lg p-4">
+        <h2 className="text-xl font-bold text-jade-purple">
+          Jade's Weekly Meal Plan + Macros
+        </h2>
+        <p className="text-sm text-gray-600 mt-1">
+          {formatDateRange(week.weekStartDate, week.weekEndDate)} — {week.status === 'locked' ? '🔒 Locked' : '✏️ Planning'}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {days.map(day => (
+          <JadesDayCard
+            key={day}
+            week={week}
+            day={day}
+            readOnly={readOnly}
+            onOpenModal={onOpenModal}
+            onRemove={onRemove}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function JadesDayCard({
+  week,
+  day,
+  readOnly,
+  onOpenModal,
+  onRemove,
+}: {
+  week: WeeklyMealPlan;
+  day: string;
+  readOnly: boolean;
+  onOpenModal: (weekId: string, day: string, mealType: string, recipeName: string) => void;
+  onRemove: (weekId: string, day: string, mealType: string) => void;
+}) {
+  const dayMeals = week.jades.meals[day] || {};
+  const dayMacros = calculateDayMacros(week.weekId, day);
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
+      <h3 className="text-lg font-bold text-jade-purple">{day}</h3>
+      <MacrosDisplay actual={dayMacros} target={JADE_TARGETS} showRemaining={true} />
+      <div className="space-y-2">
+        {jadesMealTypes.map(mealType => {
+          const recipeKey = mealType.toLowerCase() as keyof typeof dayMeals;
+          const recipeName = dayMeals[recipeKey];
+          const dayOverride = week.jades.dayOverrides[day]?.[mealType.toLowerCase()];
+
           return (
-            <div key={day} className="bg-white border border-gray-200 rounded-lg p-4">
-              <div className="font-semibold text-jade-purple text-lg mb-3 pb-2 border-b-2 border-jade-light">
-                {day}
-              </div>
-
-              {/* Macro Tracker */}
-              <div className="bg-gradient-to-r from-jade-light to-white p-3 rounded-lg mb-3 border border-jade-light">
-                {[
-                  { label: 'Cal', value: dayMacros.calories, target: JADE_TARGETS.calories, remaining: remaining.calories, suffix: '' },
-                  { label: 'Pro', value: dayMacros.protein, target: JADE_TARGETS.protein, remaining: remaining.protein, suffix: 'g' },
-                  { label: 'Fat', value: dayMacros.fats, target: JADE_TARGETS.fats, remaining: remaining.fats, suffix: 'g' },
-                  { label: 'Carb', value: dayMacros.carbs, target: JADE_TARGETS.carbs, remaining: remaining.carbs, suffix: 'g' },
-                ].map((macro) => {
-                  const pct = Math.min(100, (macro.value / macro.target) * 100);
-                  return (
-                    <div key={macro.label} className="grid grid-cols-3 gap-2 mb-2 text-sm">
-                      <div className="font-semibold text-jade-purple">{macro.label}</div>
-                      <div className="flex items-center">
-                        <div className="flex-1 h-1.5 bg-gray-300 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gradient-to-r from-jade-light to-jade-purple rounded-full transition-all"
-                            style={{ width: `${pct}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                      <div className={`text-right font-medium ${macro.remaining < 20 ? 'text-red-600' : 'text-gray-600'}`}>
-                        {macro.remaining}{macro.suffix}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Meals */}
-              {jadesMealTypes.map((mealType) => {
-                const key = `${day}-${mealType}`;
-                return (
-                  <div key={mealType} className="mb-2">
-                    <label className="text-xs font-semibold text-gray-700 block mb-1">{mealType}</label>
-                    <input
-                      type="text"
-                      value={meals.jades[key] || ''}
-                      onChange={(e) => updateMeal(key, 'jades', e.target.value)}
-                      placeholder="Meal name"
-                      className="w-full px-2 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:border-jade-light focus:ring-1 focus:ring-jade-light"
-                    />
+            <div key={mealType} className="flex items-center gap-2">
+              <label className="text-sm font-semibold text-gray-700 w-20">{mealType}</label>
+              {!recipeName ? (
+                <div className="flex-1 text-gray-400 italic text-sm py-2 px-3">Empty</div>
+              ) : (
+                <>
+                  <div
+                    onClick={() => onOpenModal(week.weekId, day, mealType, recipeName)}
+                    className="flex-1 px-3 py-2 bg-jade-light/30 rounded hover:bg-jade-light/50 cursor-pointer transition"
+                  >
+                    <span className="font-medium text-gray-800">{recipeName}</span>
+                    {dayOverride && <span className="text-xs text-amber-600 ml-2">(modified)</span>}
                   </div>
-                );
-              })}
+                  {!readOnly && (
+                    <button
+                      onClick={() => onRemove(week.weekId, day, mealType)}
+                      className="text-red-500 hover:text-red-700 transition p-1"
+                    >
+                      <X size={18} />
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           );
         })}
       </div>
-      <div className="text-center pt-4 space-x-4 flex justify-center">
-        <button
-          onClick={() => {
-            populateWeeklyLunches();
-            window.location.reload();
-          }}
-          className="bg-jade-purple text-white px-6 py-2 rounded-lg hover:bg-jade-purple/90 transition"
-        >
-          ✨ Populate Test Week (Mon-Fri Lunches)
-        </button>
-        <button
-          onClick={clearJadesMeals}
-          className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition"
-        >
-          Clear All Meals
-        </button>
-      </div>
     </div>
   );
+}
 
-  // Harvey's Meals Tab
-  const HarveysMealsTab = () => (
+// HARVEY'S MEALS VIEW
+function HarveysMealsView({ week, readOnly }: { week: WeeklyMealPlan; readOnly: boolean }) {
+  return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-jade-purple mb-2">Harvey's Weekly Meal Plan</h2>
-        <p className="text-gray-600 mb-4">Assigned items from Options page. Remove items here if needed.</p>
+      <div className="bg-gradient-to-r from-pink-light to-white border border-pink-200 rounded-lg p-4">
+        <h2 className="text-xl font-bold text-pink-600">Harvey's Weekly Meal Plan</h2>
+        <p className="text-sm text-gray-600 mt-1">
+          {formatDateRange(week.weekStartDate, week.weekEndDate)}
+        </p>
       </div>
 
-      {/* Weekly Grid */}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
             <tr>
-              <th className="bg-jade-light text-jade-purple font-bold p-3 text-left border border-gray-300">Day</th>
-              {harveysMealTypes.map((meal) => (
-                <th key={meal} className="bg-jade-light text-jade-purple font-bold p-3 text-left border border-gray-300">
+              <th className="bg-pink-50 text-pink-600 font-bold p-3 text-left border border-gray-300">Day</th>
+              {harveysMealTypes.map(meal => (
+                <th key={meal} className="bg-pink-50 text-pink-600 font-bold p-3 text-left border border-gray-300">
                   {meal}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {days.map((day) => (
+            {days.map(day => (
               <tr key={day}>
-                <td className="bg-jade-light/30 font-semibold text-jade-purple p-3 border border-gray-300 w-24">
+                <td className="bg-pink-50/30 font-semibold text-pink-600 p-3 border border-gray-300 w-24">
                   {day}
                 </td>
-                {harveysMealTypes.map((meal) => {
-                  const mealKey = meal.toLowerCase() as keyof typeof meals.harveysAssignedMeals[string];
-                  const items = meals.harveysAssignedMeals[day]?.[mealKey] || [];
+                {harveysMealTypes.map(meal => {
+                  const mealKey = meal.toLowerCase() as keyof typeof week.harveys.meals[string];
+                  const items = week.harveys.meals[day]?.[mealKey] ? [week.harveys.meals[day][mealKey]] : [];
                   return (
                     <td key={meal} className="p-3 border border-gray-300 bg-white">
                       {items.length === 0 ? (
                         <div className="text-gray-400 italic text-sm">Empty</div>
                       ) : (
-                        <div className="space-y-2">
-                          {items.map((item) => (
+                        <div className="space-y-1">
+                          {items.map((item, idx) => (
                             <div
-                              key={item}
-                              className="bg-jade-light/20 border border-jade-light rounded px-2 py-1 flex items-center justify-between text-sm"
+                              key={idx}
+                              className="bg-pink-50 border border-pink-200 rounded px-2 py-1 text-sm font-medium text-gray-800"
                             >
-                              <span className="text-gray-800 font-medium">{item}</span>
-                              <button
-                                onClick={() => removeItemFromMeal(day, mealKey, item)}
-                                className="text-red-500 hover:text-red-700 transition ml-2"
-                              >
-                                <X size={16} />
-                              </button>
+                              {item}
                             </div>
                           ))}
                         </div>
@@ -678,59 +465,189 @@ export default function MealPlanning() {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+}
 
-      <div className="bg-green-50 border-l-4 border-green-400 rounded-lg p-4">
-        <p className="text-green-800 font-semibold">✅ Workflow Connected!</p>
-        <p className="text-green-700 text-sm mt-1">
-          Items assigned from Options tab appear here automatically. They also auto-populate your Shopping List below.
+// HARVEY'S OPTIONS VIEW
+function HarveysOptionsView({ week }: { week: WeeklyMealPlan }) {
+  const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [selectedMeal, setSelectedMeal] = useState<string | null>(null);
+
+  const handleAssign = () => {
+    if (!selectedItem || !selectedDay || !selectedMeal) return;
+
+    const mealKey = selectedMeal.toLowerCase() as keyof typeof week.harveys.meals[string];
+    weeklyMealPlanStorage.addMealToWeek(week.weekId, selectedDay, selectedMeal, selectedItem);
+
+    setSelectedItem(null);
+    setSelectedDay(null);
+    setSelectedMeal(null);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-gradient-to-r from-blue-50 to-white border border-blue-200 rounded-lg p-4">
+        <h2 className="text-xl font-bold text-blue-600">Harvey's Meal Options</h2>
+        <p className="text-sm text-gray-600 mt-1">Click an item, select a day and meal slot, then assign it.</p>
+      </div>
+
+      <div className="grid gap-4">
+        {Object.entries(harveysMealOptions).map(([category, items]) => (
+          <div key={category} className="border border-gray-200 rounded-lg p-4">
+            <h3 className="font-semibold text-gray-800 mb-3">{category}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+              {items.map(item => (
+                <button
+                  key={item}
+                  onClick={() => setSelectedItem(selectedItem === item ? null : item)}
+                  className={`p-2 rounded text-sm transition ${
+                    selectedItem === item
+                      ? 'bg-blue-600 text-white font-semibold'
+                      : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                  }`}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {selectedItem && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
+          <p className="font-semibold text-blue-900">
+            Selected: <span className="text-blue-700">{selectedItem}</span>
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Day</label>
+              <select
+                value={selectedDay || ''}
+                onChange={(e) => setSelectedDay(e.target.value || null)}
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+              >
+                <option value="">Choose day...</option>
+                {days.map(day => (
+                  <option key={day} value={day}>
+                    {day}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Meal</label>
+              <select
+                value={selectedMeal || ''}
+                onChange={(e) => setSelectedMeal(e.target.value || null)}
+                className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+              >
+                <option value="">Choose meal...</option>
+                {harveysMealTypes.map(meal => (
+                  <option key={meal} value={meal}>
+                    {meal}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <button
+            onClick={handleAssign}
+            disabled={!selectedDay || !selectedMeal}
+            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded font-semibold transition"
+          >
+            ✅ Assign to {selectedDay} {selectedMeal}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// SHOPPING LIST VIEW
+function ShoppingListView({
+  week,
+  readOnly,
+  onBuildCart,
+  buildingCart,
+  cartResult,
+}: {
+  week: WeeklyMealPlan;
+  readOnly: boolean;
+  onBuildCart: () => void;
+  buildingCart: boolean;
+  cartResult: { success: boolean; message: string; items?: any[]; total?: number } | null;
+}) {
+  const [manualItems, setManualItems] = useState<ShoppingItem[]>([]);
+  const [newItemName, setNewItemName] = useState('');
+  const [newItemQty, setNewItemQty] = useState('');
+  const [newItemUnit, setNewItemUnit] = useState('');
+
+  useEffect(() => {
+    setManualItems(week.shoppingList || []);
+  }, [week]);
+
+  const handleAddItem = () => {
+    if (!newItemName.trim()) return;
+    const newItem: ShoppingItem = {
+      id: `item-${Date.now()}`,
+      ingredient: newItemName,
+      quantity: newItemQty || '1',
+      unit: newItemUnit || 'unit',
+      source: 'jade',
+      addedAt: Date.now(),
+    };
+    const updated = [...manualItems, newItem];
+    setManualItems(updated);
+    weeklyMealPlanStorage.updateShoppingListForWeek(week.weekId, updated);
+    setNewItemName('');
+    setNewItemQty('');
+    setNewItemUnit('');
+  };
+
+  const handleRemoveItem = (id: string) => {
+    const updated = manualItems.filter(item => item.id !== id);
+    setManualItems(updated);
+    weeklyMealPlanStorage.updateShoppingListForWeek(week.weekId, updated);
+  };
+
+  const handleUpdateItem = (id: string, field: 'quantity' | 'unit', value: string) => {
+    const updated = manualItems.map(item =>
+      item.id === id ? { ...item, [field]: value } : item
+    );
+    setManualItems(updated);
+    weeklyMealPlanStorage.updateShoppingListForWeek(week.weekId, updated);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
+        <p className="text-blue-800 font-semibold">
+          📋 Shopping for: {formatDateRange(week.weekStartDate, week.weekEndDate)}
+        </p>
+        <p className="text-blue-700 text-sm mt-1">
+          {week.status === 'locked' ? '🔒 This week is locked.' : 'Planning this week. Changes update the list.'}
         </p>
       </div>
 
-      <div className="text-center pt-4">
-        <button
-          onClick={clearHarveysMeals}
-          className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition"
-        >
-          Clear All Meals
-        </button>
-      </div>
-    </div>
-  );
-
-  // Shopping List Tab
-  const ShoppingListTab = () => {
-    const harveysItems = generateShoppingListFromAssignments();
-    const jadesItems = generateIngredientsFromJadesMeals();
-    const autoGeneratedItems = [...harveysItems, ...jadesItems];
-    const combinedList = [...autoGeneratedItems, ...meals.shopping];
-
-    const handleRemoveItem = (id: number) => {
-      setMeals((prev) => ({
-        ...prev,
-        shopping: prev.shopping.filter((item) => item.id !== id),
-      }));
-    };
-
-    return (
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-2xl font-bold text-jade-purple mb-2">Shopping List</h2>
-          <p className="text-gray-600 mb-4">Auto-generated from your assigned meals with Woolworths links, plus manually added items.</p>
-        </div>
-
-        {/* Add Item Form */}
-        <div className="bg-white rounded-lg p-4 border border-gray-200">
-          <h3 className="text-lg font-semibold text-jade-purple mb-3">Add Additional Item</h3>
+      {!readOnly && (
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <h3 className="font-semibold text-jade-purple mb-3">Add Item</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
             <input
               type="text"
               value={newItemName}
               onChange={(e) => setNewItemName(e.target.value)}
-              placeholder="Item name (e.g., Chicken breast)"
+              placeholder="Item name"
               className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-jade-light"
             />
             <input
-              type="number"
+              type="text"
               value={newItemQty}
               onChange={(e) => setNewItemQty(e.target.value)}
               placeholder="Qty"
@@ -740,369 +657,156 @@ export default function MealPlanning() {
               type="text"
               value={newItemUnit}
               onChange={(e) => setNewItemUnit(e.target.value)}
-              placeholder="Unit (e.g., kg)"
+              placeholder="Unit"
               className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-jade-light"
             />
             <button
-              onClick={addShoppingItem}
-              className="bg-jade-purple text-white px-4 py-2 rounded hover:bg-jade-purple/80 transition flex items-center justify-center gap-2"
+              onClick={handleAddItem}
+              className="bg-jade-purple text-white px-4 py-2 rounded hover:bg-jade-purple/90 transition flex items-center justify-center gap-1"
             >
               <Plus size={16} /> Add
             </button>
           </div>
         </div>
+      )}
 
-        {/* Shopping List */}
-        {combinedList.length === 0 ? (
-          <div className="bg-gray-50 rounded-lg p-8 text-center">
-            <ShoppingCart size={48} className="mx-auto mb-4 text-gray-300" />
-            <p className="text-gray-600">No items yet. Assign meals in the Options tab to auto-populate.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {/* Auto-generated items */}
-            {autoGeneratedItems.length > 0 && (
-              <div>
-                <h4 className="font-semibold text-jade-purple mb-2 text-sm flex items-center gap-2">
-                  <CheckCircle size={16} className="text-green-600" /> FROM ASSIGNED MEALS (Auto-Generated)
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {autoGeneratedItems.map((item) => (
-                    <div key={item.id} className={`border rounded-lg p-3 ${
-                      item.isFlagged ? 'bg-amber-50 border-amber-200' : item.hasMapping ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
-                    }`}>
-                      <div className="font-semibold text-gray-800">{item.name}</div>
-                      <div className="flex justify-between items-center mt-1 mb-2">
-                        <div className="text-sm text-gray-600">
-                          {item.qty} {item.unit}
-                        </div>
-                        <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                          {item.category}
-                        </div>
-                      </div>
-                      {item.hasMapping && (
-                        <div className="text-xs text-gray-700 mb-2 flex items-center gap-1">
-                          {item.isFlagged ? (
-                            <>
-                              <AlertCircle size={12} /> Multiple options on Woolworths
-                            </>
-                          ) : (
-                            <>
-                              <CheckCircle size={12} /> {item.woolworthsProductName}
-                            </>
-                          )}
-                        </div>
-                      )}
-                      {item.woolworthsUrl && (
-                        <a
-                          href={item.woolworthsUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded transition ${
-                            item.isFlagged 
-                              ? 'bg-amber-600 text-white hover:bg-amber-700' 
-                              : 'bg-green-600 text-white hover:bg-green-700'
-                          }`}
-                        >
-                          <ExternalLink size={12} /> Woolworths
-                        </a>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Manually added items */}
-            {meals.shopping.length > 0 && (
-              <div>
-                <h4 className="font-semibold text-jade-purple mb-2 text-sm">ADDITIONAL ITEMS (Manually Added - Editable)</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {meals.shopping.map((item) => (
-                    <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-4">
-                      <div className="space-y-2">
-                        <input
-                          type="text"
-                          value={item.name}
-                          onChange={(e) => editShoppingItem(item.id, 'name', e.target.value)}
-                          placeholder="Item name"
-                          className="w-full px-2 py-1 border border-gray-300 rounded text-sm font-semibold focus:outline-none focus:border-jade-light"
-                        />
-                        <div className="grid grid-cols-2 gap-2">
-                          <input
-                            type="text"
-                            value={item.qty}
-                            onChange={(e) => editShoppingItem(item.id, 'qty', e.target.value)}
-                            placeholder="Qty"
-                            className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-jade-light"
-                          />
-                          <input
-                            type="text"
-                            value={item.unit}
-                            onChange={(e) => editShoppingItem(item.id, 'unit', e.target.value)}
-                            placeholder="Unit"
-                            className="px-2 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:border-jade-light"
-                          />
-                        </div>
-                        <button
-                          onClick={() => removeShoppingItem(item.id)}
-                          className="w-full bg-red-100 text-red-600 p-2 rounded hover:bg-red-200 transition text-sm font-semibold flex items-center justify-center gap-2"
-                        >
-                          <Trash2 size={14} /> Remove
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="bg-green-50 border-l-4 border-green-400 rounded-lg p-4">
-          <p className="text-green-800 font-semibold">🔗 Connected to Meal Plan + Woolworths!</p>
-          <p className="text-green-700 text-sm mt-1">
-            This list auto-updates whenever you assign items to meals. Click "Woolworths" to open product pages directly. Check the Woolworths tab for detailed product links and status.
-          </p>
+      {manualItems.length === 0 ? (
+        <div className="bg-gray-50 rounded-lg p-8 text-center">
+          <ShoppingCart size={48} className="mx-auto mb-4 text-gray-300" />
+          <p className="text-gray-600">No items yet. Add items manually or they'll appear from your meal plan.</p>
         </div>
-
-        {combinedList.length > 0 && (
-          <div className="text-center pt-4">
-            <button
-              onClick={clearShoppingList}
-              className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition"
-            >
-              Clear Shopping List
-            </button>
-          </div>
-        )}
-
-        {/* Build Woolworths Cart Button */}
-        {combinedList.length > 0 && (
-          <div className="mt-8 space-y-4">
-            <div className="bg-green-50 rounded-lg p-6 border border-green-200">
-              <h3 className="text-lg font-semibold text-green-900 mb-3">Ready to Shop?</h3>
-              <p className="text-green-800 text-sm mb-4">
-                You have {combinedList.length} item{combinedList.length !== 1 ? 's' : ''} in your shopping list. Build your Woolworths cart to auto-add items and proceed to checkout.
-              </p>
-              <button
-                onClick={buildWoolworthsCart}
-                disabled={buildingCart}
-                className={`w-full px-6 py-3 rounded-lg transition font-semibold text-lg flex items-center justify-center gap-2 ${
-                  buildingCart 
-                    ? 'bg-gray-400 text-white cursor-not-allowed' 
-                    : 'bg-green-600 text-white hover:bg-green-700'
-                }`}
-              >
-                {buildingCart ? (
-                  <>
-                    <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
-                    Building Cart...
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart size={20} /> Build Woolworths Cart ({combinedList.length} items)
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Cart Result */}
-            {cartResult && (
-              <div className={`rounded-lg p-4 border-l-4 ${
-                cartResult.success 
-                  ? 'bg-green-50 border-green-400' 
-                  : 'bg-red-50 border-red-400'
-              }`}>
-                <p className={`font-semibold mb-2 ${cartResult.success ? 'text-green-900' : 'text-red-900'}`}>
-                  {cartResult.message}
-                </p>
-                {cartResult.success && cartResult.items && cartResult.items.length > 0 && (
-                  <div className="mt-3">
-                    <p className="text-sm font-semibold text-green-800 mb-2">Items Added:</p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-                      {cartResult.items.map((item, idx) => (
-                        <div key={idx} className="bg-white/50 rounded px-2 py-1">
-                          <div className="font-medium text-gray-800">{item.name}</div>
-                          <div className="text-xs text-gray-600">${item.price.toFixed(2)}</div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-3 text-lg font-bold text-green-900">
-                      Total: ${cartResult.total?.toFixed(2)}
-                    </div>
-                  </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {manualItems.map(item => (
+            <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-semibold text-gray-800">{item.ingredient}</span>
+                {!readOnly && (
+                  <button
+                    onClick={() => handleRemoveItem(item.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 )}
               </div>
-            )}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  // Harvey's Options Tab
-  const HarveysOptionsTab = () => (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-jade-purple mb-2">Harvey's Meal Options</h2>
-        <p className="text-gray-600 mb-4">Click any item to assign it to a day and meal slot. It will automatically appear in Harvey's Meals.</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {Object.entries(harveysMealOptions).map(([category, items]) => (
-          <div key={category} className="bg-white border border-gray-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold text-jade-purple mb-3">{category}</h3>
-            <div className="space-y-2">
-              {items.map((item) => (
-                <button
-                  key={item}
-                  onClick={() => openAssignmentModal(item)}
-                  className="w-full text-left px-3 py-2 rounded hover:bg-jade-light/30 transition border border-transparent hover:border-jade-light font-medium text-gray-700 hover:text-jade-purple"
-                >
-                  + {item}
-                </button>
-              ))}
+              {!readOnly ? (
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={item.quantity || ''}
+                    onChange={(e) => handleUpdateItem(item.id, 'quantity', e.target.value)}
+                    className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                    placeholder="Qty"
+                  />
+                  <input
+                    type="text"
+                    value={item.unit || ''}
+                    onChange={(e) => handleUpdateItem(item.id, 'unit', e.target.value)}
+                    className="flex-1 px-2 py-1 border border-gray-300 rounded text-sm"
+                    placeholder="Unit"
+                  />
+                </div>
+              ) : (
+                <p className="text-sm text-gray-600">{item.quantity} {item.unit}</p>
+              )}
             </div>
+          ))}
+        </div>
+      )}
+
+      {!readOnly && (
+        <>
+          <button
+            onClick={onBuildCart}
+            disabled={buildingCart || manualItems.length === 0}
+            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2"
+          >
+            <ShoppingCart size={20} />
+            {buildingCart ? 'Building cart...' : 'Build Woolworths Cart & Lock Week'}
+          </button>
+
+          {cartResult && (
+            <div
+              className={`border-l-4 rounded p-4 ${
+                cartResult.success
+                  ? 'bg-green-50 border-green-400 text-green-800'
+                  : 'bg-red-50 border-red-400 text-red-800'
+              }`}
+            >
+              <p className="font-semibold">{cartResult.message}</p>
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ARCHIVE VIEW
+function ArchiveView({
+  archivedWeeks,
+  selectedWeekId,
+  onSelectWeek,
+}: {
+  archivedWeeks: WeeklyMealPlan[];
+  selectedWeekId: string | null;
+  onSelectWeek: (id: string) => void;
+}) {
+  const selectedWeek = archivedWeeks.find(w => w.weekId === selectedWeekId);
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-jade-purple">Locked & Archived Weeks</h2>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {archivedWeeks.map(week => (
+          <div
+            key={week.weekId}
+            onClick={() => onSelectWeek(week.weekId)}
+            className={`border rounded-lg p-4 cursor-pointer transition ${
+              selectedWeekId === week.weekId
+                ? 'bg-jade-light border-jade-purple'
+                : 'bg-white border-gray-200 hover:border-jade-light'
+            }`}
+          >
+            <p className="font-semibold text-gray-800">{formatDateRange(week.weekStartDate, week.weekEndDate)}</p>
+            <p className="text-xs text-gray-600 mt-1">🔒 Locked {formatDate(week.lockedAt)}</p>
+            <p className="text-sm text-gray-600 mt-2">📋 {week.shoppingList.length} items</p>
           </div>
         ))}
       </div>
 
-      <div className="bg-blue-50 border-l-4 border-jade-light rounded-lg p-4">
-        <p className="font-semibold text-jade-purple mb-2">✨ How to Use This:</p>
-        <p className="text-gray-700 text-sm">
-          Click any item to assign it to a specific day and meal (Breakfast, Lunch, Snack, Dinner). Once assigned, it will appear in your weekly meal plan and automatically add to the shopping list.
-        </p>
-      </div>
-
-      {/* Assignment Modal */}
-      {assignmentModal.isOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full shadow-lg">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-jade-purple">Assign to Meal Plan</h3>
-              <button
-                onClick={closeAssignmentModal}
-                className="text-gray-500 hover:text-gray-700 transition"
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Item</label>
-                <div className="bg-jade-light/20 px-3 py-2 rounded border border-jade-light text-gray-800 font-medium">
-                  {assignmentModal.selectedItem}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Day</label>
-                <select
-                  value={assignmentModal.selectedDay || ''}
-                  onChange={(e) =>
-                    setAssignmentModal((prev) => ({
-                      ...prev,
-                      selectedDay: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-jade-light focus:ring-1 focus:ring-jade-light"
-                >
-                  {days.map((day) => (
-                    <option key={day} value={day}>
-                      {day}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Meal Slot</label>
-                <select
-                  value={assignmentModal.selectedMeal || ''}
-                  onChange={(e) =>
-                    setAssignmentModal((prev) => ({
-                      ...prev,
-                      selectedMeal: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-jade-light focus:ring-1 focus:ring-jade-light"
-                >
-                  {harveysMealTypes.map((meal) => (
-                    <option key={meal} value={meal.toLowerCase()}>
-                      {meal}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex gap-2 pt-4">
-                <button
-                  onClick={closeAssignmentModal}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition font-medium text-gray-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={addItemToMeal}
-                  className="flex-1 px-4 py-2 bg-jade-purple text-white rounded hover:bg-jade-purple/80 transition font-medium"
-                >
-                  Add to Meal
-                </button>
-              </div>
-            </div>
+      {selectedWeek && (
+        <div className="space-y-6">
+          <h3 className="text-xl font-bold text-jade-purple">
+            {formatDateRange(selectedWeek.weekStartDate, selectedWeek.weekEndDate)}
+          </h3>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {days.map(day => (
+              <JadesDayCard
+                key={day}
+                week={selectedWeek}
+                day={day}
+                readOnly={true}
+                onOpenModal={() => {}}
+                onRemove={() => {}}
+              />
+            ))}
           </div>
         </div>
       )}
     </div>
   );
+}
 
-  return (
-    <div className="h-full flex flex-col bg-white">
-      {/* Header */}
-      <div className="border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <UtensilsCrossed size={32} className="text-jade-purple" />
-            <div>
-              <h2 className="text-2xl font-bold text-jade-purple">Meal Planning</h2>
-              <p className="text-sm text-gray-600">Track meals, macros, and shopping</p>
-            </div>
-          </div>
-          <NotesButton section="Meals" />
-        </div>
-      </div>
+function formatDateRange(startDate: string, endDate: string): string {
+  const start = new Date(startDate).toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
+  const end = new Date(endDate).toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
+  return `${start} - ${end}`;
+}
 
-      {/* Tab Navigation */}
-      <div className="border-b border-gray-200 px-6 py-3 flex flex-wrap gap-2 bg-gray-50">
-        {[
-          { id: 'jades-meals' as const, label: '👩 Jade\'s Meals' },
-          { id: 'harveys-meals' as const, label: '👶 Harvey\'s Meals' },
-          { id: 'shopping' as const, label: '🛒 Shopping List' },
-          { id: 'harveys-options' as const, label: '👶 Options' },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-lg font-medium transition ${
-              activeTab === tab.id
-                ? 'bg-jade-purple text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto px-6 py-6">
-        {activeTab === 'jades-meals' && <JadesMealsTab />}
-        {activeTab === 'harveys-meals' && <HarveysMealsTab />}
-        {activeTab === 'shopping' && <ShoppingListTab />}
-        {activeTab === 'harveys-options' && <HarveysOptionsTab />}
-      </div>
-    </div>
-  );
+function formatDate(date?: number): string {
+  if (!date) return '';
+  return new Date(date).toLocaleDateString('en-AU', { month: 'short', day: 'numeric', year: '2-digit' });
 }
