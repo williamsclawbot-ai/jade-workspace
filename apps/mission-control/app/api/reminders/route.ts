@@ -4,36 +4,31 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getUnsentReminders, markReminderSent } from '@/lib/johnRemindersPersist';
 
 export async function GET(request: NextRequest) {
   try {
-    let reminders = getUnsentReminders();
-    
-    // Fallback test data if file isn't available in Vercel
-    if (reminders.length === 0) {
-      reminders = [
-        {
-          id: '1',
-          text: 'Check on project deadline',
-          dueTime: '09:00',
-          dueDate: new Date().toISOString().split('T')[0],
-          sent: false,
-          priority: 'high',
-          category: 'work',
-          createdAt: new Date().toISOString(),
-        },
-        {
-          id: '2',
-          text: 'Review meal plan for week',
-          dueTime: '10:00',
-          sent: false,
-          priority: 'medium',
-          category: 'household',
-          createdAt: new Date().toISOString(),
-        },
-      ];
-    }
+    // Test data for John's reminders (will be replaced with real data source later)
+    const reminders = [
+      {
+        id: '1',
+        text: 'Check on project deadline',
+        dueTime: '09:00',
+        dueDate: new Date().toISOString().split('T')[0],
+        sent: false,
+        priority: 'high',
+        category: 'work',
+        createdAt: new Date().toISOString(),
+      },
+      {
+        id: '2',
+        text: 'Review meal plan for week',
+        dueTime: '10:00',
+        sent: false,
+        priority: 'medium',
+        category: 'household',
+        createdAt: new Date().toISOString(),
+      },
+    ];
     
     return NextResponse.json({
       success: true,
