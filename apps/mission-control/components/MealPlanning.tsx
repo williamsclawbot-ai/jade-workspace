@@ -290,7 +290,16 @@ export default function MealPlanning() {
           {activeWeekTab === 'archive' ? (
             <ArchiveView archivedWeeks={archivedWeeks} selectedWeekId={selectedArchivedWeekId} onSelectWeek={setSelectedArchivedWeekId} />
           ) : (
-            <JadesMealsView week={displayedWeek} readOnly={readOnly} onOpenModal={openRecipeModal} onRemove={handleRemoveMeal} />
+            <JadesMealsView 
+              week={displayedWeek} 
+              readOnly={readOnly} 
+              onOpenModal={openRecipeModal} 
+              onRemove={handleRemoveMeal}
+              onMealsUpdated={() => {
+                const updated = weeklyMealPlanStorage.getCurrentWeek();
+                setCurrentWeek(updated);
+              }}
+            />
           )}
         </>
       )}
@@ -336,19 +345,20 @@ function JadesMealsView({
   readOnly,
   onOpenModal,
   onRemove,
+  onMealsUpdated,
 }: {
   week: WeeklyMealPlan;
   readOnly: boolean;
   onOpenModal: (weekId: string, day: string, mealType: string, recipeName: string) => void;
   onRemove: (weekId: string, day: string, mealType: string) => void;
+  onMealsUpdated?: () => void;
 }) {
   const handleSetBreakfastToWeetbix = () => {
     assignRecipeToAllDays(week.weekId, 'Breakfast', 'PB & J Overnight Weet-Bix (GF)');
-    // Trigger parent re-render by dispatching storage event
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: 'weekly-meal-plans-v1',
-      newValue: localStorage.getItem('weekly-meal-plans-v1'),
-    }));
+    // Trigger parent state update
+    setTimeout(() => {
+      onMealsUpdated?.();
+    }, 50);
   };
 
   return (
@@ -374,7 +384,7 @@ function JadesMealsView({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {days.map(day => (
-          <JadesDayCard key={day} week={week} day={day} readOnly={readOnly} onOpenModal={onOpenModal} onRemove={onRemove} />
+          <JadesDayCard key={day} week={week} day={day} readOnly={readOnly} onOpenModal={onOpenModal} onRemove={onRemove} onMealsUpdated={onMealsUpdated} />
         ))}
       </div>
     </div>
@@ -387,12 +397,14 @@ function JadesDayCard({
   readOnly,
   onOpenModal,
   onRemove,
+  onMealsUpdated,
 }: {
   week: WeeklyMealPlan;
   day: string;
   readOnly: boolean;
   onOpenModal: (weekId: string, day: string, mealType: string, recipeName: string) => void;
   onRemove: (weekId: string, day: string, mealType: string) => void;
+  onMealsUpdated?: () => void;
 }) {
   const dayMeals = week.jades.meals[day] || {};
   const dayMacros = calculateDayMacros(week.weekId, day);
@@ -400,10 +412,9 @@ function JadesDayCard({
   const handleQuickAddMeal = (mealType: string, recipeName: string) => {
     weeklyMealPlanStorage.addMealToWeek(week.weekId, day, mealType, recipeName);
     // Trigger parent re-render
-    window.dispatchEvent(new StorageEvent('storage', {
-      key: 'weekly-meal-plans-v1',
-      newValue: localStorage.getItem('weekly-meal-plans-v1'),
-    }));
+    setTimeout(() => {
+      onMealsUpdated?.();
+    }, 50);
   };
 
   return (
