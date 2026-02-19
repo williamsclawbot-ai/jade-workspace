@@ -17,8 +17,10 @@ import { assignRecipeToAllDays } from '../lib/bulkMealHelper';
 import { initializeOrRestoreHarveysMeals, saveHarveysMealsToStorage } from '../lib/harveysMealsRestore';
 import RecipeModal from './RecipeModal';
 import RecipeInputModal from './RecipeInputModal';
+import StaplesManager from './StaplesManager';
 import MacrosDisplay from './MacrosDisplay';
 import NotesButton from './NotesButton';
+import { staplesStore } from '../lib/staplesStore';
 
 const JADE_TARGETS = {
   calories: 1550,
@@ -758,11 +760,29 @@ function ShoppingListView({
   const [newItemQty, setNewItemQty] = useState('');
   const [newItemUnit, setNewItemUnit] = useState('');
 
-  // Auto-populate shopping list from BOTH Harvey's and Jade's meals
+  // Auto-populate shopping list from BOTH Harvey's and Jade's meals + STAPLES
   useEffect(() => {
     const newItems: ShoppingItem[] = [];
     const existingItems = week.shoppingList || [];
     const existingNames = new Set(existingItems.map(i => i.ingredient.toLowerCase()));
+
+    // 0. STAPLES: Auto-add based on frequency
+    const staplesToAdd = staplesStore.getStaplesToAdd();
+    staplesToAdd.forEach(staple => {
+      if (!existingNames.has(staple.name.toLowerCase())) {
+        newItems.push({
+          id: `item-${Date.now()}-${Math.random()}`,
+          ingredient: staple.name,
+          quantity: staple.qty,
+          unit: staple.unit || '',
+          source: 'jade', // Mark as jade for now
+          addedAt: Date.now(),
+        });
+        existingNames.add(staple.name.toLowerCase());
+        // Mark staple as added
+        staplesStore.markAsAdded(staple.id);
+      }
+    });
 
     // 1. HARVEY'S MEALS: Extract ingredients
     const harveyMealNames: string[] = [];
@@ -873,6 +893,9 @@ function ShoppingListView({
           {week.status === 'locked' ? '🔒 This week is locked.' : 'Planning this week. Changes update the list.'}
         </p>
       </div>
+
+      {/* Staples Manager */}
+      {!readOnly && <StaplesManager />}
 
       {!readOnly && (
         <div className="bg-white border border-gray-200 rounded-lg p-4">
