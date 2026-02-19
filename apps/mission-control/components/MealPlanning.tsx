@@ -401,9 +401,28 @@ function JadesDayCard({
   const dayMeals = week.jades.meals[day] || {};
   const dayMacros = calculateDayMacros(week.weekId, day);
 
+  const handleQuickAddMeal = (mealType: string, recipeName: string) => {
+    weeklyMealPlanStorage.addMealToWeek(week.weekId, day, mealType, recipeName);
+    // Trigger parent re-render
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'weekly-meal-plans-v1',
+      newValue: localStorage.getItem('weekly-meal-plans-v1'),
+    }));
+  };
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
-      <h3 className="text-lg font-bold text-jade-purple">{day}</h3>
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-lg font-bold text-jade-purple">{day}</h3>
+        {!readOnly && day === 'Monday' && !dayMeals['dinner'] && (
+          <button
+            onClick={() => handleQuickAddMeal('Dinner', 'Asian Chicken Tacos (GF)')}
+            className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 py-1 rounded font-medium transition"
+          >
+            + Asian Tacos
+          </button>
+        )}
+      </div>
       <MacrosDisplay actual={dayMacros} target={JADE_TARGETS} showRemaining={true} />
       <div className="space-y-2">
         {jadesMealTypes.map(mealType => {
