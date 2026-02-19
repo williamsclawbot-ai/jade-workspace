@@ -311,7 +311,13 @@ export default function MealPlanning() {
 
       {/* HARVEY'S OPTIONS */}
       {activeTab === 'harveys-options' && (
-        <HarveysOptionsView harveysAssignedMeals={harveysAssignedMeals} assignmentModal={assignmentModal} setAssignmentModal={setAssignmentModal} onAssign={assignItemToMeal} />
+        <HarveysOptionsView 
+          harveysAssignedMeals={harveysAssignedMeals} 
+          assignmentModal={assignmentModal} 
+          setAssignmentModal={setAssignmentModal} 
+          onAssign={assignItemToMeal}
+          onMealsChanged={setHarveysAssignedMeals}
+        />
       )}
 
       {/* SHOPPING LIST */}
@@ -558,11 +564,13 @@ function HarveysOptionsView({
   assignmentModal,
   setAssignmentModal,
   onAssign,
+  onMealsChanged,
 }: {
   harveysAssignedMeals: Record<string, Record<string, string[]>>;
   assignmentModal: { isOpen: boolean; selectedItem: string | null; selectedDay: string | null; selectedMeal: string | null };
   setAssignmentModal: (state: any) => void;
   onAssign: () => void;
+  onMealsChanged?: (updatedMeals: Record<string, Record<string, string[]>>) => void;
 }) {
   const [localSelectedItem, setLocalSelectedItem] = useState<string | null>(null);
   const [localSelectedDay, setLocalSelectedDay] = useState<string | null>(null);
@@ -574,7 +582,10 @@ function HarveysOptionsView({
       const updatedMeals = { ...harveysAssignedMeals };
       if (!updatedMeals[localSelectedDay]) updatedMeals[localSelectedDay] = {};
       updatedMeals[localSelectedDay][mealType] = [...(updatedMeals[localSelectedDay][mealType] || []), localSelectedItem];
+      
+      // Save to storage AND notify parent to update state
       localStorage.setItem('harveysAssignedMeals', JSON.stringify(updatedMeals));
+      onMealsChanged?.(updatedMeals);
       
       // Reset
       setLocalSelectedItem(null);
