@@ -21,15 +21,10 @@ import RecipeBrowserModal from './RecipeBrowserModal';
 import StaplesManager from './StaplesManager';
 import HarveysMealPickerModal from './HarveysMealPickerModal';
 import MacrosDisplay from './MacrosDisplay';
+import MacroSettingsUI from './MacroSettingsUI';
 import NotesButton from './NotesButton';
 import { staplesStore } from '../lib/staplesStore';
-
-const JADE_TARGETS = {
-  calories: 1550,
-  protein: 120,
-  fats: 45,
-  carbs: 166,
-};
+import { macroTargetsStore } from '../lib/macroTargetsStore';
 
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const jadesMealTypes = ['Breakfast', 'Lunch', 'Snack', 'Dinner', 'Dessert'];
@@ -86,6 +81,9 @@ export default function MealPlanning() {
   const [nextWeek, setNextWeek] = useState<WeeklyMealPlan | null>(null);
   const [archivedWeeks, setArchivedWeeks] = useState<WeeklyMealPlan[]>([]);
 
+  // Macro targets (editable)
+  const [macroTargets, setMacroTargets] = useState(macroTargetsStore.get());
+
   const [recipeModalOpen, setRecipeModalOpen] = useState(false);
   const [selectedMealInfo, setSelectedMealInfo] = useState<{ weekId: string; day: string; mealType: string; recipeName: string } | null>(null);
 
@@ -133,6 +131,9 @@ export default function MealPlanning() {
         setCurrentWeek(current);
         setNextWeek(next);
         setArchivedWeeks(archived);
+      }
+      if (e.key === 'macro-targets-v1') {
+        setMacroTargets(macroTargetsStore.get());
       }
     };
 
@@ -378,6 +379,7 @@ export default function MealPlanning() {
                 setRecipeInputCategory(category);
                 setRecipeInputModalOpen(true);
               }}
+              macroTargets={macroTargets}
             />
           )}
         </>
@@ -467,6 +469,7 @@ function JadesMealsView({
   onRemove,
   onMealsUpdated,
   onOpenRecipeInput,
+  macroTargets,
 }: {
   week: WeeklyMealPlan;
   readOnly: boolean;
@@ -474,6 +477,7 @@ function JadesMealsView({
   onRemove: (weekId: string, day: string, mealType: string) => void;
   onMealsUpdated?: () => void;
   onOpenRecipeInput?: (category: 'Breakfast' | 'Lunch' | 'Snack' | 'Dinner' | 'Dessert') => void;
+  macroTargets?: { calories: number; protein: number; fats: number; carbs: number };
 }) {
   const handleSetBreakfastToWeetbix = () => {
     const updated = assignRecipeToAllDays(week.weekId, 'Breakfast', 'PB & J Overnight Weet-Bix (GF)');
@@ -541,6 +545,9 @@ function JadesMealsView({
         </div>
       </div>
 
+      {/* Macro settings */}
+      {!readOnly && <MacroSettingsUI />}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {days.map(day => (
           <JadesDayCard 
@@ -552,6 +559,7 @@ function JadesMealsView({
             onRemove={onRemove} 
             onMealsUpdated={onMealsUpdated}
             onOpenRecipeBrowser={(day, mealType) => handleOpenRecipeBrowser(day, mealType)}
+            macroTargets={macroTargets}
           />
         ))}
       </div>
@@ -567,6 +575,7 @@ function JadesDayCard({
   onRemove,
   onMealsUpdated,
   onOpenRecipeBrowser,
+  macroTargets,
 }: {
   week: WeeklyMealPlan;
   day: string;
@@ -575,9 +584,11 @@ function JadesDayCard({
   onRemove: (weekId: string, day: string, mealType: string) => void;
   onMealsUpdated?: () => void;
   onOpenRecipeBrowser?: (day: string, mealType: string) => void;
+  macroTargets?: { calories: number; protein: number; fats: number; carbs: number };
 }) {
   const dayMeals = week.jades.meals[day] || {};
   const dayMacros = calculateDayMacros(week.weekId, day);
+  const targets = macroTargets || macroTargetsStore.get();
 
   const handleQuickAddMeal = (mealType: string, recipeName: string) => {
     weeklyMealPlanStorage.addMealToWeek(week.weekId, day, mealType, recipeName);
@@ -600,7 +611,7 @@ function JadesDayCard({
           </button>
         )}
       </div>
-      <MacrosDisplay actual={dayMacros} target={JADE_TARGETS} showRemaining={true} />
+      <MacrosDisplay actual={dayMacros} target={targets} showRemaining={true} />
       <div className="space-y-2">
         {jadesMealTypes.map(mealType => {
           const recipeKey = mealType.toLowerCase() as keyof typeof dayMeals;
