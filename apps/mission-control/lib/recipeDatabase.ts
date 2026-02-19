@@ -183,17 +183,20 @@ class RecipeDatabase {
         notes: 'Gluten-free and dairy-free friendly',
       },
       {
-        name: 'Weetbix with Milk & Fruit',
+        name: 'PB & J Overnight Weet-Bix (GF)',
         category: 'Breakfast',
         ingredients: [
-          { id: 'ing-26', name: 'Weetbix Cereal', qty: '2', unit: 'biscuits' },
-          { id: 'ing-27', name: 'Milk', qty: '200', unit: 'ml' },
-          { id: 'ing-28', name: 'Banana', qty: '0.5', unit: 'whole' },
-          { id: 'ing-29', name: 'Berries (fresh or frozen)', qty: '50', unit: 'g' },
+          { id: 'ing-26', name: 'Weet-bix Gluten free (15g) - Sanitarium', qty: '2', unit: 'biscuits' },
+          { id: 'ing-27', name: 'High Protein Almond milk - So Good', qty: '100', unit: 'ml' },
+          { id: 'ing-28', name: 'Greek Yogurt Vanilla - Chobani', qty: '100', unit: 'g' },
+          { id: 'ing-29', name: 'Peanut Butter - Bega', qty: '15', unit: 'g' },
+          { id: 'ing-30', name: 'Jam - Natvia (Woolworths Only)', qty: '20', unit: 'g' },
+          { id: 'ing-31', name: 'Protein Powder - WPI (Any)', qty: '15', unit: 'g' },
+          { id: 'ing-32', name: 'Maple Syrup', qty: '10', unit: 'g' },
         ],
-        macros: { calories: 180, protein: 8, fats: 2, carbs: 32 },
-        instructions: 'Pour milk over Weetbix, top with sliced banana and berries. Serve immediately.',
-        notes: 'Quick and nutritious breakfast',
+        macros: { calories: 427, protein: 30, fats: 12, carbs: 46 },
+        instructions: '1. In a bowl, combine weet-bix, protein powder, milk and sweetener. Press mixture down firmly into bowl to create base. 2. In another bowl, mix together yogurt and peanut butter until batter is smooth. Spread over weet-bix base and drizzle with jam and maple syrup.',
+        notes: 'Gluten-free friendly overnight breakfast',
       },
     ];
 

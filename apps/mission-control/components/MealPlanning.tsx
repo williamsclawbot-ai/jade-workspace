@@ -347,7 +347,7 @@ function JadesMealsView({
   onRemove: (weekId: string, day: string, mealType: string) => void;
 }) {
   const handleSetBreakfastToWeetbix = () => {
-    assignRecipeToAllDays(week.weekId, 'Breakfast', 'Weetbix with Milk & Fruit');
+    assignRecipeToAllDays(week.weekId, 'Breakfast', 'PB & J Overnight Weet-Bix (GF)');
     // Trigger parent re-render by dispatching storage event
     window.dispatchEvent(new StorageEvent('storage', {
       key: 'weekly-meal-plans-v1',
@@ -370,7 +370,7 @@ function JadesMealsView({
               onClick={handleSetBreakfastToWeetbix}
               className="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-2 rounded text-sm font-medium transition whitespace-nowrap"
             >
-              Set All Breakfasts to Weetbix
+              Set All Breakfasts to PB & J Overnight Weet-Bix
             </button>
           )}
         </div>
