@@ -84,11 +84,16 @@ export default function MealPlanning() {
   const [recipeModalOpen, setRecipeModalOpen] = useState(false);
   const [selectedMealInfo, setSelectedMealInfo] = useState<{ weekId: string; day: string; mealType: string; recipeName: string } | null>(null);
 
-  // HARVEY'S STATE (WITH AUTO-RESTORE FALLBACK)
-  const [harveysAssignedMeals, setHarveysAssignedMeals] = useState<Record<string, Record<string, string[]>>>(() => {
-    return initializeOrRestoreHarveysMeals();
-  });
-  const [assignmentModal, setAssignmentModal] = useState({ isOpen: false, selectedItem: null as string | null, selectedDay: null as string | null, selectedMeal: null as string | null });
+  // Get Harvey's meals from current week (not global storage)
+  const harveysAssignedMeals = currentWeek?.harveys.meals || {};
+  
+  const setHarveysAssignedMeals = (updater: (prev: any) => any) => {
+    if (!currentWeek) return;
+    const updated = typeof updater === 'function' ? updater(harveysAssignedMeals) : updater;
+    currentWeek.harveys.meals = updated;
+    weeklyMealPlanStorage.updateWeek(currentWeek.weekId, currentWeek);
+    setCurrentWeek({ ...currentWeek });
+  };
 
   // Shopping list state
   const [newItemName, setNewItemName] = useState('');
@@ -129,10 +134,7 @@ export default function MealPlanning() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // Save Harvey's state to localStorage
-  useEffect(() => {
-    localStorage.setItem('harveysAssignedMeals', JSON.stringify(harveysAssignedMeals));
-  }, [harveysAssignedMeals]);
+  // Harvey's meals now saved within each week automatically by weeklyMealPlanStorage
 
   const displayedWeek = activeWeekTab === 'this' ? currentWeek : activeWeekTab === 'next' ? nextWeek : archivedWeeks.find(w => w.weekId === selectedArchivedWeekId);
   const readOnly = activeWeekTab === 'archive' || displayedWeek?.status === 'locked';
@@ -314,13 +316,13 @@ export default function MealPlanning() {
 
       {/* HARVEY'S OPTIONS */}
       {activeTab === 'harveys-options' && (
-        <HarveysOptionsView 
-          harveysAssignedMeals={harveysAssignedMeals} 
-          assignmentModal={assignmentModal} 
-          setAssignmentModal={setAssignmentModal} 
-          onAssign={assignItemToMeal}
-          onMealsChanged={setHarveysAssignedMeals}
-        />
+        {currentWeek && (
+          <HarveysOptionsView 
+            weekId={currentWeek.weekId}
+            harveysAssignedMeals={harveysAssignedMeals} 
+            onRemoveItem={removeItemFromMeal}
+          />
+        )}
       )}
 
       {/* SHOPPING LIST */}
@@ -561,19 +563,15 @@ function HarveysMealsView({
   );
 }
 
-// ==================== HARVEY'S OPTIONS VIEW (RESTORED ORIGINAL) ====================
+// ==================== HARVEY'S OPTIONS VIEW ====================
 function HarveysOptionsView({
+  weekId,
   harveysAssignedMeals,
-  assignmentModal,
-  setAssignmentModal,
-  onAssign,
-  onMealsChanged,
+  onRemoveItem,
 }: {
+  weekId: string;
   harveysAssignedMeals: Record<string, Record<string, string[]>>;
-  assignmentModal: { isOpen: boolean; selectedItem: string | null; selectedDay: string | null; selectedMeal: string | null };
-  setAssignmentModal: (state: any) => void;
-  onAssign: () => void;
-  onMealsChanged?: (updatedMeals: Record<string, Record<string, string[]>>) => void;
+  onRemoveItem: (day: string, mealType: string, item: string) => void;
 }) {
   const [localSelectedItem, setLocalSelectedItem] = useState<string | null>(null);
   const [localSelectedDay, setLocalSelectedDay] = useState<string | null>(null);
@@ -582,15 +580,27 @@ function HarveysOptionsView({
   const handleAssign = () => {
     if (localSelectedItem && localSelectedDay && localSelectedMeal) {
       const mealType = localSelectedMeal.toLowerCase() as keyof typeof harveysAssignedMeals[string];
-      const updatedMeals = { ...harveysAssignedMeals };
-      if (!updatedMeals[localSelectedDay]) updatedMeals[localSelectedDay] = {};
-      updatedMeals[localSelectedDay][mealType] = [...(updatedMeals[localSelectedDay][mealType] || []), localSelectedItem];
+      const week = weeklyMealPlanStorage.getWeekById(weekId);
+      if (!week) return;
       
-      // Save to storage AND notify parent to update state
-      localStorage.setItem('harveysAssignedMeals', JSON.stringify(updatedMeals));
-      onMealsChanged?.(updatedMeals);
+      // Initialize day if needed
+      if (!week.harveys.meals[localSelectedDay]) {
+        week.harveys.meals[localSelectedDay] = {};
+      }
+      if (!week.harveys.meals[localSelectedDay][mealType]) {
+        week.harveys.meals[localSelectedDay][mealType] = [];
+      }
       
-      // Reset
+      // Add meal
+      week.harveys.meals[localSelectedDay][mealType] = [
+        ...(week.harveys.meals[localSelectedDay][mealType] || []),
+        localSelectedItem
+      ];
+      
+      // Save to weekly storage
+      weeklyMealPlanStorage.updateWeek(weekId, week);
+      
+      // Reset UI
       setLocalSelectedItem(null);
       setLocalSelectedDay(null);
       setLocalSelectedMeal(null);

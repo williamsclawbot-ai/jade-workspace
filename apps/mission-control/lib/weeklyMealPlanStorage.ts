@@ -316,6 +316,12 @@ class WeeklyMealPlanStorage {
     this.save();
   }
 
+  updateWeek(weekId: string, updatedPlan: WeeklyMealPlan): void {
+    if (!this.plans.has(weekId)) throw new Error(`Week ${weekId} not found`);
+    this.plans.set(weekId, updatedPlan);
+    this.save();
+  }
+
   getShoppingListForWeek(weekId: string): ShoppingItem[] {
     const plan = this.plans.get(weekId);
     if (!plan) return [];
