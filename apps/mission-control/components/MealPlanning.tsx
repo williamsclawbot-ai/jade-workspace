@@ -492,6 +492,25 @@ function HarveysOptionsView({
   setAssignmentModal: (state: any) => void;
   onAssign: () => void;
 }) {
+  const [localSelectedItem, setLocalSelectedItem] = useState<string | null>(null);
+  const [localSelectedDay, setLocalSelectedDay] = useState<string | null>(null);
+  const [localSelectedMeal, setLocalSelectedMeal] = useState<string | null>(null);
+
+  const handleAssign = () => {
+    if (localSelectedItem && localSelectedDay && localSelectedMeal) {
+      const mealType = localSelectedMeal.toLowerCase() as keyof typeof harveysAssignedMeals[string];
+      const updatedMeals = { ...harveysAssignedMeals };
+      if (!updatedMeals[localSelectedDay]) updatedMeals[localSelectedDay] = {};
+      updatedMeals[localSelectedDay][mealType] = [...(updatedMeals[localSelectedDay][mealType] || []), localSelectedItem];
+      localStorage.setItem('harveysAssignedMeals', JSON.stringify(updatedMeals));
+      
+      // Reset
+      setLocalSelectedItem(null);
+      setLocalSelectedDay(null);
+      setLocalSelectedMeal(null);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-blue-50 to-white border border-blue-200 rounded-lg p-4">
@@ -507,9 +526,9 @@ function HarveysOptionsView({
               {items.map(item => (
                 <button
                   key={item}
-                  onClick={() => setAssignmentModal({ ...assignmentModal, selectedItem: assignmentModal.selectedItem === item ? null : item })}
+                  onClick={() => setLocalSelectedItem(localSelectedItem === item ? null : item)}
                   className={`p-2 rounded text-sm transition ${
-                    assignmentModal.selectedItem === item
+                    localSelectedItem === item
                       ? 'bg-blue-600 text-white font-semibold'
                       : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                   }`}
@@ -522,18 +541,18 @@ function HarveysOptionsView({
         ))}
       </div>
 
-      {assignmentModal.selectedItem && (
+      {localSelectedItem && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
           <p className="font-semibold text-blue-900">
-            Selected: <span className="text-blue-700">{assignmentModal.selectedItem}</span>
+            Selected: <span className="text-blue-700">{localSelectedItem}</span>
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Day</label>
               <select
-                value={assignmentModal.selectedDay || ''}
-                onChange={(e) => setAssignmentModal({ ...assignmentModal, selectedDay: e.target.value || null })}
+                value={localSelectedDay || ''}
+                onChange={(e) => setLocalSelectedDay(e.target.value || null)}
                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
               >
                 <option value="">Choose day...</option>
@@ -546,8 +565,8 @@ function HarveysOptionsView({
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Meal</label>
               <select
-                value={assignmentModal.selectedMeal || ''}
-                onChange={(e) => setAssignmentModal({ ...assignmentModal, selectedMeal: e.target.value || null })}
+                value={localSelectedMeal || ''}
+                onChange={(e) => setLocalSelectedMeal(e.target.value || null)}
                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
               >
                 <option value="">Choose meal...</option>
@@ -559,11 +578,11 @@ function HarveysOptionsView({
           </div>
 
           <button
-            onClick={onAssign}
-            disabled={!assignmentModal.selectedDay || !assignmentModal.selectedMeal}
+            onClick={handleAssign}
+            disabled={!localSelectedDay || !localSelectedMeal}
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded font-semibold transition"
           >
-            ✅ Assign to {assignmentModal.selectedDay} {assignmentModal.selectedMeal}
+            ✅ Assign to {localSelectedDay} {localSelectedMeal}
           </button>
         </div>
       )}
