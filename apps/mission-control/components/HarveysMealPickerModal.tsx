@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { X, Search, Calendar, Utensils, Trash2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Search, Calendar, Utensils, Trash2, Clock } from 'lucide-react';
+import { harveysMealVarietyStore } from '../lib/harveysMealVarietyStore';
 
 interface HarveysMealPickerModalProps {
   isOpen: boolean;
@@ -28,6 +29,22 @@ export default function HarveysMealPickerModal({
   const [selectedMealType, setSelectedMealType] = useState<'breakfast' | 'lunch' | 'snack' | 'dinner'>('breakfast');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [mealVariety, setMealVariety] = useState<Record<string, number | null>>({});
+
+  // Load meal variety data
+  useEffect(() => {
+    if (isOpen) {
+      const allMeals: string[] = [];
+      Object.values(mealOptions).forEach(catMeals => {
+        allMeals.push(...catMeals);
+      });
+      const variety: Record<string, number | null> = {};
+      allMeals.forEach(meal => {
+        variety[meal] = harveysMealVarietyStore.getDaysSinceLastHad(meal);
+      });
+      setMealVariety(variety);
+    }
+  }, [isOpen, mealOptions]);
 
   if (!isOpen) return null;
 
@@ -58,6 +75,10 @@ export default function HarveysMealPickerModal({
 
   const handleAssignMeal = (mealName: string) => {
     onAssignMeal(selectedDay, selectedMealType, mealName);
+    // Record that Harvey is having this meal
+    harveysMealVarietyStore.recordMeal(mealName);
+    // Update local state
+    setMealVariety(prev => ({ ...prev, [mealName]: 0 }));
   };
 
   const handleRemoveMeal = (mealName: string) => {
@@ -231,6 +252,9 @@ export default function HarveysMealPickerModal({
               <div className="grid grid-cols-2 gap-2">
                 {filteredMeals.map((meal, idx) => {
                   const isAssigned = currentMeals.includes(meal);
+                  const daysSince = mealVariety[meal];
+                  const notHadRecently = daysSince === null || daysSince >= 14;
+                  
                   return (
                     <button
                       key={idx}
@@ -239,12 +263,28 @@ export default function HarveysMealPickerModal({
                       className={`text-left px-3 py-2 rounded-lg border transition ${
                         isAssigned
                           ? 'bg-pink-100 border-pink-300 text-pink-800 cursor-not-allowed'
-                          : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white hover:border-pink-600 hover:bg-pink-50 dark:hover:bg-pink-900/20'
+                          : notHadRecently
+                            ? 'bg-green-50 dark:bg-green-900/10 border-green-300 dark:border-green-700 text-gray-900 dark:text-white hover:border-green-600'
+                            : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white hover:border-pink-600 hover:bg-pink-50 dark:hover:bg-pink-900/20'
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        {isAssigned && <span className="text-xs">✓</span>}
-                        <span className="text-sm flex-1">{meal}</span>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          {isAssigned && <span className="text-xs">✓</span>}
+                          {notHadRecently && !isAssigned && <span className="text-xs">⭐</span>}
+                          <span className="text-sm flex-1 font-medium">{meal}</span>
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                          <Clock size={12} />
+                          <span>
+                            {daysSince === null && 'Never had'}
+                            {daysSince === 0 && 'Had today'}
+                            {daysSince === 1 && 'Had yesterday'}
+                            {daysSince !== null && daysSince >= 2 && daysSince < 7 && `${daysSince} days ago`}
+                            {daysSince !== null && daysSince >= 7 && daysSince < 14 && `${Math.floor(daysSince / 7)} week ago`}
+                            {daysSince !== null && daysSince >= 14 && `${Math.floor(daysSince / 7)} weeks ago`}
+                          </span>
+                        </div>
                       </div>
                     </button>
                   );
