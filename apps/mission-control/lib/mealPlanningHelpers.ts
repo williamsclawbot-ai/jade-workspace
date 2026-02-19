@@ -152,7 +152,7 @@ export function overrideMealForDay(
     // Update shopping list with new quantities
     if (ingredientOverrides) {
       removeIngredientsFromShopping(weekId, recipeName, day, mealType);
-      extractAndAddIngredientsToShopping(weekId, ingredientOverrides, variantName, day, mealType);
+      extractAndAddIngredientsToShopping(weekId, ingredientOverrides as any, variantName, day, mealType);
     }
 
     return {
@@ -247,7 +247,7 @@ function removeIngredientsFromShopping(
 /**
  * Get all meals for a week
  */
-export function getWeekMeals(weekId: string) {
+export function getWeekMeals(weekId: string): any {
   const plan = weeklyMealPlanStorage.getWeekById(weekId);
   if (!plan) return null;
 

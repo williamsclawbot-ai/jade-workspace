@@ -130,7 +130,8 @@ export default function MealPlanning() {
   const readOnly = activeWeekTab === 'archive' || displayedWeek?.status === 'locked';
   
   // Update Harvey's meals based on displayed week (not current week)
-  harveysAssignedMeals = displayedWeek?.harveys.meals || {};
+  // Note: Harvey's meals stored as arrays, need to cast from DayMealAssignment structure
+  harveysAssignedMeals = (displayedWeek?.harveys.meals as any) || {};
 
   const openRecipeModal = (weekId: string, day: string, mealType: string, recipeName: string) => {
     setSelectedMealInfo({ weekId, day, mealType, recipeName });
@@ -162,8 +163,9 @@ export default function MealPlanning() {
   const removeItemFromMeal = (day: string, mealType: string, item: string) => {
     if (!displayedWeek) return;
     const updated = { ...displayedWeek };
-    if (updated.harveys.meals[day]?.[mealType]) {
-      updated.harveys.meals[day][mealType] = updated.harveys.meals[day][mealType].filter(i => i !== item);
+    const meals = updated.harveys.meals as any;
+    if (meals[day]?.[mealType]) {
+      meals[day][mealType] = meals[day][mealType].filter((i: string) => i !== item);
     }
     weeklyMealPlanStorage.updateWeek(displayedWeek.weekId, updated);
     
@@ -481,10 +483,12 @@ function HarveysMealsView({
     const week = weeklyMealPlanStorage.getWeekById(weekId);
     if (week) {
       // Convert from old format to week structure
+      const meals = week.harveys.meals as any;
       days.forEach(day => {
         harveysMealTypes.forEach(mealType => {
           const mealKey = mealType.toLowerCase() as keyof typeof restored[string];
-          week.harveys.meals[day][mealKey] = restored[day]?.[mealKey] || [];
+          meals[day] = meals[day] || {};
+          meals[day][mealKey] = restored[day]?.[mealKey] || [];
         });
       });
       weeklyMealPlanStorage.updateWeek(weekId, week);
@@ -581,21 +585,22 @@ function HarveysOptionsView({
 
   const handleAssign = () => {
     if (localSelectedItem && localSelectedDay && localSelectedMeal) {
-      const mealType = localSelectedMeal.toLowerCase() as keyof typeof harveysAssignedMeals[string];
+      const mealType = localSelectedMeal.toLowerCase();
       const week = weeklyMealPlanStorage.getWeekById(weekId);
       if (!week) return;
       
-      // Initialize day if needed
-      if (!week.harveys.meals[localSelectedDay]) {
-        week.harveys.meals[localSelectedDay] = {};
+      // Initialize day if needed (cast to any to handle array structure)
+      const meals = week.harveys.meals as any;
+      if (!meals[localSelectedDay]) {
+        meals[localSelectedDay] = {};
       }
-      if (!week.harveys.meals[localSelectedDay][mealType]) {
-        week.harveys.meals[localSelectedDay][mealType] = [];
+      if (!meals[localSelectedDay][mealType]) {
+        meals[localSelectedDay][mealType] = [];
       }
       
       // Add meal
-      week.harveys.meals[localSelectedDay][mealType] = [
-        ...(week.harveys.meals[localSelectedDay][mealType] || []),
+      meals[localSelectedDay][mealType] = [
+        ...(meals[localSelectedDay][mealType] || []),
         localSelectedItem
       ];
       
@@ -733,7 +738,7 @@ function ShoppingListView({
             ingredient: ing.name,
             quantity: ing.quantity,
             unit: ing.unit,
-            source: 'harveys',
+            source: 'harvey',
             addedAt: Date.now(),
           });
           existingNames.add(ing.name.toLowerCase());
@@ -875,11 +880,11 @@ function ShoppingListView({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {manualItems.map(item => (
-            <div key={item.id} className={`border rounded-lg p-3 ${item.source === 'harveys' ? 'bg-pink-50 border-pink-200' : 'bg-white border-gray-200'}`}>
+            <div key={item.id} className={`border rounded-lg p-3 ${item.source === 'harvey' ? 'bg-pink-50 border-pink-200' : 'bg-white border-gray-200'}`}>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-gray-800">{item.ingredient}</span>
-                  {item.source === 'harveys' && (
+                  {item.source === 'harvey' && (
                     <span className="text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded">👶 Harvey</span>
                   )}
                 </div>
