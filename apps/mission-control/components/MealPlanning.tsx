@@ -735,8 +735,10 @@ function ShoppingListView({
       Object.entries(dayMeals).forEach(([mealType, recipeName]) => {
         if (!recipeName) return;
         
+        console.log(`🔍 Looking for Jade recipe: "${recipeName}" (${day} ${mealType})`);
         const recipe = recipeDatabase.getRecipeByName(recipeName);
         if (recipe) {
+          console.log(`✅ Found recipe: ${recipeName}`, recipe.ingredients);
           recipe.ingredients.forEach(ing => {
             if (!existingNames.has(ing.name.toLowerCase())) {
               newItems.push({
@@ -750,6 +752,8 @@ function ShoppingListView({
               existingNames.add(ing.name.toLowerCase());
             }
           });
+        } else {
+          console.log(`❌ Recipe NOT found: "${recipeName}"`);
         }
       });
     });
