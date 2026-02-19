@@ -120,18 +120,28 @@ async function sendMessageToJohn(message: string): Promise<void> {
  * Fetch reminders from your data source
  */
 async function fetchReminders(): Promise<Reminder[]> {
-  // TODO: Implement based on your backend
-  // This could fetch from:
-  // - REST API endpoint
-  // - Database query
-  // - File system
-  // - IndexedDB (browser)
-  
-  // Example REST API call:
-  // const response = await fetch('/api/reminders');
-  // return response.json();
-  
-  return [];
+  try {
+    const response = await fetch('http://localhost:3000/api/reminders', {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await response.json();
+    
+    if (!data.success || !data.reminders) {
+      return [];
+    }
+
+    return data.reminders.map((r: any) => ({
+      id: r.id,
+      text: r.text,
+      status: 'not-sent' as const,
+      sentDate: null,
+      createdDate: new Date().toISOString(),
+      priority: r.priority || 'normal',
+    }));
+  } catch (error) {
+    console.error('Error fetching reminders from API:', error);
+    return [];
+  }
 }
 
 /**
