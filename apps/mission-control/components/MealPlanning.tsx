@@ -14,6 +14,7 @@ import { woolworthsMappings, getWoolworthsMapping, isItemFlagged } from '../lib/
 import { purchaseHistory } from '../lib/purchaseHistory';
 import { getHarveysMealIngredients, flattenHarveysMeals } from '../lib/harveysMealData';
 import { assignRecipeToAllDays } from '../lib/bulkMealHelper';
+import { restoreHarveysMealsFromScreenshot, saveHarveysMealsToStorage } from '../lib/harveysMealsRestore';
 import RecipeModal from './RecipeModal';
 import MacrosDisplay from './MacrosDisplay';
 import NotesButton from './NotesButton';
@@ -114,7 +115,10 @@ export default function MealPlanning() {
         console.error('❌ Error loading Harvey\'s meals:', e);
       }
     } else {
-      console.log('⚠️ No Harvey\'s meals found in localStorage');
+      console.log('⚠️ No Harvey\'s meals found in localStorage - restoring from backup...');
+      const restored = restoreHarveysMealsFromScreenshot();
+      saveHarveysMealsToStorage(restored);
+      setHarveysAssignedMeals(restored);
     }
 
     const handleStorageChange = (e: StorageEvent) => {
