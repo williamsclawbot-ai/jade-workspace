@@ -446,6 +446,28 @@ function JadesMealsView({
     }
   };
 
+  const handleCopyPreviousWeek = () => {
+    // Get the previous week (archived weeks sorted by most recent first)
+    const archivedWeeks = weeklyMealPlanStorage.getArchivedWeeks();
+    if (archivedWeeks.length === 0) {
+      alert('No previous weeks found to copy from');
+      return;
+    }
+    
+    const previousWeek = archivedWeeks[0]; // Most recent archived week
+    
+    // Copy all Jade's meals from previous week to current week
+    const updated = { ...week };
+    updated.jades.meals = JSON.parse(JSON.stringify(previousWeek.jades.meals));
+    // Clear day overrides so meals are editable
+    updated.jades.dayOverrides = {};
+    
+    weeklyMealPlanStorage.updateWeek(week.weekId, updated);
+    onMealsUpdated?.();
+    
+    alert(`✅ Copied meals from ${formatDateRange(previousWeek.weekStartDate, previousWeek.weekEndDate)}`);
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-jade-light to-white border border-jade-light rounded-lg p-4">
@@ -464,6 +486,12 @@ function JadesMealsView({
               >
                 <Plus size={16} />
                 Add Recipe
+              </button>
+              <button
+                onClick={handleCopyPreviousWeek}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium transition whitespace-nowrap flex items-center gap-1"
+              >
+                📋 Copy Previous Week
               </button>
               <button
                 onClick={handleSetBreakfastToWeetbix}
