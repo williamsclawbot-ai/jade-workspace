@@ -12,6 +12,7 @@ import {
 } from '../lib/mealPlanningHelpers';
 import { woolworthsMappings, getWoolworthsMapping, isItemFlagged } from '../lib/woolworthsMapping';
 import { purchaseHistory } from '../lib/purchaseHistory';
+import { getHarveysMealIngredients, flattenHarveysMeals } from '../lib/harveysMealData';
 import RecipeModal from './RecipeModal';
 import MacrosDisplay from './MacrosDisplay';
 import NotesButton from './NotesButton';
@@ -313,7 +314,7 @@ export default function MealPlanning() {
           {activeWeekTab === 'archive' ? (
             <ArchiveView archivedWeeks={archivedWeeks} selectedWeekId={selectedArchivedWeekId} onSelectWeek={setSelectedArchivedWeekId} />
           ) : (
-            <ShoppingListView week={displayedWeek} readOnly={readOnly} onBuildCart={handleBuildWoolworthsCart} buildingCart={buildingCart} cartResult={cartResult} />
+            <ShoppingListView week={displayedWeek} readOnly={readOnly} onBuildCart={handleBuildWoolworthsCart} buildingCart={buildingCart} cartResult={cartResult} harveysAssignedMeals={harveysAssignedMeals} />
           )}
         </>
       )}
@@ -598,21 +599,61 @@ function ShoppingListView({
   onBuildCart,
   buildingCart,
   cartResult,
+  harveysAssignedMeals,
 }: {
   week: WeeklyMealPlan;
   readOnly: boolean;
   onBuildCart: () => void;
   buildingCart: boolean;
   cartResult: { success: boolean; message: string; items?: any[]; total?: number } | null;
+  harveysAssignedMeals: Record<string, Record<string, string[]>>;
 }) {
   const [manualItems, setManualItems] = useState<ShoppingItem[]>([]);
   const [newItemName, setNewItemName] = useState('');
   const [newItemQty, setNewItemQty] = useState('');
   const [newItemUnit, setNewItemUnit] = useState('');
 
+  // Auto-populate shopping list from Harvey's meals on mount or when Harvey's meals change
   useEffect(() => {
-    setManualItems(week.shoppingList || []);
-  }, [week]);
+    // Get all assigned Harvey meals for the week
+    const allMealNames: string[] = [];
+    days.forEach(day => {
+      ['breakfast', 'lunch', 'snack', 'dinner'].forEach(mealType => {
+        const items = harveysAssignedMeals[day]?.[mealType] || [];
+        allMealNames.push(...items);
+      });
+    });
+
+    // Extract ingredients from all meals
+    if (allMealNames.length > 0) {
+      const flattenedIngredients = flattenHarveysMeals(allMealNames);
+      
+      // Merge with existing shopping list (don't duplicate)
+      const existingItems = week.shoppingList || [];
+      const existingNames = existingItems.map(i => i.ingredient.toLowerCase());
+      
+      const newItems: ShoppingItem[] = flattenedIngredients
+        .filter(ing => !existingNames.includes(ing.name.toLowerCase()))
+        .map(ing => ({
+          id: `item-${Date.now()}-${Math.random()}`,
+          ingredient: ing.name,
+          quantity: ing.quantity,
+          unit: ing.unit,
+          source: 'harveys',
+          addedAt: Date.now(),
+        }));
+
+      if (newItems.length > 0) {
+        const merged = [...existingItems, ...newItems];
+        setManualItems(merged);
+        weeklyMealPlanStorage.updateShoppingListForWeek(week.weekId, merged);
+      } else {
+        setManualItems(existingItems);
+      }
+    } else {
+      setManualItems(week.shoppingList || []);
+    }
+  }, [week, harveysAssignedMeals]);
 
   const handleAddItem = () => {
     if (!newItemName.trim()) return;
@@ -707,9 +748,14 @@ function ShoppingListView({
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {manualItems.map(item => (
-            <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-3">
+            <div key={item.id} className={`border rounded-lg p-3 ${item.source === 'harveys' ? 'bg-pink-50 border-pink-200' : 'bg-white border-gray-200'}`}>
               <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-gray-800">{item.ingredient}</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-gray-800">{item.ingredient}</span>
+                  {item.source === 'harveys' && (
+                    <span className="text-xs bg-pink-100 text-pink-700 px-2 py-0.5 rounded">👶 Harvey</span>
+                  )}
+                </div>
                 {!readOnly && (
                   <button onClick={() => handleRemoveItem(item.id)} className="text-red-500 hover:text-red-700">
                     <Trash2 size={16} />
