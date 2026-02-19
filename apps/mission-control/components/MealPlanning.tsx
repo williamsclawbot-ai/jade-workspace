@@ -16,6 +16,7 @@ import { getHarveysMealIngredients, flattenHarveysMeals } from '../lib/harveysMe
 import { assignRecipeToAllDays } from '../lib/bulkMealHelper';
 import { initializeOrRestoreHarveysMeals, saveHarveysMealsToStorage } from '../lib/harveysMealsRestore';
 import RecipeModal from './RecipeModal';
+import RecipeInputModal from './RecipeInputModal';
 import MacrosDisplay from './MacrosDisplay';
 import NotesButton from './NotesButton';
 
@@ -83,6 +84,10 @@ export default function MealPlanning() {
 
   const [recipeModalOpen, setRecipeModalOpen] = useState(false);
   const [selectedMealInfo, setSelectedMealInfo] = useState<{ weekId: string; day: string; mealType: string; recipeName: string } | null>(null);
+
+  // Recipe input modal state
+  const [recipeInputModalOpen, setRecipeInputModalOpen] = useState(false);
+  const [recipeInputCategory, setRecipeInputCategory] = useState<'Breakfast' | 'Lunch' | 'Snack' | 'Dinner' | 'Dessert' | 'Harvey'>('Lunch');
 
   // Get Harvey's meals from DISPLAYED week (not current week - allows week switching)
   // displayedWeek is defined below after state setup
@@ -156,6 +161,22 @@ export default function MealPlanning() {
       const next = weeklyMealPlanStorage.getNextWeek();
       setCurrentWeek(current);
       setNextWeek(next);
+    }
+  };
+
+  const handleSaveNewRecipe = (recipe: {
+    name: string;
+    category: string;
+    ingredients: any[];
+    macros: { calories: number; protein: number; fats: number; carbs: number };
+    instructions?: string;
+    notes?: string;
+  }) => {
+    recipeDatabase.addRecipe(recipe);
+    console.log('✅ Recipe added:', recipe.name);
+    // Trigger storage event to sync
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'));
     }
   };
 
@@ -292,6 +313,10 @@ export default function MealPlanning() {
                 setCurrentWeek(current);
                 setNextWeek(next);
               }}
+              onOpenRecipeInput={(category) => {
+                setRecipeInputCategory(category);
+                setRecipeInputModalOpen(true);
+              }}
             />
           )}
         </>
@@ -336,6 +361,14 @@ export default function MealPlanning() {
           readOnly={readOnly}
         />
       )}
+
+      {/* Recipe input modal */}
+      <RecipeInputModal
+        isOpen={recipeInputModalOpen}
+        onClose={() => setRecipeInputModalOpen(false)}
+        onSave={handleSaveNewRecipe}
+        defaultCategory={recipeInputCategory}
+      />
     </div>
   );
 }
@@ -347,12 +380,14 @@ function JadesMealsView({
   onOpenModal,
   onRemove,
   onMealsUpdated,
+  onOpenRecipeInput,
 }: {
   week: WeeklyMealPlan;
   readOnly: boolean;
   onOpenModal: (weekId: string, day: string, mealType: string, recipeName: string) => void;
   onRemove: (weekId: string, day: string, mealType: string) => void;
   onMealsUpdated?: () => void;
+  onOpenRecipeInput?: (category: 'Breakfast' | 'Lunch' | 'Snack' | 'Dinner' | 'Dessert') => void;
 }) {
   const handleSetBreakfastToWeetbix = () => {
     const updated = assignRecipeToAllDays(week.weekId, 'Breakfast', 'PB & J Overnight Weet-Bix (GF)');
@@ -373,12 +408,21 @@ function JadesMealsView({
             </p>
           </div>
           {!readOnly && (
-            <button
-              onClick={handleSetBreakfastToWeetbix}
-              className="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-2 rounded text-sm font-medium transition whitespace-nowrap"
-            >
-              Set All Breakfasts to PB & J Overnight Weet-Bix
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => onOpenRecipeInput?.('Lunch')}
+                className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm font-medium transition whitespace-nowrap flex items-center gap-1"
+              >
+                <Plus size={16} />
+                Add Recipe
+              </button>
+              <button
+                onClick={handleSetBreakfastToWeetbix}
+                className="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-2 rounded text-sm font-medium transition whitespace-nowrap"
+              >
+                Set All Breakfasts to PB & J Overnight Weet-Bix
+              </button>
+            </div>
           )}
         </div>
       </div>
