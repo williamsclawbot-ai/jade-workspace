@@ -84,16 +84,11 @@ export default function MealPlanning() {
   const [recipeModalOpen, setRecipeModalOpen] = useState(false);
   const [selectedMealInfo, setSelectedMealInfo] = useState<{ weekId: string; day: string; mealType: string; recipeName: string } | null>(null);
 
-  // Get Harvey's meals from current week (not global storage)
-  const harveysAssignedMeals = currentWeek?.harveys.meals || {};
+  // Get Harvey's meals from DISPLAYED week (not current week - allows week switching)
+  // displayedWeek is defined below after state setup
+  let harveysAssignedMeals: Record<string, Record<string, string[]>> = {};
   
-  const setHarveysAssignedMeals = (updater: (prev: any) => any) => {
-    if (!currentWeek) return;
-    const updated = typeof updater === 'function' ? updater(harveysAssignedMeals) : updater;
-    currentWeek.harveys.meals = updated;
-    weeklyMealPlanStorage.updateWeek(currentWeek.weekId, currentWeek);
-    setCurrentWeek({ ...currentWeek });
-  };
+  // setHarveysAssignedMeals removed - now using removeItemFromMeal which updates displayedWeek directly
 
   // Shopping list state
   const [newItemName, setNewItemName] = useState('');
@@ -112,7 +107,7 @@ export default function MealPlanning() {
     setArchivedWeeks(archived);
 
     // Harvey's meals are initialized in state with auto-restore built in
-    console.log('🍽️ Component mounted - Harvey\'s meals loaded from storage or restored from backup');
+    console.log('🍽️ Component mounted - weeks loaded from weekly storage');
 
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'weekly-meal-plans-v1') {
@@ -122,11 +117,6 @@ export default function MealPlanning() {
         setCurrentWeek(current);
         setNextWeek(next);
         setArchivedWeeks(archived);
-      } else if (e.key === 'harveysAssignedMeals') {
-        const saved = localStorage.getItem('harveysAssignedMeals');
-        if (saved) {
-          setHarveysAssignedMeals(JSON.parse(saved));
-        }
       }
     };
 
@@ -138,6 +128,9 @@ export default function MealPlanning() {
 
   const displayedWeek = activeWeekTab === 'this' ? currentWeek : activeWeekTab === 'next' ? nextWeek : archivedWeeks.find(w => w.weekId === selectedArchivedWeekId);
   const readOnly = activeWeekTab === 'archive' || displayedWeek?.status === 'locked';
+  
+  // Update Harvey's meals based on displayed week (not current week)
+  harveysAssignedMeals = displayedWeek?.harveys.meals || {};
 
   const openRecipeModal = (weekId: string, day: string, mealType: string, recipeName: string) => {
     setSelectedMealInfo({ weekId, day, mealType, recipeName });
@@ -165,30 +158,23 @@ export default function MealPlanning() {
     }
   };
 
-  // HARVEY'S HANDLERS (RESTORED ORIGINAL)
+  // HARVEY'S HANDLERS - Update displayed week directly
   const removeItemFromMeal = (day: string, mealType: string, item: string) => {
-    setHarveysAssignedMeals(prev => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [mealType]: prev[day][mealType].filter(i => i !== item),
-      },
-    }));
+    if (!displayedWeek) return;
+    const updated = { ...displayedWeek };
+    if (updated.harveys.meals[day]?.[mealType]) {
+      updated.harveys.meals[day][mealType] = updated.harveys.meals[day][mealType].filter(i => i !== item);
+    }
+    weeklyMealPlanStorage.updateWeek(displayedWeek.weekId, updated);
+    
+    // Update state to trigger re-render
+    if (activeWeekTab === 'this') setCurrentWeek(updated);
+    else if (activeWeekTab === 'next') setNextWeek(updated);
   };
 
   const assignItemToMeal = () => {
-    if (!assignmentModal.selectedItem || !assignmentModal.selectedDay || !assignmentModal.selectedMeal) return;
-
-    const mealType = assignmentModal.selectedMeal.toLowerCase() as keyof typeof harveysAssignedMeals[string];
-    setHarveysAssignedMeals(prev => ({
-      ...prev,
-      [assignmentModal.selectedDay!]: {
-        ...prev[assignmentModal.selectedDay!],
-        [mealType]: [...(prev[assignmentModal.selectedDay!][mealType] || []), assignmentModal.selectedItem!],
-      },
-    }));
-
-    setAssignmentModal({ isOpen: false, selectedItem: null, selectedDay: null, selectedMeal: null });
+    // This is no longer used - HarveysOptionsView handles assignment directly
+    return;
   };
 
   const handleBuildWoolworthsCart = async () => {
