@@ -97,6 +97,8 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       subtext: 'Overarching',
       section: 'management',
       items: [
+        { id: 'awaiting-review', label: 'Awaiting Review', icon: CheckCircle2 },
+        { id: 'overnight-review', label: 'Overnight Work', icon: Clock },
         { id: 'decisions', label: 'Decisions', icon: GitBranch },
         { id: 'personal-tasks', label: 'Tasks', icon: CheckSquare },
         { id: 'notes', label: 'Notes', icon: StickyNote },

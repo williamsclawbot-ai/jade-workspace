@@ -30,6 +30,8 @@ import Notes from '@/components/Notes';
 import TodayCommandCenter from '@/components/TodayCommandCenter';
 import WeeklyContentView from '@/components/WeeklyContentView';
 import ShoppingCart from '@/components/ShoppingCart';
+import AwaitingReviewTab from '@/components/AwaitingReviewTab';
+import OvernightReviewTab from '@/components/OvernightReviewTab';
 import weeklyContentData from '@/lib/weeklyContentData.json';
 import { initializeWeeklyContent } from '@/lib/initializeContentData';
 
@@ -100,6 +102,10 @@ export default function Home() {
         return <Memory />;
       case 'office':
         return <Office />;
+      case 'awaiting-review':
+        return <AwaitingReviewTab />;
+      case 'overnight-review':
+        return <OvernightReviewTab />;
       default:
         return <Dashboard />;
     }
