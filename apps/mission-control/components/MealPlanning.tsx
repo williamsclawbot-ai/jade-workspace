@@ -463,10 +463,32 @@ function HarveysMealsView({
   harveysAssignedMeals: Record<string, Record<string, string[]>>;
   onRemoveItem: (day: string, mealType: string, item: string) => void;
 }) {
+  const handleRestoreHarveys = () => {
+    const restored = initializeOrRestoreHarveysMeals();
+    saveHarveysMealsToStorage(restored);
+    window.location.reload();
+  };
+
+  const isEmpty = days.every(day => 
+    harveysMealTypes.every(meal => 
+      !(harveysAssignedMeals[day]?.[meal.toLowerCase() as keyof typeof harveysAssignedMeals[string]]?.length > 0)
+    )
+  );
+
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-pink-100 to-white border border-pink-200 rounded-lg p-4">
-        <h2 className="text-xl font-bold text-pink-600">Harvey's Weekly Meal Plan</h2>
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-xl font-bold text-pink-600">Harvey's Weekly Meal Plan</h2>
+          {isEmpty && (
+            <button
+              onClick={handleRestoreHarveys}
+              className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded text-sm font-medium transition"
+            >
+              🔄 Restore Test Data
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="overflow-x-auto">
