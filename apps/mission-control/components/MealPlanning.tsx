@@ -697,45 +697,72 @@ function ShoppingListView({
   const [newItemQty, setNewItemQty] = useState('');
   const [newItemUnit, setNewItemUnit] = useState('');
 
-  // Auto-populate shopping list from Harvey's meals on mount or when Harvey's meals change
+  // Auto-populate shopping list from BOTH Harvey's and Jade's meals
   useEffect(() => {
-    // Get all assigned Harvey meals for the week
-    const allMealNames: string[] = [];
+    const newItems: ShoppingItem[] = [];
+    const existingItems = week.shoppingList || [];
+    const existingNames = new Set(existingItems.map(i => i.ingredient.toLowerCase()));
+
+    // 1. HARVEY'S MEALS: Extract ingredients
+    const harveyMealNames: string[] = [];
     days.forEach(day => {
       ['breakfast', 'lunch', 'snack', 'dinner'].forEach(mealType => {
         const items = harveysAssignedMeals[day]?.[mealType] || [];
-        allMealNames.push(...items);
+        harveyMealNames.push(...items);
       });
     });
 
-    // Extract ingredients from all meals
-    if (allMealNames.length > 0) {
-      const flattenedIngredients = flattenHarveysMeals(allMealNames);
-      
-      // Merge with existing shopping list (don't duplicate)
-      const existingItems = week.shoppingList || [];
-      const existingNames = existingItems.map(i => i.ingredient.toLowerCase());
-      
-      const newItems: ShoppingItem[] = flattenedIngredients
-        .filter(ing => !existingNames.includes(ing.name.toLowerCase()))
-        .map(ing => ({
-          id: `item-${Date.now()}-${Math.random()}`,
-          ingredient: ing.name,
-          quantity: ing.quantity,
-          unit: ing.unit,
-          source: 'harveys',
-          addedAt: Date.now(),
-        }));
+    if (harveyMealNames.length > 0) {
+      const harveyIngredients = flattenHarveysMeals(harveyMealNames);
+      harveyIngredients.forEach(ing => {
+        if (!existingNames.has(ing.name.toLowerCase())) {
+          newItems.push({
+            id: `item-${Date.now()}-${Math.random()}`,
+            ingredient: ing.name,
+            quantity: ing.quantity,
+            unit: ing.unit,
+            source: 'harveys',
+            addedAt: Date.now(),
+          });
+          existingNames.add(ing.name.toLowerCase());
+        }
+      });
+    }
 
+    // 2. JADE'S MEALS: Extract ingredients from recipes
+    days.forEach(day => {
+      const dayMeals = week.jades.meals[day] || {};
+      Object.entries(dayMeals).forEach(([mealType, recipeName]) => {
+        if (!recipeName) return;
+        
+        const recipe = recipeDatabase.getRecipeByName(recipeName);
+        if (recipe) {
+          recipe.ingredients.forEach(ing => {
+            if (!existingNames.has(ing.name.toLowerCase())) {
+              newItems.push({
+                id: `item-${Date.now()}-${Math.random()}`,
+                ingredient: ing.name,
+                quantity: ing.qty.toString(),
+                unit: ing.unit,
+                source: 'jade',
+                addedAt: Date.now(),
+              });
+              existingNames.add(ing.name.toLowerCase());
+            }
+          });
+        }
+      });
+    });
+
+    // Merge and update
+    if (newItems.length > 0 || week.shoppingList?.length === 0) {
+      const merged = [...existingItems, ...newItems];
+      setManualItems(merged);
       if (newItems.length > 0) {
-        const merged = [...existingItems, ...newItems];
-        setManualItems(merged);
         weeklyMealPlanStorage.updateShoppingListForWeek(week.weekId, merged);
-      } else {
-        setManualItems(existingItems);
       }
     } else {
-      setManualItems(week.shoppingList || []);
+      setManualItems(existingItems);
     }
   }, [week, harveysAssignedMeals]);
 
