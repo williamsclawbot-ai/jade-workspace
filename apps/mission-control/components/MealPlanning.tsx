@@ -14,7 +14,7 @@ import { woolworthsMappings, getWoolworthsMapping, isItemFlagged } from '../lib/
 import { purchaseHistory } from '../lib/purchaseHistory';
 import { getHarveysMealIngredients, flattenHarveysMeals } from '../lib/harveysMealData';
 import { assignRecipeToAllDays } from '../lib/bulkMealHelper';
-import { restoreHarveysMealsFromScreenshot, saveHarveysMealsToStorage } from '../lib/harveysMealsRestore';
+import { initializeOrRestoreHarveysMeals, saveHarveysMealsToStorage } from '../lib/harveysMealsRestore';
 import RecipeModal from './RecipeModal';
 import MacrosDisplay from './MacrosDisplay';
 import NotesButton from './NotesButton';
@@ -84,8 +84,10 @@ export default function MealPlanning() {
   const [recipeModalOpen, setRecipeModalOpen] = useState(false);
   const [selectedMealInfo, setSelectedMealInfo] = useState<{ weekId: string; day: string; mealType: string; recipeName: string } | null>(null);
 
-  // HARVEY'S STATE (RESTORED ORIGINAL)
-  const [harveysAssignedMeals, setHarveysAssignedMeals] = useState<Record<string, Record<string, string[]>>>(initializeAssignedMeals());
+  // HARVEY'S STATE (WITH AUTO-RESTORE FALLBACK)
+  const [harveysAssignedMeals, setHarveysAssignedMeals] = useState<Record<string, Record<string, string[]>>>(() => {
+    return initializeOrRestoreHarveysMeals();
+  });
   const [assignmentModal, setAssignmentModal] = useState({ isOpen: false, selectedItem: null as string | null, selectedDay: null as string | null, selectedMeal: null as string | null });
 
   // Shopping list state
@@ -104,22 +106,8 @@ export default function MealPlanning() {
     setNextWeek(next);
     setArchivedWeeks(archived);
 
-    // Load Harvey's saved state
-    const saved = localStorage.getItem('harveysAssignedMeals');
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        console.log('✅ Loaded Harvey\'s meals from storage:', parsed);
-        setHarveysAssignedMeals(parsed);
-      } catch (e) {
-        console.error('❌ Error loading Harvey\'s meals:', e);
-      }
-    } else {
-      console.log('⚠️ No Harvey\'s meals found in localStorage - restoring from backup...');
-      const restored = restoreHarveysMealsFromScreenshot();
-      saveHarveysMealsToStorage(restored);
-      setHarveysAssignedMeals(restored);
-    }
+    // Harvey's meals are initialized in state with auto-restore built in
+    console.log('🍽️ Component mounted - Harvey\'s meals loaded from storage or restored from backup');
 
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'weekly-meal-plans-v1') {
