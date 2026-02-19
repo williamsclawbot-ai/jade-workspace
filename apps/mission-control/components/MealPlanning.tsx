@@ -562,7 +562,6 @@ function JadesMealsView({
             onOpenModal={onOpenModal} 
             onRemove={onRemove} 
             onMealsUpdated={onMealsUpdated}
-            onOpenRecipeBrowser={(day, mealType) => handleOpenRecipeBrowser(day, mealType)}
             macroTargets={macroTargets}
           />
         ))}
@@ -578,7 +577,6 @@ function JadesDayCard({
   onOpenModal,
   onRemove,
   onMealsUpdated,
-  onOpenRecipeBrowser,
   macroTargets,
 }: {
   week: WeeklyMealPlan;
@@ -587,7 +585,6 @@ function JadesDayCard({
   onOpenModal: (weekId: string, day: string, mealType: string, recipeName: string) => void;
   onRemove: (weekId: string, day: string, mealType: string) => void;
   onMealsUpdated?: () => void;
-  onOpenRecipeBrowser?: (day: string, mealType: string) => void;
   macroTargets?: { calories: number; protein: number; fats: number; carbs: number };
 }) {
   const dayMeals = week.jades.meals[day] || {};
@@ -626,16 +623,7 @@ function JadesDayCard({
             <div key={mealType} className="flex items-center gap-2">
               <label className="text-sm font-semibold text-gray-700 w-20">{mealType}</label>
               {!recipeName ? (
-                !readOnly && onOpenRecipeBrowser ? (
-                  <button
-                    onClick={() => onOpenRecipeBrowser(day, mealType)}
-                    className="flex-1 text-gray-400 hover:text-jade-purple hover:bg-jade-light/20 border border-dashed border-gray-300 hover:border-jade-purple italic text-sm py-2 px-3 rounded transition"
-                  >
-                    + Browse Recipes
-                  </button>
-                ) : (
-                  <div className="flex-1 text-gray-400 italic text-sm py-2 px-3">Empty</div>
-                )
+                <div className="flex-1 text-gray-400 italic text-sm py-2 px-3">Empty</div>
               ) : (
                 <>
                   <div
