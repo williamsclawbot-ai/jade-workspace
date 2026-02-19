@@ -182,6 +182,19 @@ class RecipeDatabase {
         instructions: 'Brown beef mince, add vegetables and sauce from kit, serve in lettuce leaves.',
         notes: 'Gluten-free and dairy-free friendly',
       },
+      {
+        name: 'Weetbix with Milk & Fruit',
+        category: 'Breakfast',
+        ingredients: [
+          { id: 'ing-26', name: 'Weetbix Cereal', qty: '2', unit: 'biscuits' },
+          { id: 'ing-27', name: 'Milk', qty: '200', unit: 'ml' },
+          { id: 'ing-28', name: 'Banana', qty: '0.5', unit: 'whole' },
+          { id: 'ing-29', name: 'Berries (fresh or frozen)', qty: '50', unit: 'g' },
+        ],
+        macros: { calories: 180, protein: 8, fats: 2, carbs: 32 },
+        instructions: 'Pour milk over Weetbix, top with sliced banana and berries. Serve immediately.',
+        notes: 'Quick and nutritious breakfast',
+      },
     ];
 
     defaults.forEach(recipe => this.addRecipe(recipe));
