@@ -13,6 +13,7 @@ import {
 import { woolworthsMappings, getWoolworthsMapping, isItemFlagged } from '../lib/woolworthsMapping';
 import { purchaseHistory } from '../lib/purchaseHistory';
 import { getHarveysMealIngredients, flattenHarveysMeals } from '../lib/harveysMealData';
+import { assignRecipeToAllDays } from '../lib/bulkMealHelper';
 import RecipeModal from './RecipeModal';
 import MacrosDisplay from './MacrosDisplay';
 import NotesButton from './NotesButton';
@@ -345,13 +346,34 @@ function JadesMealsView({
   onOpenModal: (weekId: string, day: string, mealType: string, recipeName: string) => void;
   onRemove: (weekId: string, day: string, mealType: string) => void;
 }) {
+  const handleSetBreakfastToWeetbix = () => {
+    assignRecipeToAllDays(week.weekId, 'Breakfast', 'Weetbix with Milk & Fruit');
+    // Trigger parent re-render by dispatching storage event
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: 'weekly-meal-plans-v1',
+      newValue: localStorage.getItem('weekly-meal-plans-v1'),
+    }));
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-jade-light to-white border border-jade-light rounded-lg p-4">
-        <h2 className="text-xl font-bold text-jade-purple">Jade's Weekly Meal Plan + Macros</h2>
-        <p className="text-sm text-gray-600 mt-1">
-          {formatDateRange(week.weekStartDate, week.weekEndDate)} — {week.status === 'locked' ? '🔒 Locked' : '✏️ Planning'}
-        </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-bold text-jade-purple">Jade's Weekly Meal Plan + Macros</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              {formatDateRange(week.weekStartDate, week.weekEndDate)} — {week.status === 'locked' ? '🔒 Locked' : '✏️ Planning'}
+            </p>
+          </div>
+          {!readOnly && (
+            <button
+              onClick={handleSetBreakfastToWeetbix}
+              className="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-2 rounded text-sm font-medium transition whitespace-nowrap"
+            >
+              Set All Breakfasts to Weetbix
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
