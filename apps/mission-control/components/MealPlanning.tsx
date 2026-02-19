@@ -18,6 +18,7 @@ import { initializeOrRestoreHarveysMeals, saveHarveysMealsToStorage } from '../l
 import RecipeModal from './RecipeModal';
 import RecipeInputModal from './RecipeInputModal';
 import StaplesManager from './StaplesManager';
+import HarveysMealPickerModal from './HarveysMealPickerModal';
 import MacrosDisplay from './MacrosDisplay';
 import NotesButton from './NotesButton';
 import { staplesStore } from '../lib/staplesStore';
@@ -90,6 +91,9 @@ export default function MealPlanning() {
   // Recipe input modal state
   const [recipeInputModalOpen, setRecipeInputModalOpen] = useState(false);
   const [recipeInputCategory, setRecipeInputCategory] = useState<'Breakfast' | 'Lunch' | 'Snack' | 'Dinner' | 'Dessert' | 'Harvey'>('Lunch');
+
+  // Harvey's meal picker modal state
+  const [harveysMealPickerOpen, setHarveysMealPickerOpen] = useState(false);
 
   // Get Harvey's meals from DISPLAYED week (not current week - allows week switching)
   // displayedWeek is defined below after state setup
@@ -195,6 +199,34 @@ export default function MealPlanning() {
     // Update state to trigger re-render
     if (activeWeekTab === 'this') setCurrentWeek(updated);
     else if (activeWeekTab === 'next') setNextWeek(updated);
+  };
+
+  const handleAssignHarveysMeal = (day: string, mealType: string, mealName: string) => {
+    if (!displayedWeek) return;
+    const updated = { ...displayedWeek };
+    const meals = updated.harveys.meals as any;
+    
+    // Initialize if not exists
+    if (!meals[day]) {
+      meals[day] = { breakfast: [], lunch: [], snack: [], dinner: [] };
+    }
+    if (!meals[day][mealType]) {
+      meals[day][mealType] = [];
+    }
+    
+    // Add meal if not already assigned
+    if (!meals[day][mealType].includes(mealName)) {
+      meals[day][mealType].push(mealName);
+      weeklyMealPlanStorage.updateWeek(displayedWeek.weekId, updated);
+      
+      // Update state to trigger re-render
+      if (activeWeekTab === 'this') setCurrentWeek(updated);
+      else if (activeWeekTab === 'next') setNextWeek(updated);
+    }
+  };
+
+  const handleRemoveHarveysMeal = (day: string, mealType: string, mealName: string) => {
+    removeItemFromMeal(day, mealType, mealName);
   };
 
   const assignItemToMeal = () => {
@@ -330,6 +362,8 @@ export default function MealPlanning() {
           harveysAssignedMeals={harveysAssignedMeals} 
           onRemoveItem={removeItemFromMeal}
           weekId={displayedWeek.weekId}
+          onOpenPicker={() => setHarveysMealPickerOpen(true)}
+          readOnly={readOnly}
         />
       )}
 
@@ -371,6 +405,19 @@ export default function MealPlanning() {
         onSave={handleSaveNewRecipe}
         defaultCategory={recipeInputCategory}
       />
+
+      {/* Harvey's meal picker modal */}
+      {displayedWeek && (
+        <HarveysMealPickerModal
+          isOpen={harveysMealPickerOpen}
+          onClose={() => setHarveysMealPickerOpen(false)}
+          harveysAssignedMeals={harveysAssignedMeals}
+          onAssignMeal={handleAssignHarveysMeal}
+          onRemoveMeal={handleRemoveHarveysMeal}
+          mealOptions={harveysMealOptions}
+          days={days}
+        />
+      )}
     </div>
   );
 }
@@ -518,10 +565,14 @@ function HarveysMealsView({
   harveysAssignedMeals,
   onRemoveItem,
   weekId,
+  onOpenPicker,
+  readOnly,
 }: {
   harveysAssignedMeals: Record<string, Record<string, string[]>>;
   onRemoveItem: (day: string, mealType: string, item: string) => void;
   weekId: string;
+  onOpenPicker?: () => void;
+  readOnly?: boolean;
 }) {
   const handleRestoreHarveys = () => {
     const restored = initializeOrRestoreHarveysMeals();
@@ -554,14 +605,25 @@ function HarveysMealsView({
       <div className="bg-gradient-to-r from-pink-100 to-white border border-pink-200 rounded-lg p-4">
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-xl font-bold text-pink-600">Harvey's Weekly Meal Plan</h2>
-          {isEmpty && (
-            <button
-              onClick={handleRestoreHarveys}
-              className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded text-sm font-medium transition"
-            >
-              🔄 Restore Test Data
-            </button>
-          )}
+          <div className="flex gap-2">
+            {!readOnly && onOpenPicker && (
+              <button
+                onClick={onOpenPicker}
+                className="bg-pink-600 hover:bg-pink-700 text-white px-3 py-2 rounded text-sm font-medium transition flex items-center gap-1"
+              >
+                <Plus size={16} />
+                Assign Meals
+              </button>
+            )}
+            {isEmpty && (
+              <button
+                onClick={handleRestoreHarveys}
+                className="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded text-sm font-medium transition"
+              >
+                🔄 Restore Test Data
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
