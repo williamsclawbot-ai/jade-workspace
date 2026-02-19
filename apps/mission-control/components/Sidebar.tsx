@@ -70,6 +70,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
         { id: 'calendar', label: 'Calendar', icon: Calendar },
         { id: 'weekly-newsletter', label: 'Newsletter', icon: Mail },
         { id: 'hls-tasks', label: 'Pipeline', icon: CheckSquare },
+        { id: 'funnel-analysis', label: 'Funnel Analysis', icon: BarChart3 },
         { id: 'combined-metrics', label: 'Metrics', icon: BarChart3 },
         { id: 'campaigns', label: 'Campaigns', icon: Zap },
         { id: 'ghl', label: 'GHL', icon: Building },
