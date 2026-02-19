@@ -392,6 +392,10 @@ export default function MealPlanning() {
           onRemoveItem={removeItemFromMeal}
           weekId={displayedWeek.weekId}
           onOpenPicker={() => setHarveysMealPickerOpen(true)}
+          onOpenRecipeInput={() => {
+            setRecipeInputCategory('Harvey' as any);
+            setRecipeInputModalOpen(true);
+          }}
           readOnly={readOnly}
         />
       )}
@@ -662,12 +666,14 @@ function HarveysMealsView({
   onRemoveItem,
   weekId,
   onOpenPicker,
+  onOpenRecipeInput,
   readOnly,
 }: {
   harveysAssignedMeals: Record<string, Record<string, string[]>>;
   onRemoveItem: (day: string, mealType: string, item: string) => void;
   weekId: string;
   onOpenPicker?: () => void;
+  onOpenRecipeInput?: () => void;
   readOnly?: boolean;
 }) {
   const handleRestoreHarveys = () => {
@@ -702,14 +708,27 @@ function HarveysMealsView({
         <div className="flex items-center justify-between gap-4">
           <h2 className="text-xl font-bold text-pink-600">Harvey's Weekly Meal Plan</h2>
           <div className="flex gap-2">
-            {!readOnly && onOpenPicker && (
-              <button
-                onClick={onOpenPicker}
-                className="bg-pink-600 hover:bg-pink-700 text-white px-3 py-2 rounded text-sm font-medium transition flex items-center gap-1"
-              >
-                <Plus size={16} />
-                Assign Meals
-              </button>
+            {!readOnly && (
+              <>
+                {onOpenPicker && (
+                  <button
+                    onClick={onOpenPicker}
+                    className="bg-pink-600 hover:bg-pink-700 text-white px-3 py-2 rounded text-sm font-medium transition flex items-center gap-1"
+                  >
+                    <Plus size={16} />
+                    Assign Meals
+                  </button>
+                )}
+                {onOpenRecipeInput && (
+                  <button
+                    onClick={onOpenRecipeInput}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium transition flex items-center gap-1"
+                  >
+                    <Plus size={16} />
+                    Add Recipe
+                  </button>
+                )}
+              </>
             )}
             {isEmpty && (
               <button
