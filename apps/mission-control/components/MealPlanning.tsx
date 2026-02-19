@@ -296,14 +296,18 @@ export default function MealPlanning() {
       )}
 
       {/* HARVEY'S MEALS */}
-      {activeTab === 'harveys-meals' && (
-        <HarveysMealsView harveysAssignedMeals={harveysAssignedMeals} onRemoveItem={removeItemFromMeal} />
+      {activeTab === 'harveys-meals' && displayedWeek && (
+        <HarveysMealsView 
+          harveysAssignedMeals={harveysAssignedMeals} 
+          onRemoveItem={removeItemFromMeal}
+          weekId={displayedWeek.weekId}
+        />
       )}
 
       {/* HARVEY'S OPTIONS */}
-      {activeTab === 'harveys-options' && currentWeek && (
+      {activeTab === 'harveys-options' && displayedWeek && (
         <HarveysOptionsView 
-          weekId={currentWeek.weekId}
+          weekId={displayedWeek.weekId}
           harveysAssignedMeals={harveysAssignedMeals} 
           onRemoveItem={removeItemFromMeal}
         />
@@ -465,14 +469,28 @@ function JadesDayCard({
 function HarveysMealsView({
   harveysAssignedMeals,
   onRemoveItem,
+  weekId,
 }: {
   harveysAssignedMeals: Record<string, Record<string, string[]>>;
   onRemoveItem: (day: string, mealType: string, item: string) => void;
+  weekId: string;
 }) {
   const handleRestoreHarveys = () => {
     const restored = initializeOrRestoreHarveysMeals();
-    saveHarveysMealsToStorage(restored);
-    window.location.reload();
+    // Save restored meals to the CURRENT DISPLAYED WEEK's storage
+    const week = weeklyMealPlanStorage.getWeekById(weekId);
+    if (week) {
+      // Convert from old format to week structure
+      days.forEach(day => {
+        harveysMealTypes.forEach(mealType => {
+          const mealKey = mealType.toLowerCase() as keyof typeof restored[string];
+          week.harveys.meals[day][mealKey] = restored[day]?.[mealKey] || [];
+        });
+      });
+      weeklyMealPlanStorage.updateWeek(weekId, week);
+      console.log('✅ Harvey\'s meals restored to week', weekId);
+      window.location.reload();
+    }
   };
 
   const isEmpty = days.every(day => 
