@@ -107,10 +107,14 @@ export default function MealPlanning() {
     const saved = localStorage.getItem('harveysAssignedMeals');
     if (saved) {
       try {
-        setHarveysAssignedMeals(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        console.log('✅ Loaded Harvey\'s meals from storage:', parsed);
+        setHarveysAssignedMeals(parsed);
       } catch (e) {
-        console.error('Error loading Harvey\'s meals:', e);
+        console.error('❌ Error loading Harvey\'s meals:', e);
       }
+    } else {
+      console.log('⚠️ No Harvey\'s meals found in localStorage');
     }
 
     const handleStorageChange = (e: StorageEvent) => {
