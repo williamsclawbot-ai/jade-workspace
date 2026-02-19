@@ -171,26 +171,6 @@ export default function ShoppingCart() {
             </div>
           </div>
 
-          {/* Meals Overview */}
-          <div className="bg-white rounded-xl p-6 border border-jade-light">
-            <h3 className="text-lg font-semibold text-jade-purple mb-4">📋 Your Meals This Week</h3>
-            {meals.length > 0 ? (
-              <div className="space-y-2">
-                {meals.slice(0, 5).map((meal) => (
-                  <div key={meal.id} className="flex items-start space-x-3 p-3 bg-jade-cream rounded-lg">
-                    <span className="text-2xl">{meal.type === 'breakfast' ? '🥣' : meal.type === 'lunch' ? '🥪' : '🍽️'}</span>
-                    <div className="flex-1">
-                      <p className="font-medium text-jade-purple capitalize">{meal.type}</p>
-                      <p className="text-sm text-gray-600">{meal.familyMeal || meal.harveyMeal || 'No meal set'}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-sm">No meals planned. Go to the Meals tab to add some!</p>
-            )}
-          </div>
-
           {/* Quick Start Guide */}
           <div className="bg-white rounded-xl p-6 border border-jade-light">
             <h3 className="text-lg font-semibold text-jade-purple mb-4">🛒 Build Your Shopping Cart</h3>
