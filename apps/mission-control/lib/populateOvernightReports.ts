@@ -92,6 +92,18 @@ export function populateOvernightReports() {
     category: 'analysis',
   });
 
-  console.log('✅ All 7 overnight research reports added to Overnight Review tab');
+  // TASK 8: Meal & Shopping Cart Tab Audit (Feb 20, 2026)
+  const feb20Timestamp = new Date('2026-02-20T06:15:00+10:00').getTime();
+  overnightReviewStore.logWork({
+    completedAt: feb20Timestamp,
+    taskName: 'Meal & Shopping Cart Tab Audit',
+    summary: 'Deep-dive system analysis of meal planning + shopping workflow. Key findings: recipe entry is #1 bottleneck (requires code edits to add new recipes, blocks scaling). Week-based architecture is solid. Top 3 fixes: (1) Paste-and-parse recipe input (2-3h), (2) Copy-week feature (1h), (3) Staples auto-restock system (2h). Full implementation roadmap with creative ideas + scaling strategy.',
+    linkLabel: 'View full audit report',
+    linkPath: '/MEAL_SHOPPING_AUDIT.md',
+    status: 'done',
+    category: 'analysis',
+  });
+
+  console.log('✅ All overnight reports added to Overnight Review tab');
   return true;
 }
