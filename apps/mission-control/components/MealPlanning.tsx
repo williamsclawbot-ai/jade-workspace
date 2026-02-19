@@ -296,8 +296,11 @@ export default function MealPlanning() {
               onOpenModal={openRecipeModal} 
               onRemove={handleRemoveMeal}
               onMealsUpdated={() => {
-                const updated = weeklyMealPlanStorage.getCurrentWeek();
-                setCurrentWeek(updated);
+                // Force immediate refresh by re-reading from storage
+                const current = weeklyMealPlanStorage.getCurrentWeek();
+                const next = weeklyMealPlanStorage.getNextWeek();
+                setCurrentWeek(current);
+                setNextWeek(next);
               }}
             />
           )}
@@ -360,11 +363,11 @@ function JadesMealsView({
   onMealsUpdated?: () => void;
 }) {
   const handleSetBreakfastToWeetbix = () => {
-    assignRecipeToAllDays(week.weekId, 'Breakfast', 'PB & J Overnight Weet-Bix (GF)');
-    // Trigger parent state update
-    setTimeout(() => {
+    const updated = assignRecipeToAllDays(week.weekId, 'Breakfast', 'PB & J Overnight Weet-Bix (GF)');
+    if (updated) {
+      // Immediately update parent state with the new week object
       onMealsUpdated?.();
-    }, 50);
+    }
   };
 
   return (
