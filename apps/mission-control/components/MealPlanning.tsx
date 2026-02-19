@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { UtensilsCrossed, Plus, Trash2, Search, ShoppingCart, X, AlertCircle, CheckCircle, ExternalLink } from 'lucide-react';
 import { woolworthsMappings, getWoolworthsMapping, getUnmappedItems, isItemFlagged } from '../lib/woolworthsMapping';
-import { jadesMealsStorage } from '../lib/jadesMealsStorage';
+import { jadesMealsStorage, populateWeeklyLunches } from '../lib/jadesMealsStorage';
 import { shoppingListStore } from '../lib/shoppingListStore';
 import NotesButton from './NotesButton';
 
@@ -119,6 +119,13 @@ export default function MealPlanning() {
     staples: [],
   });
 
+  // Debug: Log current meals state on every render
+  useEffect(() => {
+    if (Object.keys(meals.jades).length > 0) {
+      console.log('🎯 RENDER - Current meals.jades:', meals.jades);
+    }
+  });
+
   const [assignmentModal, setAssignmentModal] = useState<AssignmentModalState>({
     isOpen: false,
     selectedItem: null,
@@ -137,13 +144,25 @@ export default function MealPlanning() {
   // Load meals from jadesMealsStorage on mount
   useEffect(() => {
     const loadMeals = () => {
-      const allMeals = jadesMealsStorage.getAllMeals();
-      const jadesData: Record<string, string> = {};
-      allMeals.forEach((meal) => {
-        const key = `${meal.day}-${meal.mealType}`;
-        jadesData[key] = meal.mealName;
-      });
-      setMeals((prev) => ({ ...prev, jades: jadesData }));
+      try {
+        const allMeals = jadesMealsStorage.getAllMeals();
+        console.log('📦 Loaded meals from storage:', allMeals);
+        const jadesData: Record<string, string> = {};
+        allMeals.forEach((meal) => {
+          const key = `${meal.day}-${meal.mealType}`;
+          jadesData[key] = meal.mealName;
+          console.log(`  ✅ ${key} = ${meal.mealName}`);
+        });
+        console.log('📝 jadesMealsData prepared:', jadesData);
+        console.log('🔄 Updating meals state with', Object.keys(jadesData).length, 'meals');
+        setMeals((prev) => {
+          const updated = { ...prev, jades: jadesData };
+          console.log('✅ State callback - new jades:', Object.keys(updated.jades).length, 'items');
+          return updated;
+        });
+      } catch (err) {
+        console.error('❌ Error loading meals:', err);
+      }
     };
 
     loadMeals();
@@ -151,6 +170,7 @@ export default function MealPlanning() {
     // Listen for storage changes from jadesMealsStorage
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'jades-meals-storage-v1') {
+        console.log('🔔 Storage changed, reloading meals');
         loadMeals();
       }
     };
@@ -578,7 +598,16 @@ export default function MealPlanning() {
           );
         })}
       </div>
-      <div className="text-center pt-4">
+      <div className="text-center pt-4 space-x-4 flex justify-center">
+        <button
+          onClick={() => {
+            populateWeeklyLunches();
+            window.location.reload();
+          }}
+          className="bg-jade-purple text-white px-6 py-2 rounded-lg hover:bg-jade-purple/90 transition"
+        >
+          ✨ Populate Test Week (Mon-Fri Lunches)
+        </button>
         <button
           onClick={clearJadesMeals}
           className="bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition"

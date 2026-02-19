@@ -180,8 +180,71 @@ class JadesMealsStorage {
           { name: 'White Wraps (50g) - Free From Gluten (Woolworths Only)', qty: '1', unit: 'wrap' },
         ],
       },
+      'Asian Chicken Tacos (GF)': {
+        calories: 556,
+        protein: 39,
+        fats: 22,
+        carbs: 42,
+        ingredients: [
+          { name: 'Carrot', qty: '60', unit: 'g' },
+          { name: 'Chicken Breast (Weighed Raw)', qty: '150', unit: 'g' },
+          { name: 'Fried Shallots - Doree', qty: '5', unit: 'g' },
+          { name: 'Garlic Aioli - Coles Brand / Woolworths Brand', qty: '15', unit: 'g' },
+          { name: 'Honey', qty: '10', unit: 'g' },
+          { name: 'Lettuce', qty: '40', unit: 'g' },
+          { name: 'Light Soy Sauce - Ayam', qty: '20', unit: 'g' },
+          { name: 'Minced Garlic - Woolworths', qty: '10', unit: 'g' },
+          { name: 'Onion', qty: '20', unit: 'g' },
+          { name: 'Taco Shell (13g) - Old El Paso', qty: '3', unit: 'shells' },
+        ],
+      },
+      'Beef San Choy Bao (GF, DF)': {
+        calories: 342,
+        protein: 27,
+        fats: 12,
+        carbs: 32,
+        ingredients: [
+          { name: 'Capsicum', qty: '30', unit: 'g' },
+          { name: 'Carrot', qty: '30', unit: 'g' },
+          { name: 'Extra Lean Beef Mince (5 Star) (Weighed Raw)', qty: '100', unit: 'g' },
+          { name: 'Green Beans', qty: '30', unit: 'g' },
+          { name: 'Lettuce', qty: '100', unit: 'g' },
+          { name: 'Onion', qty: '25', unit: 'g' },
+          { name: 'San Choy Bow Meal Kit (97g) - Marions Kitchen', qty: '1', unit: 'kit' },
+        ],
+      },
     };
   }
 }
 
 export const jadesMealsStorage = new JadesMealsStorage();
+
+/**
+ * Helper: Populate next week's lunches (Mon-Fri)
+ * Call this to quickly test the meal workflow
+ */
+export function populateWeeklyLunches() {
+  const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+  const meals = ['Asian Chicken Tacos (GF)', 'Beef San Choy Bao (GF, DF)'];
+  const db = jadesMealsStorage.getMealDatabase();
+  
+  days.forEach((day, index) => {
+    const mealName = meals[index % 2]; // Alternate between the two meals
+    const mealData = db[mealName];
+    
+    if (mealData) {
+      jadesMealsStorage.addMeal(
+        day,
+        'Lunch',
+        mealName,
+        {
+          calories: mealData.calories,
+          protein: mealData.protein,
+          fats: mealData.fats,
+          carbs: mealData.carbs,
+        },
+        mealData.ingredients
+      );
+    }
+  });
+}
