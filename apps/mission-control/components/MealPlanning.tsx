@@ -11,6 +11,7 @@ import {
   removeMealFromDay,
 } from '../lib/mealPlanningHelpers';
 import { woolworthsMappings, getWoolworthsMapping, isItemFlagged } from '../lib/woolworthsMapping';
+import { purchaseHistory } from '../lib/purchaseHistory';
 import RecipeModal from './RecipeModal';
 import MacrosDisplay from './MacrosDisplay';
 import NotesButton from './NotesButton';
@@ -626,6 +627,10 @@ function ShoppingListView({
     const updated = [...manualItems, newItem];
     setManualItems(updated);
     weeklyMealPlanStorage.updateShoppingListForWeek(week.weekId, updated);
+    
+    // Record this purchase in history
+    purchaseHistory.recordPurchase(newItemName, '', newItemUnit || 'unit');
+    
     setNewItemName('');
     setNewItemQty('');
     setNewItemUnit('');
@@ -656,13 +661,20 @@ function ShoppingListView({
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <h3 className="font-semibold text-jade-purple mb-3">Add Item</h3>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-            <input
-              type="text"
-              value={newItemName}
-              onChange={(e) => setNewItemName(e.target.value)}
-              placeholder="Item name"
-              className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-jade-light"
-            />
+            <div className="md:col-span-1">
+              <input
+                type="text"
+                value={newItemName}
+                onChange={(e) => setNewItemName(e.target.value)}
+                placeholder="Item name"
+                className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-jade-light w-full"
+              />
+              {newItemName.trim() && purchaseHistory.getSuggestion(newItemName) && (
+                <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-900">
+                  💡 {purchaseHistory.getSuggestionString(newItemName)}
+                </div>
+              )}
+            </div>
             <input
               type="text"
               value={newItemQty}
