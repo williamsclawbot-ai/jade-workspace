@@ -17,6 +17,7 @@ import { assignRecipeToAllDays } from '../lib/bulkMealHelper';
 import { initializeOrRestoreHarveysMeals, saveHarveysMealsToStorage } from '../lib/harveysMealsRestore';
 import RecipeModal from './RecipeModal';
 import RecipeInputModal from './RecipeInputModal';
+import RecipeBrowserModal from './RecipeBrowserModal';
 import StaplesManager from './StaplesManager';
 import HarveysMealPickerModal from './HarveysMealPickerModal';
 import MacrosDisplay from './MacrosDisplay';
@@ -94,6 +95,10 @@ export default function MealPlanning() {
 
   // Harvey's meal picker modal state
   const [harveysMealPickerOpen, setHarveysMealPickerOpen] = useState(false);
+
+  // Recipe browser modal state
+  const [recipeBrowserOpen, setRecipeBrowserOpen] = useState(false);
+  const [recipeBrowserTarget, setRecipeBrowserTarget] = useState<{ day: string; mealType: string } | null>(null);
 
   // Get Harvey's meals from DISPLAYED week (not current week - allows week switching)
   // displayedWeek is defined below after state setup
@@ -183,6 +188,28 @@ export default function MealPlanning() {
     // Trigger storage event to sync
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('storage'));
+    }
+  };
+
+  const handleOpenRecipeBrowser = (day: string, mealType: string) => {
+    setRecipeBrowserTarget({ day, mealType });
+    setRecipeBrowserOpen(true);
+  };
+
+  const handleSelectRecipeFromBrowser = (recipeName: string) => {
+    if (recipeBrowserTarget && displayedWeek) {
+      weeklyMealPlanStorage.addMealToWeek(
+        displayedWeek.weekId,
+        recipeBrowserTarget.day,
+        recipeBrowserTarget.mealType,
+        recipeName
+      );
+      // Refresh state
+      const current = weeklyMealPlanStorage.getCurrentWeek();
+      const next = weeklyMealPlanStorage.getNextWeek();
+      setCurrentWeek(current);
+      setNextWeek(next);
+      setRecipeBrowserTarget(null);
     }
   };
 
@@ -418,6 +445,16 @@ export default function MealPlanning() {
           days={days}
         />
       )}
+
+      {/* Recipe browser modal */}
+      <RecipeBrowserModal
+        isOpen={recipeBrowserOpen}
+        onClose={() => {
+          setRecipeBrowserOpen(false);
+          setRecipeBrowserTarget(null);
+        }}
+        onSelectRecipe={handleSelectRecipeFromBrowser}
+      />
     </div>
   );
 }
@@ -506,7 +543,16 @@ function JadesMealsView({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {days.map(day => (
-          <JadesDayCard key={day} week={week} day={day} readOnly={readOnly} onOpenModal={onOpenModal} onRemove={onRemove} onMealsUpdated={onMealsUpdated} />
+          <JadesDayCard 
+            key={day} 
+            week={week} 
+            day={day} 
+            readOnly={readOnly} 
+            onOpenModal={onOpenModal} 
+            onRemove={onRemove} 
+            onMealsUpdated={onMealsUpdated}
+            onOpenRecipeBrowser={(day, mealType) => handleOpenRecipeBrowser(day, mealType)}
+          />
         ))}
       </div>
     </div>
@@ -520,6 +566,7 @@ function JadesDayCard({
   onOpenModal,
   onRemove,
   onMealsUpdated,
+  onOpenRecipeBrowser,
 }: {
   week: WeeklyMealPlan;
   day: string;
@@ -527,6 +574,7 @@ function JadesDayCard({
   onOpenModal: (weekId: string, day: string, mealType: string, recipeName: string) => void;
   onRemove: (weekId: string, day: string, mealType: string) => void;
   onMealsUpdated?: () => void;
+  onOpenRecipeBrowser?: (day: string, mealType: string) => void;
 }) {
   const dayMeals = week.jades.meals[day] || {};
   const dayMacros = calculateDayMacros(week.weekId, day);
@@ -563,7 +611,16 @@ function JadesDayCard({
             <div key={mealType} className="flex items-center gap-2">
               <label className="text-sm font-semibold text-gray-700 w-20">{mealType}</label>
               {!recipeName ? (
-                <div className="flex-1 text-gray-400 italic text-sm py-2 px-3">Empty</div>
+                !readOnly && onOpenRecipeBrowser ? (
+                  <button
+                    onClick={() => onOpenRecipeBrowser(day, mealType)}
+                    className="flex-1 text-gray-400 hover:text-jade-purple hover:bg-jade-light/20 border border-dashed border-gray-300 hover:border-jade-purple italic text-sm py-2 px-3 rounded transition"
+                  >
+                    + Browse Recipes
+                  </button>
+                ) : (
+                  <div className="flex-1 text-gray-400 italic text-sm py-2 px-3">Empty</div>
+                )
               ) : (
                 <>
                   <div
