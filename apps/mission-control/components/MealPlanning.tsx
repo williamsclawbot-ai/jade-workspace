@@ -315,14 +315,12 @@ export default function MealPlanning() {
       )}
 
       {/* HARVEY'S OPTIONS */}
-      {activeTab === 'harveys-options' && (
-        {currentWeek && (
-          <HarveysOptionsView 
-            weekId={currentWeek.weekId}
-            harveysAssignedMeals={harveysAssignedMeals} 
-            onRemoveItem={removeItemFromMeal}
-          />
-        )}
+      {activeTab === 'harveys-options' && currentWeek && (
+        <HarveysOptionsView 
+          weekId={currentWeek.weekId}
+          harveysAssignedMeals={harveysAssignedMeals} 
+          onRemoveItem={removeItemFromMeal}
+        />
       )}
 
       {/* SHOPPING LIST */}
