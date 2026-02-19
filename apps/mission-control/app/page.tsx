@@ -35,6 +35,7 @@ import OvernightReviewTab from '@/components/OvernightReviewTab';
 import FunnelAnalysisView from '@/components/FunnelAnalysisView';
 import weeklyContentData from '@/lib/weeklyContentData.json';
 import { initializeWeeklyContent } from '@/lib/initializeContentData';
+import { initOvernightReports } from '@/lib/initOvernightReports';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -43,6 +44,8 @@ export default function Home() {
   useEffect(() => {
     // Initialize weekly content data on app startup
     initializeWeeklyContent(weeklyContentData);
+    // Initialize overnight research reports (Feb 19, 2026)
+    initOvernightReports();
     const timer = setTimeout(() => setIsLoading(false), 500);
     return () => clearTimeout(timer);
   }, []);
