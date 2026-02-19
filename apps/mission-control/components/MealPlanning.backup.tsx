@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, ShoppingCart, X } from 'lucide-react';
+import { UtensilsCrossed, Plus, Trash2, ShoppingCart, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { weeklyMealPlanStorage, WeeklyMealPlan, ShoppingItem } from '../lib/weeklyMealPlanStorage';
 import { recipeDatabase } from '../lib/recipeDatabase';
 import { 
@@ -26,7 +26,7 @@ const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 const jadesMealTypes = ['Breakfast', 'Lunch', 'Snack', 'Dinner', 'Dessert'];
 const harveysMealTypes = ['Breakfast', 'Lunch', 'Snack', 'Dinner'];
 
-// Harvey's meal options (ORIGINAL - UNCHANGED)
+// Harvey's meal options (unchanged from original)
 const harveysMealOptions: Record<string, string[]> = {
   '🥣 Carb/Protein': [
     'ABC Muffins', 'Banana Muffins', 'Muesli Bar', 'Carmans Oat Bar',
@@ -54,20 +54,6 @@ const harveysMealOptions: Record<string, string[]> = {
   '✅ Everyday': ['Yogurt (every lunch)'],
 };
 
-// Initialize Harvey's assigned meals structure (ORIGINAL)
-const initializeAssignedMeals = () => {
-  const structure: Record<string, Record<string, string[]>> = {};
-  days.forEach(day => {
-    structure[day] = {
-      breakfast: [],
-      lunch: [],
-      snack: [],
-      dinner: [],
-    };
-  });
-  return structure;
-};
-
 export default function MealPlanning() {
   const [activeTab, setActiveTab] = useState<'jades-meals' | 'harveys-meals' | 'shopping' | 'harveys-options'>('jades-meals');
   const [activeWeekTab, setActiveWeekTab] = useState<'this' | 'next' | 'archive'>('this');
@@ -80,11 +66,6 @@ export default function MealPlanning() {
   const [recipeModalOpen, setRecipeModalOpen] = useState(false);
   const [selectedMealInfo, setSelectedMealInfo] = useState<{ weekId: string; day: string; mealType: string; recipeName: string } | null>(null);
 
-  // HARVEY'S STATE (RESTORED ORIGINAL)
-  const [harveysAssignedMeals, setHarveysAssignedMeals] = useState<Record<string, Record<string, string[]>>>(initializeAssignedMeals());
-  const [assignmentModal, setAssignmentModal] = useState({ isOpen: false, selectedItem: null as string | null, selectedDay: null as string | null, selectedMeal: null as string | null });
-
-  // Shopping list state
   const [newItemName, setNewItemName] = useState('');
   const [newItemQty, setNewItemQty] = useState('');
   const [newItemUnit, setNewItemUnit] = useState('');
@@ -100,16 +81,6 @@ export default function MealPlanning() {
     setNextWeek(next);
     setArchivedWeeks(archived);
 
-    // Load Harvey's saved state
-    const saved = localStorage.getItem('harveysAssignedMeals');
-    if (saved) {
-      try {
-        setHarveysAssignedMeals(JSON.parse(saved));
-      } catch (e) {
-        console.error('Error loading Harvey\'s meals:', e);
-      }
-    }
-
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'weekly-meal-plans-v1') {
         const current = weeklyMealPlanStorage.getCurrentWeek();
@@ -118,11 +89,6 @@ export default function MealPlanning() {
         setCurrentWeek(current);
         setNextWeek(next);
         setArchivedWeeks(archived);
-      } else if (e.key === 'harveysAssignedMeals') {
-        const saved = localStorage.getItem('harveysAssignedMeals');
-        if (saved) {
-          setHarveysAssignedMeals(JSON.parse(saved));
-        }
       }
     };
 
@@ -130,12 +96,13 @@ export default function MealPlanning() {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  // Save Harvey's state to localStorage
-  useEffect(() => {
-    localStorage.setItem('harveysAssignedMeals', JSON.stringify(harveysAssignedMeals));
-  }, [harveysAssignedMeals]);
+  const displayedWeek =
+    activeWeekTab === 'this'
+      ? currentWeek
+      : activeWeekTab === 'next'
+      ? nextWeek
+      : archivedWeeks.find(w => w.weekId === selectedArchivedWeekId);
 
-  const displayedWeek = activeWeekTab === 'this' ? currentWeek : activeWeekTab === 'next' ? nextWeek : archivedWeeks.find(w => w.weekId === selectedArchivedWeekId);
   const readOnly = activeWeekTab === 'archive' || displayedWeek?.status === 'locked';
 
   const openRecipeModal = (weekId: string, day: string, mealType: string, recipeName: string) => {
@@ -145,7 +112,13 @@ export default function MealPlanning() {
 
   const handleRecipeModalSave = (ingredientOverrides: any[], macroOverrides: any) => {
     if (!selectedMealInfo) return;
-    const result = overrideMealForDay(selectedMealInfo.weekId, selectedMealInfo.day, selectedMealInfo.mealType, ingredientOverrides, macroOverrides);
+    const result = overrideMealForDay(
+      selectedMealInfo.weekId,
+      selectedMealInfo.day,
+      selectedMealInfo.mealType,
+      ingredientOverrides,
+      macroOverrides
+    );
     if (result.success) {
       const current = weeklyMealPlanStorage.getCurrentWeek();
       const next = weeklyMealPlanStorage.getNextWeek();
@@ -162,32 +135,6 @@ export default function MealPlanning() {
       setCurrentWeek(current);
       setNextWeek(next);
     }
-  };
-
-  // HARVEY'S HANDLERS (RESTORED ORIGINAL)
-  const removeItemFromMeal = (day: string, mealType: string, item: string) => {
-    setHarveysAssignedMeals(prev => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [mealType]: prev[day][mealType].filter(i => i !== item),
-      },
-    }));
-  };
-
-  const assignItemToMeal = () => {
-    if (!assignmentModal.selectedItem || !assignmentModal.selectedDay || !assignmentModal.selectedMeal) return;
-
-    const mealType = assignmentModal.selectedMeal.toLowerCase() as keyof typeof harveysAssignedMeals[string];
-    setHarveysAssignedMeals(prev => ({
-      ...prev,
-      [assignmentModal.selectedDay!]: {
-        ...prev[assignmentModal.selectedDay!],
-        [mealType]: [...(prev[assignmentModal.selectedDay!][mealType] || []), assignmentModal.selectedItem!],
-      },
-    }));
-
-    setAssignmentModal({ isOpen: false, selectedItem: null, selectedDay: null, selectedMeal: null });
   };
 
   const handleBuildWoolworthsCart = async () => {
@@ -230,7 +177,9 @@ export default function MealPlanning() {
         <button
           onClick={() => setActiveTab('jades-meals')}
           className={`px-4 py-3 font-medium border-b-2 transition whitespace-nowrap ${
-            activeTab === 'jades-meals' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'
+            activeTab === 'jades-meals'
+              ? 'border-jade-purple text-jade-purple'
+              : 'border-transparent text-gray-600'
           }`}
         >
           👩 Jade's Meals
@@ -238,7 +187,9 @@ export default function MealPlanning() {
         <button
           onClick={() => setActiveTab('harveys-meals')}
           className={`px-4 py-3 font-medium border-b-2 transition whitespace-nowrap ${
-            activeTab === 'harveys-meals' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'
+            activeTab === 'harveys-meals'
+              ? 'border-jade-purple text-jade-purple'
+              : 'border-transparent text-gray-600'
           }`}
         >
           👶 Harvey's Meals
@@ -246,7 +197,9 @@ export default function MealPlanning() {
         <button
           onClick={() => setActiveTab('harveys-options')}
           className={`px-4 py-3 font-medium border-b-2 transition whitespace-nowrap ${
-            activeTab === 'harveys-options' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'
+            activeTab === 'harveys-options'
+              ? 'border-jade-purple text-jade-purple'
+              : 'border-transparent text-gray-600'
           }`}
         >
           ✏️ Harvey's Options
@@ -254,38 +207,63 @@ export default function MealPlanning() {
         <button
           onClick={() => setActiveTab('shopping')}
           className={`px-4 py-3 font-medium border-b-2 transition whitespace-nowrap ${
-            activeTab === 'shopping' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'
+            activeTab === 'shopping'
+              ? 'border-jade-purple text-jade-purple'
+              : 'border-transparent text-gray-600'
           }`}
         >
           🛒 Shopping List
         </button>
       </div>
 
-      {/* Week tabs */}
+      {/* Week tabs (shown for Jade's, Harvey's, and Shopping) */}
       {(activeTab === 'jades-meals' || activeTab === 'harveys-meals' || activeTab === 'shopping') && (
         <div className="flex gap-2 border-b border-gray-200">
           <button
-            onClick={() => { setActiveWeekTab('this'); setSelectedArchivedWeekId(null); }}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition ${activeWeekTab === 'this' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'}`}
+            onClick={() => {
+              setActiveWeekTab('this');
+              setSelectedArchivedWeekId(null);
+            }}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
+              activeWeekTab === 'this'
+                ? 'border-jade-purple text-jade-purple'
+                : 'border-transparent text-gray-600'
+            }`}
           >
             This Week {currentWeek?.status === 'locked' && '🔒'}
           </button>
           <button
-            onClick={() => { setActiveWeekTab('next'); setSelectedArchivedWeekId(null); }}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition ${activeWeekTab === 'next' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'}`}
+            onClick={() => {
+              setActiveWeekTab('next');
+              setSelectedArchivedWeekId(null);
+            }}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
+              activeWeekTab === 'next'
+                ? 'border-jade-purple text-jade-purple'
+                : 'border-transparent text-gray-600'
+            }`}
           >
             Next Week
           </button>
           <button
-            onClick={() => { setActiveWeekTab('archive'); if (archivedWeeks.length > 0 && !selectedArchivedWeekId) setSelectedArchivedWeekId(archivedWeeks[0].weekId); }}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition ${activeWeekTab === 'archive' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'}`}
+            onClick={() => {
+              setActiveWeekTab('archive');
+              if (archivedWeeks.length > 0 && !selectedArchivedWeekId) {
+                setSelectedArchivedWeekId(archivedWeeks[0].weekId);
+              }
+            }}
+            className={`px-4 py-2 text-sm font-medium border-b-2 transition ${
+              activeWeekTab === 'archive'
+                ? 'border-jade-purple text-jade-purple'
+                : 'border-transparent text-gray-600'
+            }`}
           >
             Archive ({archivedWeeks.length})
           </button>
         </div>
       )}
 
-      {/* JADE'S MEALS */}
+      {/* Content */}
       {activeTab === 'jades-meals' && (
         <>
           {activeWeekTab === 'archive' ? (
@@ -296,17 +274,20 @@ export default function MealPlanning() {
         </>
       )}
 
-      {/* HARVEY'S MEALS */}
       {activeTab === 'harveys-meals' && (
-        <HarveysMealsView harveysAssignedMeals={harveysAssignedMeals} onRemoveItem={removeItemFromMeal} />
+        <>
+          {activeWeekTab === 'archive' ? (
+            <ArchiveView archivedWeeks={archivedWeeks} selectedWeekId={selectedArchivedWeekId} onSelectWeek={setSelectedArchivedWeekId} />
+          ) : (
+            <HarveysMealsView week={displayedWeek} readOnly={readOnly} />
+          )}
+        </>
       )}
 
-      {/* HARVEY'S OPTIONS */}
       {activeTab === 'harveys-options' && (
-        <HarveysOptionsView harveysAssignedMeals={harveysAssignedMeals} assignmentModal={assignmentModal} setAssignmentModal={setAssignmentModal} onAssign={assignItemToMeal} />
+        <HarveysOptionsView week={displayedWeek} />
       )}
 
-      {/* SHOPPING LIST */}
       {activeTab === 'shopping' && (
         <>
           {activeWeekTab === 'archive' ? (
@@ -331,7 +312,7 @@ export default function MealPlanning() {
   );
 }
 
-// ==================== JADE'S MEALS VIEW ====================
+// JADE'S MEALS VIEW
 function JadesMealsView({
   week,
   readOnly,
@@ -346,7 +327,9 @@ function JadesMealsView({
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-jade-light to-white border border-jade-light rounded-lg p-4">
-        <h2 className="text-xl font-bold text-jade-purple">Jade's Weekly Meal Plan + Macros</h2>
+        <h2 className="text-xl font-bold text-jade-purple">
+          Jade's Weekly Meal Plan + Macros
+        </h2>
         <p className="text-sm text-gray-600 mt-1">
           {formatDateRange(week.weekStartDate, week.weekEndDate)} — {week.status === 'locked' ? '🔒 Locked' : '✏️ Planning'}
         </p>
@@ -354,7 +337,14 @@ function JadesMealsView({
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {days.map(day => (
-          <JadesDayCard key={day} week={week} day={day} readOnly={readOnly} onOpenModal={onOpenModal} onRemove={onRemove} />
+          <JadesDayCard
+            key={day}
+            week={week}
+            day={day}
+            readOnly={readOnly}
+            onOpenModal={onOpenModal}
+            onRemove={onRemove}
+          />
         ))}
       </div>
     </div>
@@ -402,7 +392,10 @@ function JadesDayCard({
                     {dayOverride && <span className="text-xs text-amber-600 ml-2">(modified)</span>}
                   </div>
                   {!readOnly && (
-                    <button onClick={() => onRemove(week.weekId, day, mealType)} className="text-red-500 hover:text-red-700 transition p-1">
+                    <button
+                      onClick={() => onRemove(week.weekId, day, mealType)}
+                      className="text-red-500 hover:text-red-700 transition p-1"
+                    >
                       <X size={18} />
                     </button>
                   )}
@@ -416,18 +409,15 @@ function JadesDayCard({
   );
 }
 
-// ==================== HARVEY'S MEALS VIEW (RESTORED ORIGINAL) ====================
-function HarveysMealsView({
-  harveysAssignedMeals,
-  onRemoveItem,
-}: {
-  harveysAssignedMeals: Record<string, Record<string, string[]>>;
-  onRemoveItem: (day: string, mealType: string, item: string) => void;
-}) {
+// HARVEY'S MEALS VIEW
+function HarveysMealsView({ week, readOnly }: { week: WeeklyMealPlan; readOnly: boolean }) {
   return (
     <div className="space-y-6">
-      <div className="bg-gradient-to-r from-pink-100 to-white border border-pink-200 rounded-lg p-4">
+      <div className="bg-gradient-to-r from-pink-light to-white border border-pink-200 rounded-lg p-4">
         <h2 className="text-xl font-bold text-pink-600">Harvey's Weekly Meal Plan</h2>
+        <p className="text-sm text-gray-600 mt-1">
+          {formatDateRange(week.weekStartDate, week.weekEndDate)}
+        </p>
       </div>
 
       <div className="overflow-x-auto">
@@ -445,10 +435,12 @@ function HarveysMealsView({
           <tbody>
             {days.map(day => (
               <tr key={day}>
-                <td className="bg-pink-50/30 font-semibold text-pink-600 p-3 border border-gray-300 w-24">{day}</td>
+                <td className="bg-pink-50/30 font-semibold text-pink-600 p-3 border border-gray-300 w-24">
+                  {day}
+                </td>
                 {harveysMealTypes.map(meal => {
-                  const mealKey = meal.toLowerCase() as keyof typeof harveysAssignedMeals[string];
-                  const items = harveysAssignedMeals[day]?.[mealKey] || [];
+                  const mealKey = meal.toLowerCase() as keyof typeof week.harveys.meals[string];
+                  const items = week.harveys.meals[day]?.[mealKey] ? [week.harveys.meals[day][mealKey]] : [];
                   return (
                     <td key={meal} className="p-3 border border-gray-300 bg-white">
                       {items.length === 0 ? (
@@ -456,14 +448,11 @@ function HarveysMealsView({
                       ) : (
                         <div className="space-y-1">
                           {items.map((item, idx) => (
-                            <div key={idx} className="bg-pink-50 border border-pink-200 rounded px-2 py-1 flex items-center justify-between text-sm">
-                              <span className="font-medium text-gray-800">{item}</span>
-                              <button
-                                onClick={() => onRemoveItem(day, mealKey, item)}
-                                className="text-red-500 hover:text-red-700 ml-2"
-                              >
-                                <X size={14} />
-                              </button>
+                            <div
+                              key={idx}
+                              className="bg-pink-50 border border-pink-200 rounded px-2 py-1 text-sm font-medium text-gray-800"
+                            >
+                              {item}
                             </div>
                           ))}
                         </div>
@@ -480,18 +469,23 @@ function HarveysMealsView({
   );
 }
 
-// ==================== HARVEY'S OPTIONS VIEW (RESTORED ORIGINAL) ====================
-function HarveysOptionsView({
-  harveysAssignedMeals,
-  assignmentModal,
-  setAssignmentModal,
-  onAssign,
-}: {
-  harveysAssignedMeals: Record<string, Record<string, string[]>>;
-  assignmentModal: { isOpen: boolean; selectedItem: string | null; selectedDay: string | null; selectedMeal: string | null };
-  setAssignmentModal: (state: any) => void;
-  onAssign: () => void;
-}) {
+// HARVEY'S OPTIONS VIEW
+function HarveysOptionsView({ week }: { week: WeeklyMealPlan }) {
+  const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [selectedMeal, setSelectedMeal] = useState<string | null>(null);
+
+  const handleAssign = () => {
+    if (!selectedItem || !selectedDay || !selectedMeal) return;
+
+    const mealKey = selectedMeal.toLowerCase() as keyof typeof week.harveys.meals[string];
+    weeklyMealPlanStorage.addMealToWeek(week.weekId, selectedDay, selectedMeal, selectedItem);
+
+    setSelectedItem(null);
+    setSelectedDay(null);
+    setSelectedMeal(null);
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-blue-50 to-white border border-blue-200 rounded-lg p-4">
@@ -507,9 +501,9 @@ function HarveysOptionsView({
               {items.map(item => (
                 <button
                   key={item}
-                  onClick={() => setAssignmentModal({ ...assignmentModal, selectedItem: assignmentModal.selectedItem === item ? null : item })}
+                  onClick={() => setSelectedItem(selectedItem === item ? null : item)}
                   className={`p-2 rounded text-sm transition ${
-                    assignmentModal.selectedItem === item
+                    selectedItem === item
                       ? 'bg-blue-600 text-white font-semibold'
                       : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                   }`}
@@ -522,23 +516,25 @@ function HarveysOptionsView({
         ))}
       </div>
 
-      {assignmentModal.selectedItem && (
+      {selectedItem && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
           <p className="font-semibold text-blue-900">
-            Selected: <span className="text-blue-700">{assignmentModal.selectedItem}</span>
+            Selected: <span className="text-blue-700">{selectedItem}</span>
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Day</label>
               <select
-                value={assignmentModal.selectedDay || ''}
-                onChange={(e) => setAssignmentModal({ ...assignmentModal, selectedDay: e.target.value || null })}
+                value={selectedDay || ''}
+                onChange={(e) => setSelectedDay(e.target.value || null)}
                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
               >
                 <option value="">Choose day...</option>
                 {days.map(day => (
-                  <option key={day} value={day}>{day}</option>
+                  <option key={day} value={day}>
+                    {day}
+                  </option>
                 ))}
               </select>
             </div>
@@ -546,24 +542,26 @@ function HarveysOptionsView({
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Meal</label>
               <select
-                value={assignmentModal.selectedMeal || ''}
-                onChange={(e) => setAssignmentModal({ ...assignmentModal, selectedMeal: e.target.value || null })}
+                value={selectedMeal || ''}
+                onChange={(e) => setSelectedMeal(e.target.value || null)}
                 className="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
               >
                 <option value="">Choose meal...</option>
                 {harveysMealTypes.map(meal => (
-                  <option key={meal} value={meal}>{meal}</option>
+                  <option key={meal} value={meal}>
+                    {meal}
+                  </option>
                 ))}
               </select>
             </div>
           </div>
 
           <button
-            onClick={onAssign}
-            disabled={!assignmentModal.selectedDay || !assignmentModal.selectedMeal}
+            onClick={handleAssign}
+            disabled={!selectedDay || !selectedMeal}
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded font-semibold transition"
           >
-            ✅ Assign to {assignmentModal.selectedDay} {assignmentModal.selectedMeal}
+            ✅ Assign to {selectedDay} {selectedMeal}
           </button>
         </div>
       )}
@@ -571,7 +569,7 @@ function HarveysOptionsView({
   );
 }
 
-// ==================== SHOPPING LIST VIEW ====================
+// SHOPPING LIST VIEW
 function ShoppingListView({
   week,
   readOnly,
@@ -619,7 +617,9 @@ function ShoppingListView({
   };
 
   const handleUpdateItem = (id: string, field: 'quantity' | 'unit', value: string) => {
-    const updated = manualItems.map(item => (item.id === id ? { ...item, [field]: value } : item));
+    const updated = manualItems.map(item =>
+      item.id === id ? { ...item, [field]: value } : item
+    );
     setManualItems(updated);
     weeklyMealPlanStorage.updateShoppingListForWeek(week.weekId, updated);
   };
@@ -627,7 +627,9 @@ function ShoppingListView({
   return (
     <div className="space-y-6">
       <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded">
-        <p className="text-blue-800 font-semibold">📋 Shopping for: {formatDateRange(week.weekStartDate, week.weekEndDate)}</p>
+        <p className="text-blue-800 font-semibold">
+          📋 Shopping for: {formatDateRange(week.weekStartDate, week.weekEndDate)}
+        </p>
         <p className="text-blue-700 text-sm mt-1">
           {week.status === 'locked' ? '🔒 This week is locked.' : 'Planning this week. Changes update the list.'}
         </p>
@@ -680,7 +682,10 @@ function ShoppingListView({
               <div className="flex items-center justify-between mb-2">
                 <span className="font-semibold text-gray-800">{item.ingredient}</span>
                 {!readOnly && (
-                  <button onClick={() => handleRemoveItem(item.id)} className="text-red-500 hover:text-red-700">
+                  <button
+                    onClick={() => handleRemoveItem(item.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
                     <Trash2 size={16} />
                   </button>
                 )}
@@ -724,7 +729,9 @@ function ShoppingListView({
           {cartResult && (
             <div
               className={`border-l-4 rounded p-4 ${
-                cartResult.success ? 'bg-green-50 border-green-400 text-green-800' : 'bg-red-50 border-red-400 text-red-800'
+                cartResult.success
+                  ? 'bg-green-50 border-green-400 text-green-800'
+                  : 'bg-red-50 border-red-400 text-red-800'
               }`}
             >
               <p className="font-semibold">{cartResult.message}</p>
@@ -736,7 +743,7 @@ function ShoppingListView({
   );
 }
 
-// ==================== ARCHIVE VIEW ====================
+// ARCHIVE VIEW
 function ArchiveView({
   archivedWeeks,
   selectedWeekId,
