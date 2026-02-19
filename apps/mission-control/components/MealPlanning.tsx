@@ -518,29 +518,6 @@ function HarveysOptionsView({
         <p className="text-sm text-gray-600 mt-1">Click an item, select a day and meal slot, then assign it.</p>
       </div>
 
-      <div className="grid gap-4">
-        {Object.entries(harveysMealOptions).map(([category, items]) => (
-          <div key={category} className="border border-gray-200 rounded-lg p-4">
-            <h3 className="font-semibold text-gray-800 mb-3">{category}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-              {items.map(item => (
-                <button
-                  key={item}
-                  onClick={() => setLocalSelectedItem(localSelectedItem === item ? null : item)}
-                  className={`p-2 rounded text-sm transition ${
-                    localSelectedItem === item
-                      ? 'bg-blue-600 text-white font-semibold'
-                      : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                  }`}
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
       {localSelectedItem && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-4">
           <p className="font-semibold text-blue-900">
@@ -586,6 +563,29 @@ function HarveysOptionsView({
           </button>
         </div>
       )}
+
+      <div className="grid gap-4">
+        {Object.entries(harveysMealOptions).map(([category, items]) => (
+          <div key={category} className="border border-gray-200 rounded-lg p-4">
+            <h3 className="font-semibold text-gray-800 mb-3">{category}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+              {items.map(item => (
+                <button
+                  key={item}
+                  onClick={() => setLocalSelectedItem(localSelectedItem === item ? null : item)}
+                  className={`p-2 rounded text-sm transition ${
+                    localSelectedItem === item
+                      ? 'bg-blue-600 text-white font-semibold'
+                      : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                  }`}
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
