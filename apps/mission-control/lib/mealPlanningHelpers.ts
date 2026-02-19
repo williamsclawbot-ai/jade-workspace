@@ -282,16 +282,22 @@ export function calculateDayMacros(
 
   let totals = { calories: 0, protein: 0, fats: 0, carbs: 0 };
 
+  console.log(`📊 Calculating macros for ${day}:`, dayMeals);
+
   // Sum recipes
   Object.entries(dayMeals).forEach(([mealType, recipeName]) => {
     if (!recipeName) return;
 
+    console.log(`  Looking up recipe: "${recipeName}"`);
     const recipe = recipeDatabase.getRecipeByName(recipeName);
     if (recipe) {
+      console.log(`  ✅ Found recipe, macros:`, recipe.macros);
       totals.calories += recipe.macros.calories;
       totals.protein += recipe.macros.protein;
       totals.fats += recipe.macros.fats;
       totals.carbs += recipe.macros.carbs;
+    } else {
+      console.log(`  ❌ Recipe NOT found`);
     }
   });
 
