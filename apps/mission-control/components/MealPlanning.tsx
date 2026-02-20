@@ -591,6 +591,30 @@ function JadesDayCard({
   const dayMacros = calculateDayMacros(week.weekId, day);
   const targets = macroTargets || macroTargetsStore.get();
 
+  // Calculate macro warning status
+  const calorieDiff = dayMacros.calories - targets.calories;
+  const absCalorieDiff = Math.abs(calorieDiff);
+  
+  let warningStatus: 'none' | 'green' | 'yellow' | 'red' = 'none';
+  let warningMessage = '';
+  let warningEmoji = '';
+  
+  if (dayMacros.calories > 0) { // Only show warnings if there are meals
+    if (calorieDiff > 200) {
+      warningStatus = 'red';
+      warningEmoji = '🔴';
+      warningMessage = `OVER by ${Math.round(absCalorieDiff)} cal`;
+    } else if (calorieDiff > 100) {
+      warningStatus = 'yellow';
+      warningEmoji = '🟡';
+      warningMessage = `Over by ${Math.round(absCalorieDiff)} cal`;
+    } else if (absCalorieDiff <= 50) {
+      warningStatus = 'green';
+      warningEmoji = '✅';
+      warningMessage = 'On target!';
+    }
+  }
+
   const handleQuickAddMeal = (mealType: string, recipeName: string) => {
     weeklyMealPlanStorage.addMealToWeek(week.weekId, day, mealType, recipeName);
     // Trigger parent re-render
@@ -602,7 +626,18 @@ function JadesDayCard({
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-lg font-bold text-jade-purple">{day}</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-bold text-jade-purple">{day}</h3>
+          {warningStatus !== 'none' && (
+            <span className={`text-xs font-semibold px-2 py-1 rounded ${
+              warningStatus === 'red' ? 'bg-red-100 text-red-700' :
+              warningStatus === 'yellow' ? 'bg-yellow-100 text-yellow-700' :
+              'bg-green-100 text-green-700'
+            }`}>
+              {warningEmoji} {warningMessage}
+            </span>
+          )}
+        </div>
         {!readOnly && day === 'Monday' && !dayMeals['dinner'] && (
           <button
             onClick={() => handleQuickAddMeal('Dinner', 'Asian Chicken Tacos (GF)')}
@@ -612,6 +647,23 @@ function JadesDayCard({
           </button>
         )}
       </div>
+      
+      {/* Warning banner (more prominent for red) */}
+      {warningStatus === 'red' && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-3 rounded">
+          <p className="text-red-800 font-semibold text-sm">
+            ⚠️ {Math.round(absCalorieDiff)} cal over target for {day}
+          </p>
+        </div>
+      )}
+      {warningStatus === 'yellow' && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-500 p-3 rounded">
+          <p className="text-yellow-800 font-semibold text-sm">
+            ⚠️ {Math.round(absCalorieDiff)} cal over target for {day}
+          </p>
+        </div>
+      )}
+      
       <MacrosDisplay actual={dayMacros} target={targets} showRemaining={true} />
       <div className="space-y-2">
         {jadesMealTypes.map(mealType => {
