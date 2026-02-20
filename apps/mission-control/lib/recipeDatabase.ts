@@ -360,6 +360,25 @@ class RecipeDatabase {
         instructions: '1. In a blender or bowl, mash banana thoroughly. 2. Add milk, vanilla extract, melted butter, and egg. Blend or mix well. 3. In another bowl, combine self-raising flour (or flour + baking powder + salt) and cinnamon. 4. Fold wet ingredients into dry ingredients until just combined. 5. Heat a non-stick frying pan or griddle over medium heat. 6. Lightly butter or spray the pan. 7. Pour ¼ cup batter for each pancake onto the hot pan. 8. Cook for 1-2 minutes until edges look set, then flip. 9. Cook another 1-2 minutes until golden. 10. Serve warm with your choice of toppings (yogurt, berries, maple syrup, etc).',
         notes: 'Quick and easy banana pancakes. Naturally sweetened from the banana. Great for toddlers and the whole family. Can be made with or without baking powder depending on flour type.',
       },
+      {
+        name: 'Healthy Chocolate Chip Muffins (Toddler-Friendly)',
+        category: 'Breakfast',
+        ingredients: [
+          { id: 'ing-105', name: 'Whole-wheat flour', qty: '1.5', unit: 'cups' },
+          { id: 'ing-106', name: 'Baking powder', qty: '1', unit: 'tsp' },
+          { id: 'ing-107', name: 'Baking soda', qty: '0.5', unit: 'tsp' },
+          { id: 'ing-108', name: 'Salt', qty: '0.25', unit: 'tsp' },
+          { id: 'ing-109', name: 'Whole milk plain Greek yogurt', qty: '1', unit: 'cup' },
+          { id: 'ing-110', name: 'Maple syrup', qty: '0.33', unit: 'cup' },
+          { id: 'ing-111', name: 'Unsalted butter (melted & cooled)', qty: '0.25', unit: 'cup' },
+          { id: 'ing-112', name: 'Eggs (large)', qty: '2', unit: 'whole' },
+          { id: 'ing-113', name: 'Pure vanilla extract', qty: '2', unit: 'tsp' },
+          { id: 'ing-114', name: 'Chocolate chips (semi-sweet or dark)', qty: '1', unit: 'cup' },
+        ],
+        macros: { calories: 131, protein: 5, fats: 5, carbs: 18 },
+        instructions: '1. Preheat oven to 375°F. Grease a 12-cup muffin pan with nonstick spray. 2. In a medium bowl, stir together whole-wheat flour, baking powder, baking soda, and salt. 3. In another bowl, stir together Greek yogurt, maple syrup, melted butter, eggs, and vanilla extract. 4. Gently stir the yogurt mixture into the flour mixture until just combined. 5. Fold in chocolate chips. 6. Divide batter among the prepared muffin cups, using about ¼ cup batter per cup. 7. Bake for 14-16 minutes, or until the edges are lightly golden brown and a cake tester inserted into the center comes out cleanly. 8. Remove from oven and transfer muffins to a wire rack to cool fully.',
+        notes: 'Toddler-friendly version with whole-wheat flour and Greek yogurt protein. No refined sugar - sweetened with maple syrup. Freezes beautifully up to 3 months. Can dice for younger eaters. Recipe from Yummy Toddler Food.',
+      },
     ];
 
     defaults.forEach(recipe => this.addRecipe(recipe));
@@ -551,6 +570,25 @@ if (typeof window !== 'undefined') {
       macros: { calories: 178, protein: 5, fats: 5, carbs: 28 },
       instructions: '1. In a blender or bowl, mash banana thoroughly. 2. Add milk, vanilla extract, melted butter, and egg. Blend or mix well. 3. In another bowl, combine self-raising flour (or flour + baking powder + salt) and cinnamon. 4. Fold wet ingredients into dry ingredients until just combined. 5. Heat a non-stick frying pan or griddle over medium heat. 6. Lightly butter or spray the pan. 7. Pour ¼ cup batter for each pancake onto the hot pan. 8. Cook for 1-2 minutes until edges look set, then flip. 9. Cook another 1-2 minutes until golden. 10. Serve warm with your choice of toppings (yogurt, berries, maple syrup, etc).',
       notes: 'Quick and easy banana pancakes. Naturally sweetened from the banana. Great for toddlers and the whole family. Can be made with or without baking powder depending on flour type.',
+    },
+    {
+      name: 'Healthy Chocolate Chip Muffins (Toddler-Friendly)',
+      category: 'Breakfast',
+      ingredients: [
+        { id: 'ing-105', name: 'Whole-wheat flour', qty: '1.5', unit: 'cups' },
+        { id: 'ing-106', name: 'Baking powder', qty: '1', unit: 'tsp' },
+        { id: 'ing-107', name: 'Baking soda', qty: '0.5', unit: 'tsp' },
+        { id: 'ing-108', name: 'Salt', qty: '0.25', unit: 'tsp' },
+        { id: 'ing-109', name: 'Whole milk plain Greek yogurt', qty: '1', unit: 'cup' },
+        { id: 'ing-110', name: 'Maple syrup', qty: '0.33', unit: 'cup' },
+        { id: 'ing-111', name: 'Unsalted butter (melted & cooled)', qty: '0.25', unit: 'cup' },
+        { id: 'ing-112', name: 'Eggs (large)', qty: '2', unit: 'whole' },
+        { id: 'ing-113', name: 'Pure vanilla extract', qty: '2', unit: 'tsp' },
+        { id: 'ing-114', name: 'Chocolate chips (semi-sweet or dark)', qty: '1', unit: 'cup' },
+      ],
+      macros: { calories: 131, protein: 5, fats: 5, carbs: 18 },
+      instructions: '1. Preheat oven to 375°F. Grease a 12-cup muffin pan with nonstick spray. 2. In a medium bowl, stir together whole-wheat flour, baking powder, baking soda, and salt. 3. In another bowl, stir together Greek yogurt, maple syrup, melted butter, eggs, and vanilla extract. 4. Gently stir the yogurt mixture into the flour mixture until just combined. 5. Fold in chocolate chips. 6. Divide batter among the prepared muffin cups, using about ¼ cup batter per cup. 7. Bake for 14-16 minutes, or until the edges are lightly golden brown and a cake tester inserted into the center comes out cleanly. 8. Remove from oven and transfer muffins to a wire rack to cool fully.',
+      notes: 'Toddler-friendly version with whole-wheat flour and Greek yogurt protein. No refined sugar - sweetened with maple syrup. Freezes beautifully up to 3 months. Can dice for younger eaters. Recipe from Yummy Toddler Food.',
     },
   ];
   
