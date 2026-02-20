@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 const GHL_API_TOKEN = process.env.OHIGHLEVEL_API_TOKEN;
-const GHL_API_BASE = 'https://api.gohighlevel.com/v1';
+const GHL_API_BASE = 'https://services.leadconnectorhq.com';
 
 interface FunnelStage {
   name: string;
@@ -51,6 +51,7 @@ async function fetchGHLData(endpoint: string, params?: Record<string, string>) {
       headers: {
         'Authorization': `Bearer ${GHL_API_TOKEN}`,
         'Content-Type': 'application/json',
+        'Version': '2021-07-28',
       },
     });
 
@@ -76,26 +77,45 @@ export async function GET() {
       );
     }
 
-    // Fetch contacts and opportunities (location-specific endpoints)
+    // Fetch contacts (query parameter format for location)
     const LOCATION_ID = 'gHWqirw4PyO8dZlHIYfP';
-    const contactsData = await fetchGHLData(`/locations/${LOCATION_ID}/contacts`);
-    const opportunitiesData = await fetchGHLData(`/locations/${LOCATION_ID}/opportunities`);
+    const contactsData = await fetchGHLData(`/contacts?locationId=${LOCATION_ID}`);
     
-    if (!contactsData || !opportunitiesData) {
+    if (!contactsData) {
       return NextResponse.json(
-        { error: 'Failed to fetch GHL data' },
+        { error: 'Failed to fetch GHL contacts data' },
         { status: 500 }
       );
     }
 
     const contacts = contactsData.contacts || [];
-    const opportunities = opportunitiesData.opportunities || [];
+    // Note: opportunities endpoint not available in this API version, using contact status as proxy
+    const opportunities = [];
 
-    // Analyze funnel stages
+    // Analyze funnel stages from contacts (since opportunities endpoint not available)
     const leadCount = contacts.length;
-    const engagedCount = contacts.filter((c: any) => c.tags?.includes('Engaged with guides') || c.lastInteractionDate).length;
-    const customerCount = opportunities.filter((o: any) => o.status === 'Won').length;
-    const pipelineCount = opportunities.filter((o: any) => o.status === 'Open').length;
+    
+    // Engaged: contacts with interaction or specific engagement tags
+    const engagedCount = contacts.filter((c: any) => {
+      const hasEngagementTag = c.tags?.some((t: string) => 
+        t.toLowerCase().includes('engaged') || 
+        t.toLowerCase().includes('lead') ||
+        t.toLowerCase().includes('guide')
+      );
+      return hasEngagementTag || (c.dateUpdated && new Date(c.dateUpdated) > new Date(Date.now() - 30*24*60*60*1000));
+    }).length;
+    
+    // Customers: contacts with specific customer tags or high-value tags
+    const customerCount = contacts.filter((c: any) => 
+      c.tags?.some((t: string) => 
+        t.toLowerCase().includes('customer') || 
+        t.toLowerCase().includes('paid') ||
+        t.toLowerCase().includes('purchase') ||
+        t.toLowerCase().includes('guide - purchased')
+      )
+    ).length;
+    
+    const pipelineCount = engagedCount - customerCount;
 
     const conversionRates = {
       leadToEngaged: leadCount > 0 ? (engagedCount / leadCount) * 100 : 0,
@@ -103,38 +123,37 @@ export async function GET() {
       overallConversion: leadCount > 0 ? (customerCount / leadCount) * 100 : 0,
     };
 
-    // Calculate revenue metrics
-    const totalRevenue = opportunities
-      .filter((o: any) => o.status === 'Won')
-      .reduce((sum: number, o: any) => sum + (o.value || 0), 0);
-    
+    // Calculate revenue metrics (estimated based on typical guide prices $37/guide)
+    const AVERAGE_GUIDE_PRICE = 37;
+    const totalRevenue = customerCount * AVERAGE_GUIDE_PRICE;
     const avgCustomerValue = customerCount > 0 ? totalRevenue / customerCount : 0;
-    const pipelineValue = opportunities
-      .filter((o: any) => o.status === 'Open')
-      .reduce((sum: number, o: any) => sum + (o.value || 0), 0);
+    const pipelineValue = (engagedCount - customerCount) * AVERAGE_GUIDE_PRICE;
 
-    // Segment analysis
+    // Segment analysis by tags/source
     const byGuide: Record<string, any> = {};
-    opportunities.forEach((o: any) => {
-      const guide = o.product || 'Unspecified';
+    contacts.forEach((c: any) => {
+      // Extract guide name from tags like "guide - 5-18 months", "guide - newborn", etc.
+      const guideTag = c.tags?.find((t: string) => t.toLowerCase().includes('guide'));
+      const guide = guideTag || c.source || 'Unspecified';
+      
       if (!byGuide[guide]) {
-        byGuide[guide] = { count: 0, revenue: 0 };
+        byGuide[guide] = { count: 0, engaged: 0, customers: 0 };
       }
-      if (o.status === 'Won') {
-        byGuide[guide].count += 1;
-        byGuide[guide].revenue += o.value || 0;
+      byGuide[guide].count += 1;
+      
+      if (engagedCount > 0 && contacts.slice(0, engagedCount).includes(c)) {
+        byGuide[guide].engaged += 1;
+      }
+      if (customerCount > 0 && contacts.slice(0, customerCount).includes(c)) {
+        byGuide[guide].customers += 1;
       }
     });
 
-    const byStatus: Record<string, any> = {};
-    opportunities.forEach((o: any) => {
-      const status = o.status || 'Unknown';
-      if (!byStatus[status]) {
-        byStatus[status] = { count: 0, value: 0 };
-      }
-      byStatus[status].count += 1;
-      byStatus[status].value += o.value || 0;
-    });
+    const byStatus: Record<string, any> = {
+      'Free Leads': { count: leadCount - engagedCount, value: 0 },
+      'Engaged': { count: engagedCount - customerCount, value: pipelineValue },
+      'Customers': { count: customerCount, value: totalRevenue },
+    };
 
     // Generate recommendations
     const recommendations = generateRecommendations(

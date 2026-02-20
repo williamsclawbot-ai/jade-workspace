@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 const GHL_API_TOKEN = process.env.OHIGHLEVEL_API_TOKEN;
-const GHL_API_BASE = 'https://api.gohighlevel.com/v1';
+const GHL_API_BASE = 'https://services.leadconnectorhq.com';
 
 interface MetricsResponse {
   subscribers: number;
@@ -23,6 +23,7 @@ async function fetchGHLData(endpoint: string) {
       headers: {
         'Authorization': `Bearer ${GHL_API_TOKEN}`,
         'Content-Type': 'application/json',
+        'Version': '2021-07-28',
       },
     });
 
@@ -47,13 +48,13 @@ export async function GET() {
       );
     }
 
-    // Fetch contacts for subscriber count (location-specific)
+    // Fetch contacts for subscriber count (query parameter format)
     const LOCATION_ID = 'gHWqirw4PyO8dZlHIYfP';
-    const contactsData = await fetchGHLData(`/locations/${LOCATION_ID}/contacts`);
+    const contactsData = await fetchGHLData(`/contacts?locationId=${LOCATION_ID}`);
     const subscribers = contactsData.total || contactsData.contacts?.length || 0;
 
-    // Fetch opportunities for revenue and pipeline data (location-specific)
-    const opportunitiesData = await fetchGHLData(`/locations/${LOCATION_ID}/opportunities`);
+    // Fetch opportunities for revenue and pipeline data (query parameter format)
+    const opportunitiesData = await fetchGHLData(`/opportunities?locationId=${LOCATION_ID}`);
     const opportunities = opportunitiesData.opportunities || [];
     
     // Calculate metrics from opportunities
