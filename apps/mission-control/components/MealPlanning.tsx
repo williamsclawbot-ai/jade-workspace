@@ -605,12 +605,6 @@ function JadesMealsView({
               >
                 📋 Copy Previous Week
               </button>
-              <button
-                onClick={handleSetBreakfastToWeetbix}
-                className="bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-3 rounded-lg text-sm font-medium transition whitespace-nowrap h-12"
-              >
-                Set All Breakfasts to PB & J Overnight Weet-Bix
-              </button>
             </div>
           )}
         </div>
@@ -711,14 +705,6 @@ function JadesDayCard({
             </span>
           )}
         </div>
-        {!readOnly && day === 'Monday' && !dayMeals['dinner'] && (
-          <button
-            onClick={() => handleQuickAddMeal('Dinner', 'Asian Chicken Tacos (GF)')}
-            className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-2 rounded-lg font-medium transition min-h-[36px]"
-          >
-            + Asian Tacos
-          </button>
-        )}
       </div>
       
       {/* Warning banner (more prominent for red) */}

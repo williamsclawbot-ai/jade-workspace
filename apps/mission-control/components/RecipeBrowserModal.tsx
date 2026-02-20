@@ -4,6 +4,38 @@ import { useState, useEffect } from 'react';
 import { X, Search } from 'lucide-react';
 import { recipeDatabase, Recipe } from '../lib/recipeDatabase';
 
+// Harvey's meal options for filtering
+const harveysMealOptions: Record<string, string[]> = {
+  '🥣 Carb/Protein': [
+    'ABC Muffins', 'Banana Muffins', 'Muesli Bar', 'Carmans Oat Bar',
+    'Rice Bubble Bars (homemade)', 'Ham & Cheese Scroll', 'Pizza Scroll',
+    'Cheese & Vegemite (+backup)', 'Ham & Cheese Sandwich', 'Nut Butter & Honey (+backup)',
+    'Pasta & Boiled Egg (+backup)', 'Avo & Cream Cheese (+backup)', 'Sweet Potato & Chicken',
+    'Choc Chip Muffins', 'Weekly New Muffin', 'Weekly New Bar',
+  ],
+  '🍎 Fruit': [
+    'Apple (introduce)', 'Pear', 'Oranges', 'Banana', 'Grapes',
+    'Strawberries', 'Raspberries', 'Blueberries', 'Kiwi Fruit', 'Plum', 'Nectarine',
+  ],
+  '🥦 Vegetable': [
+    'Mixed Frozen Veg ⭐ LOVES', 'Cucumber (keep trying)', 'Tomato (keep trying)',
+    'Capsicum', 'Broccoli (new)', 'Green Beans (new)', 'Roasted Sweet Potato (new)',
+  ],
+  '🍪 Crunch': [
+    'Star Crackers', 'Rice Cakes', 'Pikelets/Pancakes', 'Veggie Chips',
+    'Soft Pretzels', 'Cheese Crackers', 'Breadsticks/Grissini',
+  ],
+  '🥤 Afternoon Snacks': [
+    'Smoothie (banana, berries, yogurt, milk)', 'Yogurt + Fruit',
+    'Crackers + Cheese', 'Toast + Nut Butter', 'Fruit Salad', 'Rice Cakes + Honey',
+  ],
+  '✅ Everyday': ['Yogurt (every lunch)'],
+};
+
+const getAllHarveysOptions = () => {
+  return Object.values(harveysMealOptions).flat();
+};
+
 interface RecipeBrowserModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -18,6 +50,7 @@ export default function RecipeBrowserModal({
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [filterHarveysOnly, setFilterHarveysOnly] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -36,6 +69,11 @@ export default function RecipeBrowserModal({
 
   const getFilteredRecipes = () => {
     let filtered = recipes;
+    
+    if (filterHarveysOnly) {
+      const harveysOptions = getAllHarveysOptions();
+      filtered = filtered.filter(r => harveysOptions.includes(r.name));
+    }
     
     if (selectedCategory) {
       filtered = filtered.filter(r => r.category === selectedCategory);
@@ -94,31 +132,46 @@ export default function RecipeBrowserModal({
             />
           </div>
 
-          {/* Category filter */}
-          <div className="flex gap-2 flex-wrap">
+          {/* Harvey's & Category filters */}
+          <div className="space-y-2">
+            {/* Harvey's Filter */}
             <button
-              onClick={() => setSelectedCategory(null)}
-              className={`px-3 py-1 text-sm rounded-full transition ${
-                selectedCategory === null
+              onClick={() => setFilterHarveysOnly(!filterHarveysOnly)}
+              className={`px-4 py-2 text-sm rounded-full transition font-medium ${
+                filterHarveysOnly
                   ? 'bg-jade-purple text-white'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
-              All
+              👨‍👦 Harvey's Options
             </button>
-            {categories.map(cat => (
+
+            {/* Category filter */}
+            <div className="flex gap-2 flex-wrap">
               <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => setSelectedCategory(null)}
                 className={`px-3 py-1 text-sm rounded-full transition ${
-                  selectedCategory === cat
+                  selectedCategory === null
                     ? 'bg-jade-purple text-white'
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                 }`}
               >
-                {cat}
+                All
               </button>
-            ))}
+              {categories.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-3 py-1 text-sm rounded-full transition ${
+                    selectedCategory === cat
+                      ? 'bg-jade-purple text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

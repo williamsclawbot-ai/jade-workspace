@@ -29,6 +29,7 @@ export default function HarveysMealPickerModal({
   const [selectedMealType, setSelectedMealType] = useState<'breakfast' | 'lunch' | 'snack' | 'dinner'>('breakfast');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [filterHarveysOnly, setFilterHarveysOnly] = useState(true);
   const [mealVariety, setMealVariety] = useState<Record<string, number | null>>({});
 
   // Load meal variety data
@@ -199,7 +200,7 @@ export default function HarveysMealPickerModal({
 
           {/* Right panel: Browse and assign meals */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {/* Search + Category filter */}
+            {/* Search + Filter */}
             <div className="space-y-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -211,6 +212,18 @@ export default function HarveysMealPickerModal({
                   className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
+
+              {/* Harvey's Filter */}
+              <button
+                onClick={() => setFilterHarveysOnly(!filterHarveysOnly)}
+                className={`w-full px-4 py-2 text-sm rounded-full transition font-medium ${
+                  filterHarveysOnly
+                    ? 'bg-pink-600 text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                }`}
+              >
+                👨‍👦 Harvey's Options
+              </button>
 
               {/* Category filter */}
               <div className="flex gap-2 flex-wrap">
