@@ -465,12 +465,24 @@ export default function MealPlanning() {
       )}
 
       {/* Recipe input modal */}
-      <RecipeInputModal
-        isOpen={recipeInputModalOpen}
-        onClose={() => setRecipeInputModalOpen(false)}
-        onSave={handleSaveNewRecipe}
-        defaultCategory={recipeInputCategory}
-      />
+      {displayedWeek && (
+        <RecipeInputModal
+          isOpen={recipeInputModalOpen}
+          onClose={() => setRecipeInputModalOpen(false)}
+          onSave={handleSaveNewRecipe}
+          defaultCategory={recipeInputCategory}
+          weekId={displayedWeek.weekId}
+          onAssignToDay={(recipeName, day, mealType) => {
+            weeklyMealPlanStorage.addMealToWeek(displayedWeek.weekId, day, mealType, recipeName);
+            // Refresh state
+            const current = weeklyMealPlanStorage.getCurrentWeek();
+            const next = weeklyMealPlanStorage.getNextWeek();
+            setCurrentWeek(current);
+            setNextWeek(next);
+            alert(`✅ Assigned "${recipeName}" to ${mealType} on ${day}`);
+          }}
+        />
+      )}
 
       {/* Harvey's meal picker modal */}
       {displayedWeek && (

@@ -24,10 +24,15 @@ interface RecipeInputModalProps {
     notes?: string;
   }) => void;
   defaultCategory?: 'Breakfast' | 'Lunch' | 'Snack' | 'Dinner' | 'Dessert' | 'Harvey';
+  weekId?: string;
+  onAssignToDay?: (recipeName: string, day: string, mealType: string) => void;
 }
 
-export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCategory }: RecipeInputModalProps) {
-  const [step, setStep] = useState<'paste' | 'review' | 'macros'>('paste');
+const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const mealTypes = ['Breakfast', 'Lunch', 'Snack', 'Dinner', 'Dessert'];
+
+export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCategory, weekId, onAssignToDay }: RecipeInputModalProps) {
+  const [step, setStep] = useState<'paste' | 'review' | 'macros' | 'assign'>('paste');
   const [recipeName, setRecipeName] = useState('');
   const [recipeCategory, setRecipeCategory] = useState(defaultCategory || 'Lunch');
   const [pastedText, setPastedText] = useState('');
@@ -40,6 +45,10 @@ export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCateg
   const [protein, setProtein] = useState('');
   const [fats, setFats] = useState('');
   const [carbs, setCarbs] = useState('');
+
+  // Assignment state
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [selectedMealType, setSelectedMealType] = useState<string>(recipeCategory);
 
   if (!isOpen) return null;
 
@@ -145,6 +154,17 @@ export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCateg
       notes: notes || undefined,
     });
     
+    // Move to assignment step instead of closing
+    if (weekId && onAssignToDay) {
+      setSelectedMealType(recipeCategory);
+      setStep('assign');
+    } else {
+      // No assignment callback, just close
+      handleClose();
+    }
+  };
+
+  const handleClose = () => {
     // Reset state
     setStep('paste');
     setRecipeName('');
@@ -156,11 +176,42 @@ export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCateg
     setProtein('');
     setFats('');
     setCarbs('');
+    setSelectedDay(null);
+    setSelectedMealType(defaultCategory || 'Lunch');
+    onClose();
+  };
+
+  const handleAssignNow = () => {
+    if (selectedDay && onAssignToDay) {
+      onAssignToDay(recipeName, selectedDay, selectedMealType);
+      handleClose();
+    }
+  };
+
+  const handleAssignLater = () => {
+    handleClose();
+  };
+
+  const handleCreateAnother = () => {
+    // Reset to paste step but keep modal open
+    setStep('paste');
+    setRecipeName('');
+    setPastedText('');
+    setParsedIngredients([]);
+    setInstructions('');
+    setNotes('');
+    setCalories('');
+    setProtein('');
+    setFats('');
+    setCarbs('');
+    setSelectedDay(null);
+    setSelectedMealType(recipeCategory);
   };
 
   const handleBack = () => {
     if (step === 'review') setStep('paste');
     else if (step === 'macros') setStep('review');
+    else if (step === 'assign') setStep('macros');
   };
 
   const handleNext = () => {
@@ -170,7 +221,6 @@ export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCateg
       setStep('macros');
     } else if (step === 'macros' && calories && protein && fats && carbs) {
       handleSaveRecipe();
-      onClose();
     }
   };
 
@@ -187,13 +237,14 @@ export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCateg
               {step === 'paste' && 'Step 1: Paste Ingredients'}
               {step === 'review' && 'Step 2: Review & Edit'}
               {step === 'macros' && 'Step 3: Add Macros'}
+              {step === 'assign' && 'Step 4: Assign to Day'}
             </span>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
           >
-            <X size={20} />
+            <X size={24} />
           </button>
         </div>
 
@@ -433,30 +484,128 @@ export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCateg
               </div>
             </div>
           )}
+
+          {step === 'assign' && (
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:bg-gradient-to-r dark:from-green-900/20 dark:to-blue-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6 text-center">
+                <div className="text-4xl mb-3">🎉</div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                  Recipe Saved!
+                </h3>
+                <p className="text-gray-700 dark:text-gray-300">
+                  Where should I add <span className="font-semibold text-jade-purple">{recipeName}</span>?
+                </p>
+              </div>
+
+              {/* Meal Type Selector */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  Meal Type
+                </label>
+                <div className="grid grid-cols-5 gap-2">
+                  {mealTypes.map(type => (
+                    <button
+                      key={type}
+                      onClick={() => setSelectedMealType(type)}
+                      className={`h-12 px-3 py-2 rounded-lg font-medium transition text-sm ${
+                        selectedMealType === type
+                          ? 'bg-jade-purple text-white shadow-md'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Day Selector */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                  Which Day?
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {days.map(day => {
+                    const isSelected = selectedDay === day;
+                    return (
+                      <button
+                        key={day}
+                        onClick={() => setSelectedDay(day)}
+                        className={`h-12 px-4 py-2 rounded-lg font-medium transition border-2 ${
+                          isSelected
+                            ? 'bg-jade-light border-jade-purple text-jade-purple shadow-md'
+                            : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-jade-light hover:bg-gray-50 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        {isSelected && <span className="mr-1">✓</span>}
+                        {day}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Summary */}
+              {selectedDay && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <p className="text-sm text-blue-900 dark:text-blue-200">
+                    <span className="font-semibold">Will assign:</span> {recipeName} to{' '}
+                    <span className="font-semibold">{selectedMealType}</span> on{' '}
+                    <span className="font-semibold">{selectedDay}</span>
+                  </p>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="grid grid-cols-3 gap-3">
+                <button
+                  onClick={handleAssignNow}
+                  disabled={!selectedDay}
+                  className="h-12 bg-jade-purple hover:bg-jade-purple/90 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-semibold transition"
+                >
+                  Assign Now
+                </button>
+                <button
+                  onClick={handleAssignLater}
+                  className="h-12 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg font-medium transition"
+                >
+                  Assign Later
+                </button>
+                <button
+                  onClick={handleCreateAnother}
+                  className="h-12 bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-900/50 text-green-700 dark:text-green-300 px-4 py-2 rounded-lg font-medium transition"
+                >
+                  Create Another
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-4 border-t border-gray-200 dark:border-gray-700">
-          <button
-            onClick={step === 'paste' ? onClose : handleBack}
-            className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            {step === 'paste' ? 'Cancel' : 'Back'}
-          </button>
-          <button
-            onClick={handleNext}
-            disabled={
-              (step === 'paste' && (!recipeName || !pastedText)) ||
-              (step === 'review' && parsedIngredients.length === 0) ||
-              (step === 'macros' && (!calories || !protein || !fats || !carbs))
-            }
-            className="px-6 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-          >
-            {step === 'paste' && 'Parse Ingredients'}
-            {step === 'review' && 'Add Macros'}
-            {step === 'macros' && 'Save Recipe'}
-          </button>
-        </div>
+        {step !== 'assign' && (
+          <div className="flex items-center justify-between p-4 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={step === 'paste' ? handleClose : handleBack}
+              className="h-12 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            >
+              {step === 'paste' ? 'Cancel' : 'Back'}
+            </button>
+            <button
+              onClick={handleNext}
+              disabled={
+                (step === 'paste' && (!recipeName || !pastedText)) ||
+                (step === 'review' && parsedIngredients.length === 0) ||
+                (step === 'macros' && (!calories || !protein || !fats || !carbs))
+              }
+              className="h-12 px-6 py-2 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            >
+              {step === 'paste' && 'Parse Ingredients'}
+              {step === 'review' && 'Add Macros'}
+              {step === 'macros' && 'Save Recipe'}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
