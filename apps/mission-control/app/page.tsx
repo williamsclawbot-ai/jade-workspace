@@ -33,6 +33,7 @@ import ShoppingCart from '@/components/ShoppingCart';
 import AwaitingReviewTab from '@/components/AwaitingReviewTab';
 import OvernightReviewTab from '@/components/OvernightReviewTab';
 import FunnelAnalysisView from '@/components/FunnelAnalysisView';
+import MorningBriefing from '@/components/MorningBriefing';
 import weeklyContentData from '@/lib/weeklyContentData.json';
 import { initializeWeeklyContent } from '@/lib/initializeContentData';
 import { initOvernightReports } from '@/lib/initOvernightReports';
@@ -112,6 +113,8 @@ export default function Home() {
         return <OvernightReviewTab />;
       case 'funnel-analysis':
         return <FunnelAnalysisView />;
+      case 'morning-briefing':
+        return <MorningBriefing />;
       default:
         return <Dashboard />;
     }

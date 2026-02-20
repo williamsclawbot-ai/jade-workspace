@@ -28,6 +28,7 @@ import {
   StickyNote,
   TrendingUp,
   ShoppingBag,
+  Coffee,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -58,7 +59,10 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       id: 'today',
       name: 'TODAY',
       section: 'today',
-      items: [{ id: 'today', label: 'Command Center', icon: Sun }],
+      items: [
+        { id: 'morning-briefing', label: 'Morning Briefing', icon: Coffee },
+        { id: 'today', label: 'Command Center', icon: Sun },
+      ],
     },
     {
       id: 'business',
