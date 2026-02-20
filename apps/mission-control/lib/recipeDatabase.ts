@@ -198,6 +198,20 @@ class RecipeDatabase {
         instructions: '1. In a bowl, combine weet-bix, protein powder, milk and sweetener. Press mixture down firmly into bowl to create base. 2. In another bowl, mix together yogurt and peanut butter until batter is smooth. Spread over weet-bix base and drizzle with jam and maple syrup.',
         notes: 'Gluten-free friendly overnight breakfast',
       },
+      {
+        name: 'Beef Chow Mein (GF,DF)',
+        category: 'Dinner',
+        ingredients: [
+          { id: 'ing-33', name: 'Extra Lean Beef Strips (Weighed Raw)', qty: '150', unit: 'g' },
+          { id: 'ing-34', name: 'Light Soy Sauce - Ayam', qty: '10', unit: 'g' },
+          { id: 'ing-35', name: 'San Choy Bow Meal Kit (97g) - Marion\'s Kitchen', qty: '0.5', unit: 'kit' },
+          { id: 'ing-36', name: 'Stir Fry Vegetables (generic)', qty: '175', unit: 'g' },
+          { id: 'ing-37', name: 'Vermicelli Rice Noodle - Chang\'s', qty: '60', unit: 'g' },
+        ],
+        macros: { calories: 565, protein: 47, fats: 8, carbs: 71 },
+        instructions: '1. Cook the vermicelli noodles according to package directions, drain and set aside. 2. Heat a wok or large pan over medium-high heat. Stir-fry beef strips until cooked through. 3. Add stir fry vegetables and cook until tender-crisp. 4. Add cooked noodles, San Choy Bow sauce, and soy sauce. Toss everything together until well combined. 5. Serve hot.',
+        notes: 'Gluten-free and dairy-free friendly. High protein, low fat option.',
+      },
     ];
 
     defaults.forEach(recipe => this.addRecipe(recipe));
@@ -227,6 +241,20 @@ if (typeof window !== 'undefined') {
       macros: { calories: 427, protein: 30, fats: 12, carbs: 46 },
       instructions: '1. In a bowl, combine weet-bix, protein powder, milk and sweetener. Press mixture down firmly into bowl to create base. 2. In another bowl, mix together yogurt and peanut butter until batter is smooth. Spread over weet-bix base and drizzle with jam and maple syrup.',
       notes: 'Gluten-free friendly overnight breakfast',
+    },
+    {
+      name: 'Beef Chow Mein (GF,DF)',
+      category: 'Dinner',
+      ingredients: [
+        { id: 'ing-33', name: 'Extra Lean Beef Strips (Weighed Raw)', qty: '150', unit: 'g' },
+        { id: 'ing-34', name: 'Light Soy Sauce - Ayam', qty: '10', unit: 'g' },
+        { id: 'ing-35', name: 'San Choy Bow Meal Kit (97g) - Marion\'s Kitchen', qty: '0.5', unit: 'kit' },
+        { id: 'ing-36', name: 'Stir Fry Vegetables (generic)', qty: '175', unit: 'g' },
+        { id: 'ing-37', name: 'Vermicelli Rice Noodle - Chang\'s', qty: '60', unit: 'g' },
+      ],
+      macros: { calories: 565, protein: 47, fats: 8, carbs: 71 },
+      instructions: '1. Cook the vermicelli noodles according to package directions, drain and set aside. 2. Heat a wok or large pan over medium-high heat. Stir-fry beef strips until cooked through. 3. Add stir fry vegetables and cook until tender-crisp. 4. Add cooked noodles, San Choy Bow sauce, and soy sauce. Toss everything together until well combined. 5. Serve hot.',
+      notes: 'Gluten-free and dairy-free friendly. High protein, low fat option.',
     },
   ];
   
