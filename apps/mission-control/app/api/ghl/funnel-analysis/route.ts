@@ -76,9 +76,10 @@ export async function GET() {
       );
     }
 
-    // Fetch contacts and opportunities
-    const contactsData = await fetchGHLData('/contacts');
-    const opportunitiesData = await fetchGHLData('/opportunities');
+    // Fetch contacts and opportunities (location-specific endpoints)
+    const LOCATION_ID = 'gHWqirw4PyO8dZlHIYfP';
+    const contactsData = await fetchGHLData(`/locations/${LOCATION_ID}/contacts`);
+    const opportunitiesData = await fetchGHLData(`/locations/${LOCATION_ID}/opportunities`);
     
     if (!contactsData || !opportunitiesData) {
       return NextResponse.json(

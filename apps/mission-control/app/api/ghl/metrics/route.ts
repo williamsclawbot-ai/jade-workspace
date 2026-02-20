@@ -47,12 +47,13 @@ export async function GET() {
       );
     }
 
-    // Fetch contacts for subscriber count
-    const contactsData = await fetchGHLData('/contacts');
+    // Fetch contacts for subscriber count (location-specific)
+    const LOCATION_ID = 'gHWqirw4PyO8dZlHIYfP';
+    const contactsData = await fetchGHLData(`/locations/${LOCATION_ID}/contacts`);
     const subscribers = contactsData.total || contactsData.contacts?.length || 0;
 
-    // Fetch opportunities for revenue and pipeline data
-    const opportunitiesData = await fetchGHLData('/opportunities');
+    // Fetch opportunities for revenue and pipeline data (location-specific)
+    const opportunitiesData = await fetchGHLData(`/locations/${LOCATION_ID}/opportunities`);
     const opportunities = opportunitiesData.opportunities || [];
     
     // Calculate metrics from opportunities
