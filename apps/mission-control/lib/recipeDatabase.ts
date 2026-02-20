@@ -304,6 +304,26 @@ class RecipeDatabase {
         instructions: '1. Preheat oven to 180°C. 2. Pulse sunflower seeds, carrots, and dates in food processor until roughly chopped. 3. Mix in eggs, milk, sugar, and olive oil. 4. In a separate bowl, combine wholemeal spelt flour, cacao powder, and baking powder. 5. Fold wet ingredients into dry ingredients until just combined. 6. Stir in dark chocolate chips. 7. Divide batter into muffin cups and bake 20-25 minutes until a skewer comes out clean. 8. Cool in tin for 5 minutes, then transfer to wire rack.',
         notes: 'Healthy muffins made with wholemeal spelt flour, dates for natural sweetness, and carrots. Great for toddlers and the whole family. Recipe from Cookidoo®.',
       },
+      {
+        name: 'ABC Muffins',
+        category: 'Breakfast',
+        ingredients: [
+          { id: 'ing-76', name: 'Carrot (cut into pieces)', qty: '120', unit: 'g' },
+          { id: 'ing-77', name: 'Gala apple (cored, cut into pieces)', qty: '150', unit: 'g' },
+          { id: 'ing-78', name: 'Ripe banana (cut into pieces)', qty: '120', unit: 'g' },
+          { id: 'ing-79', name: 'Self-raising flour', qty: '170', unit: 'g' },
+          { id: 'ing-80', name: 'Rolled oats', qty: '50', unit: 'g' },
+          { id: 'ing-81', name: 'Eggs', qty: '2', unit: 'whole' },
+          { id: 'ing-82', name: 'Pure maple syrup', qty: '100', unit: 'g' },
+          { id: 'ing-83', name: 'Greek-style natural yoghurt', qty: '100', unit: 'g' },
+          { id: 'ing-84', name: 'Extra virgin olive oil', qty: '50', unit: 'g' },
+          { id: 'ing-85', name: 'Natural vanilla extract', qty: '1', unit: 'tsp' },
+          { id: 'ing-86', name: 'Granola (or muesli of choice, nut-free)', qty: '100', unit: 'g' },
+        ],
+        macros: { calories: 204, protein: 5, fats: 10, carbs: 28 },
+        instructions: '1. Preheat oven to 180°C and line a muffin tin with paper cases. 2. In a food processor, blend carrot, apple, and banana until roughly chopped. 3. In a large bowl, combine self-raising flour and rolled oats. 4. In another bowl, whisk together eggs, maple syrup, yoghurt, olive oil, and vanilla extract. 5. Fold the fruit mixture into the wet ingredients. 6. Gently fold in the flour and oats until just combined. 7. Divide batter into muffin cases. 8. Top with granola. 9. Bake for 20-25 minutes until golden and a skewer comes out clean. 10. Cool in tin for 5 minutes, then transfer to wire rack.',
+        notes: 'ABC Muffins = Apple, Banana, Carrot! Perfect toddler-friendly breakfast. Make-ahead friendly, store in airtight container up to 4 days.',
+      },
     ];
 
     defaults.forEach(recipe => this.addRecipe(recipe));
@@ -439,6 +459,26 @@ if (typeof window !== 'undefined') {
       macros: { calories: 213, protein: 4, fats: 16, carbs: 13 },
       instructions: '1. Preheat oven to 180°C. 2. Pulse sunflower seeds, carrots, and dates in food processor until roughly chopped. 3. Mix in eggs, milk, sugar, and olive oil. 4. In a separate bowl, combine wholemeal spelt flour, cacao powder, and baking powder. 5. Fold wet ingredients into dry ingredients until just combined. 6. Stir in dark chocolate chips. 7. Divide batter into muffin cups and bake 20-25 minutes until a skewer comes out clean. 8. Cool in tin for 5 minutes, then transfer to wire rack.',
       notes: 'Healthy muffins made with wholemeal spelt flour, dates for natural sweetness, and carrots. Great for toddlers and the whole family. Recipe from Cookidoo®.',
+    },
+    {
+      name: 'ABC Muffins',
+      category: 'Breakfast',
+      ingredients: [
+        { id: 'ing-76', name: 'Carrot (cut into pieces)', qty: '120', unit: 'g' },
+        { id: 'ing-77', name: 'Gala apple (cored, cut into pieces)', qty: '150', unit: 'g' },
+        { id: 'ing-78', name: 'Ripe banana (cut into pieces)', qty: '120', unit: 'g' },
+        { id: 'ing-79', name: 'Self-raising flour', qty: '170', unit: 'g' },
+        { id: 'ing-80', name: 'Rolled oats', qty: '50', unit: 'g' },
+        { id: 'ing-81', name: 'Eggs', qty: '2', unit: 'whole' },
+        { id: 'ing-82', name: 'Pure maple syrup', qty: '100', unit: 'g' },
+        { id: 'ing-83', name: 'Greek-style natural yoghurt', qty: '100', unit: 'g' },
+        { id: 'ing-84', name: 'Extra virgin olive oil', qty: '50', unit: 'g' },
+        { id: 'ing-85', name: 'Natural vanilla extract', qty: '1', unit: 'tsp' },
+        { id: 'ing-86', name: 'Granola (or muesli of choice, nut-free)', qty: '100', unit: 'g' },
+      ],
+      macros: { calories: 204, protein: 5, fats: 10, carbs: 28 },
+      instructions: '1. Preheat oven to 180°C and line a muffin tin with paper cases. 2. In a food processor, blend carrot, apple, and banana until roughly chopped. 3. In a large bowl, combine self-raising flour and rolled oats. 4. In another bowl, whisk together eggs, maple syrup, yoghurt, olive oil, and vanilla extract. 5. Fold the fruit mixture into the wet ingredients. 6. Gently fold in the flour and oats until just combined. 7. Divide batter into muffin cases. 8. Top with granola. 9. Bake for 20-25 minutes until golden and a skewer comes out clean. 10. Cool in tin for 5 minutes, then transfer to wire rack.',
+      notes: 'ABC Muffins = Apple, Banana, Carrot! Perfect toddler-friendly breakfast. Make-ahead friendly, store in airtight container up to 4 days.',
     },
   ];
   
