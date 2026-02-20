@@ -23,6 +23,7 @@ import HarveysMealPickerModal from './HarveysMealPickerModal';
 import MacrosDisplay from './MacrosDisplay';
 import MacroSettingsUI from './MacroSettingsUI';
 import NotesButton from './NotesButton';
+import BatchMealAssignmentModal from './BatchMealAssignmentModal';
 import { staplesStore } from '../lib/staplesStore';
 import { macroTargetsStore } from '../lib/macroTargetsStore';
 
@@ -97,6 +98,10 @@ export default function MealPlanning() {
   // Recipe browser modal state
   const [recipeBrowserOpen, setRecipeBrowserOpen] = useState(false);
   const [recipeBrowserTarget, setRecipeBrowserTarget] = useState<{ day: string; mealType: string } | null>(null);
+
+  // Batch meal assignment modal state
+  const [batchAssignmentOpen, setBatchAssignmentOpen] = useState(false);
+  const [batchAssignmentRecipe, setBatchAssignmentRecipe] = useState<string>('');
 
   // Get Harvey's meals from DISPLAYED week (not current week - allows week switching)
   // displayedWeek is defined below after state setup
@@ -212,6 +217,33 @@ export default function MealPlanning() {
       setNextWeek(next);
       setRecipeBrowserTarget(null);
     }
+  };
+
+  const handleOpenBatchAssignment = (recipeName: string) => {
+    setBatchAssignmentRecipe(recipeName);
+    setBatchAssignmentOpen(true);
+  };
+
+  const handleBatchAssign = (selectedDays: string[], mealType: string) => {
+    if (!displayedWeek) return;
+    
+    // Assign recipe to all selected days
+    selectedDays.forEach(day => {
+      weeklyMealPlanStorage.addMealToWeek(
+        displayedWeek.weekId,
+        day,
+        mealType,
+        batchAssignmentRecipe
+      );
+    });
+    
+    // Refresh state
+    const current = weeklyMealPlanStorage.getCurrentWeek();
+    const next = weeklyMealPlanStorage.getNextWeek();
+    setCurrentWeek(current);
+    setNextWeek(next);
+    
+    alert(`✅ Assigned "${batchAssignmentRecipe}" to ${mealType} for ${selectedDays.length} days`);
   };
 
   // HARVEY'S HANDLERS - Update displayed week directly
@@ -380,6 +412,7 @@ export default function MealPlanning() {
                 setRecipeInputModalOpen(true);
               }}
               macroTargets={macroTargets}
+              onOpenBatchAssignment={handleOpenBatchAssignment}
             />
           )}
         </>
@@ -461,6 +494,20 @@ export default function MealPlanning() {
         }}
         onSelectRecipe={handleSelectRecipeFromBrowser}
       />
+
+      {/* Batch meal assignment modal */}
+      {displayedWeek && (
+        <BatchMealAssignmentModal
+          isOpen={batchAssignmentOpen}
+          onClose={() => {
+            setBatchAssignmentOpen(false);
+            setBatchAssignmentRecipe('');
+          }}
+          recipeName={batchAssignmentRecipe}
+          weekId={displayedWeek.weekId}
+          onAssign={handleBatchAssign}
+        />
+      )}
     </div>
   );
 }
@@ -474,6 +521,7 @@ function JadesMealsView({
   onMealsUpdated,
   onOpenRecipeInput,
   macroTargets,
+  onOpenBatchAssignment,
 }: {
   week: WeeklyMealPlan;
   readOnly: boolean;
@@ -482,6 +530,7 @@ function JadesMealsView({
   onMealsUpdated?: () => void;
   onOpenRecipeInput?: (category: 'Breakfast' | 'Lunch' | 'Snack' | 'Dinner' | 'Dessert') => void;
   macroTargets?: { calories: number; protein: number; fats: number; carbs: number };
+  onOpenBatchAssignment?: (recipeName: string) => void;
 }) {
   const handleSetBreakfastToWeetbix = () => {
     const updated = assignRecipeToAllDays(week.weekId, 'Breakfast', 'PB & J Overnight Weet-Bix (GF)');
@@ -563,6 +612,7 @@ function JadesMealsView({
             onRemove={onRemove} 
             onMealsUpdated={onMealsUpdated}
             macroTargets={macroTargets}
+            onOpenBatchAssignment={onOpenBatchAssignment}
           />
         ))}
       </div>
@@ -578,6 +628,7 @@ function JadesDayCard({
   onRemove,
   onMealsUpdated,
   macroTargets,
+  onOpenBatchAssignment,
 }: {
   week: WeeklyMealPlan;
   day: string;
@@ -586,6 +637,7 @@ function JadesDayCard({
   onRemove: (weekId: string, day: string, mealType: string) => void;
   onMealsUpdated?: () => void;
   macroTargets?: { calories: number; protein: number; fats: number; carbs: number };
+  onOpenBatchAssignment?: (recipeName: string) => void;
 }) {
   const dayMeals = week.jades.meals[day] || {};
   const dayMacros = calculateDayMacros(week.weekId, day);
@@ -686,9 +738,18 @@ function JadesDayCard({
                     {dayOverride && <span className="text-xs text-amber-600 ml-2">(modified)</span>}
                   </div>
                   {!readOnly && (
-                    <button onClick={() => onRemove(week.weekId, day, mealType)} className="text-red-500 hover:text-red-700 transition p-1">
-                      <X size={18} />
-                    </button>
+                    <>
+                      <button 
+                        onClick={() => onOpenBatchAssignment?.(recipeName)} 
+                        className="text-blue-500 hover:text-blue-700 transition p-1 text-xs font-medium"
+                        title="Assign to multiple days"
+                      >
+                        📋
+                      </button>
+                      <button onClick={() => onRemove(week.weekId, day, mealType)} className="text-red-500 hover:text-red-700 transition p-1">
+                        <X size={18} />
+                      </button>
+                    </>
                   )}
                 </>
               )}
