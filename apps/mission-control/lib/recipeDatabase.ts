@@ -284,6 +284,26 @@ class RecipeDatabase {
         instructions: '1. Unwrap the Caramello Koala chocolate. 2. Enjoy as is or break into pieces. 3. Perfect after-meal treat.',
         notes: 'Single chocolate treat. Sweet dessert fix.',
       },
+      {
+        name: 'Chocolate Carrot Muffins (Toddlers & Beyond)',
+        category: 'Breakfast',
+        ingredients: [
+          { id: 'ing-65', name: 'Sunflower seeds', qty: '60', unit: 'g' },
+          { id: 'ing-66', name: 'Carrots (peeled, cut into pieces)', qty: '200', unit: 'g' },
+          { id: 'ing-67', name: 'Pitted Medjool dates', qty: '100', unit: 'g' },
+          { id: 'ing-68', name: 'Eggs', qty: '2', unit: 'whole' },
+          { id: 'ing-69', name: 'Milk (of choice)', qty: '60', unit: 'g' },
+          { id: 'ing-70', name: 'Raw sugar', qty: '2', unit: 'tbsp' },
+          { id: 'ing-71', name: 'Extra virgin olive oil', qty: '120', unit: 'g' },
+          { id: 'ing-72', name: 'Wholemeal spelt flour', qty: '170', unit: 'g' },
+          { id: 'ing-73', name: 'Raw cacao powder', qty: '20', unit: 'g' },
+          { id: 'ing-74', name: 'Baking powder', qty: '2', unit: 'tsp' },
+          { id: 'ing-75', name: 'Dark chocolate chips', qty: '70', unit: 'g' },
+        ],
+        macros: { calories: 213, protein: 4, fats: 16, carbs: 13 },
+        instructions: '1. Preheat oven to 180°C. 2. Pulse sunflower seeds, carrots, and dates in food processor until roughly chopped. 3. Mix in eggs, milk, sugar, and olive oil. 4. In a separate bowl, combine wholemeal spelt flour, cacao powder, and baking powder. 5. Fold wet ingredients into dry ingredients until just combined. 6. Stir in dark chocolate chips. 7. Divide batter into muffin cups and bake 20-25 minutes until a skewer comes out clean. 8. Cool in tin for 5 minutes, then transfer to wire rack.',
+        notes: 'Healthy muffins made with wholemeal spelt flour, dates for natural sweetness, and carrots. Great for toddlers and the whole family. Recipe from Cookidoo®.',
+      },
     ];
 
     defaults.forEach(recipe => this.addRecipe(recipe));
@@ -399,6 +419,26 @@ if (typeof window !== 'undefined') {
       macros: { calories: 75, protein: 1, fats: 3, carbs: 11 },
       instructions: '1. Unwrap the Caramello Koala chocolate. 2. Enjoy as is or break into pieces. 3. Perfect after-meal treat.',
       notes: 'Single chocolate treat. Sweet dessert fix.',
+    },
+    {
+      name: 'Chocolate Carrot Muffins (Toddlers & Beyond)',
+      category: 'Breakfast',
+      ingredients: [
+        { id: 'ing-65', name: 'Sunflower seeds', qty: '60', unit: 'g' },
+        { id: 'ing-66', name: 'Carrots (peeled, cut into pieces)', qty: '200', unit: 'g' },
+        { id: 'ing-67', name: 'Pitted Medjool dates', qty: '100', unit: 'g' },
+        { id: 'ing-68', name: 'Eggs', qty: '2', unit: 'whole' },
+        { id: 'ing-69', name: 'Milk (of choice)', qty: '60', unit: 'g' },
+        { id: 'ing-70', name: 'Raw sugar', qty: '2', unit: 'tbsp' },
+        { id: 'ing-71', name: 'Extra virgin olive oil', qty: '120', unit: 'g' },
+        { id: 'ing-72', name: 'Wholemeal spelt flour', qty: '170', unit: 'g' },
+        { id: 'ing-73', name: 'Raw cacao powder', qty: '20', unit: 'g' },
+        { id: 'ing-74', name: 'Baking powder', qty: '2', unit: 'tsp' },
+        { id: 'ing-75', name: 'Dark chocolate chips', qty: '70', unit: 'g' },
+      ],
+      macros: { calories: 213, protein: 4, fats: 16, carbs: 13 },
+      instructions: '1. Preheat oven to 180°C. 2. Pulse sunflower seeds, carrots, and dates in food processor until roughly chopped. 3. Mix in eggs, milk, sugar, and olive oil. 4. In a separate bowl, combine wholemeal spelt flour, cacao powder, and baking powder. 5. Fold wet ingredients into dry ingredients until just combined. 6. Stir in dark chocolate chips. 7. Divide batter into muffin cups and bake 20-25 minutes until a skewer comes out clean. 8. Cool in tin for 5 minutes, then transfer to wire rack.',
+      notes: 'Healthy muffins made with wholemeal spelt flour, dates for natural sweetness, and carrots. Great for toddlers and the whole family. Recipe from Cookidoo®.',
     },
   ];
   
