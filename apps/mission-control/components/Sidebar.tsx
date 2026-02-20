@@ -206,3 +206,17 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
     </aside>
   );
 }
+
+
+// ADD THIS SECTION TO THE navSections ARRAY:
+// {
+//   id: 'review',
+//   name: 'REVIEW',
+//   subtext: 'Overnight Builds',
+//   section: 'review',
+//   items: [
+//     { id: 'awaiting-review', label: 'Awaiting Review', icon: CheckSquare },
+//     { id: 'overnight-builds', label: 'Nightly Builds', icon: Clock },
+//     { id: 'scheduled-jobs', label: 'Job Status', icon: Zap },
+//   ],
+// },

@@ -739,7 +739,17 @@ function JadesDayCard({
             <div key={mealType} className="flex items-center gap-3">
               <label className="text-sm font-semibold text-gray-700 w-20">{mealType}</label>
               {!recipeName ? (
-                <div className="flex-1 text-gray-400 italic text-sm py-3 px-4 min-h-[44px] flex items-center">Empty</div>
+                <button
+                  onClick={() => {
+                    setRecipeBrowserTarget({ day, mealType });
+                    setRecipeBrowserOpen(true);
+                  }}
+                  className="flex-1 text-blue-600 hover:text-blue-700 italic text-sm py-3 px-4 min-h-[44px] flex items-center gap-2 border-2 border-dashed border-blue-300 rounded-lg hover:bg-blue-50 transition cursor-pointer"
+                  title="Click to browse saved recipes"
+                >
+                  <Plus size={18} />
+                  <span>Add Meal</span>
+                </button>
               ) : (
                 <>
                   <div
