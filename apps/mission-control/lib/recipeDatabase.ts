@@ -212,6 +212,25 @@ class RecipeDatabase {
         instructions: '1. Cook the vermicelli noodles according to package directions, drain and set aside. 2. Heat a wok or large pan over medium-high heat. Stir-fry beef strips until cooked through. 3. Add stir fry vegetables and cook until tender-crisp. 4. Add cooked noodles, San Choy Bow sauce, and soy sauce. Toss everything together until well combined. 5. Serve hot.',
         notes: 'Gluten-free and dairy-free friendly. High protein, low fat option.',
       },
+      {
+        name: 'Asian Chicken Tacos (GF & DF)',
+        category: 'Dinner',
+        ingredients: [
+          { id: 'ing-38', name: 'Carrot', qty: '60', unit: 'g' },
+          { id: 'ing-39', name: 'Chicken Breast (Weighed Raw)', qty: '150', unit: 'g' },
+          { id: 'ing-40', name: 'Fried Shallots - Doree', qty: '5', unit: 'g' },
+          { id: 'ing-41', name: 'Honey', qty: '10', unit: 'g' },
+          { id: 'ing-42', name: 'Lettuce', qty: '40', unit: 'g' },
+          { id: 'ing-43', name: 'Light Soy Sauce - Ayam', qty: '20', unit: 'g' },
+          { id: 'ing-44', name: 'Minced Garlic - Woolworths', qty: '10', unit: 'g' },
+          { id: 'ing-45', name: 'Onion', qty: '20', unit: 'g' },
+          { id: 'ing-46', name: 'Taco Shell (13g) - Old El Paso', qty: '3', unit: 'shells' },
+          { id: 'ing-47', name: 'Vegan Aioli - Praise', qty: '15', unit: 'g' },
+        ],
+        macros: { calories: 531, protein: 38, fats: 19, carbs: 42 },
+        instructions: '1. Heat a large pan over medium-high heat. 2. Stir-fry chicken with minced garlic and onion until cooked through. 3. Add carrot and cook until tender-crisp. 4. Season with honey and soy sauce. 5. Warm taco shells and assemble with lettuce, chicken mixture, fried shallots, and vegan aioli. 6. Serve with lemon wedge.',
+        notes: 'Gluten-free and dairy-free friendly. Vegan aioli version.',
+      },
     ];
 
     defaults.forEach(recipe => this.addRecipe(recipe));
@@ -255,6 +274,25 @@ if (typeof window !== 'undefined') {
       macros: { calories: 565, protein: 47, fats: 8, carbs: 71 },
       instructions: '1. Cook the vermicelli noodles according to package directions, drain and set aside. 2. Heat a wok or large pan over medium-high heat. Stir-fry beef strips until cooked through. 3. Add stir fry vegetables and cook until tender-crisp. 4. Add cooked noodles, San Choy Bow sauce, and soy sauce. Toss everything together until well combined. 5. Serve hot.',
       notes: 'Gluten-free and dairy-free friendly. High protein, low fat option.',
+    },
+    {
+      name: 'Asian Chicken Tacos (GF & DF)',
+      category: 'Dinner',
+      ingredients: [
+        { id: 'ing-38', name: 'Carrot', qty: '60', unit: 'g' },
+        { id: 'ing-39', name: 'Chicken Breast (Weighed Raw)', qty: '150', unit: 'g' },
+        { id: 'ing-40', name: 'Fried Shallots - Doree', qty: '5', unit: 'g' },
+        { id: 'ing-41', name: 'Honey', qty: '10', unit: 'g' },
+        { id: 'ing-42', name: 'Lettuce', qty: '40', unit: 'g' },
+        { id: 'ing-43', name: 'Light Soy Sauce - Ayam', qty: '20', unit: 'g' },
+        { id: 'ing-44', name: 'Minced Garlic - Woolworths', qty: '10', unit: 'g' },
+        { id: 'ing-45', name: 'Onion', qty: '20', unit: 'g' },
+        { id: 'ing-46', name: 'Taco Shell (13g) - Old El Paso', qty: '3', unit: 'shells' },
+        { id: 'ing-47', name: 'Vegan Aioli - Praise', qty: '15', unit: 'g' },
+      ],
+      macros: { calories: 531, protein: 38, fats: 19, carbs: 42 },
+      instructions: '1. Heat a large pan over medium-high heat. 2. Stir-fry chicken with minced garlic and onion until cooked through. 3. Add carrot and cook until tender-crisp. 4. Season with honey and soy sauce. 5. Warm taco shells and assemble with lettuce, chicken mixture, fried shallots, and vegan aioli. 6. Serve with lemon wedge.',
+      notes: 'Gluten-free and dairy-free friendly. Vegan aioli version.',
     },
   ];
   
