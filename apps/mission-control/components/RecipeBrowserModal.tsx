@@ -77,7 +77,7 @@ export default function RecipeBrowserModal({
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
           >
-            <X size={20} />
+            <X size={24} />
           </button>
         </div>
 

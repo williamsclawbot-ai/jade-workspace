@@ -333,7 +333,7 @@ export default function MealPlanning() {
       <div className="flex gap-4 border-b border-gray-200 overflow-x-auto">
         <button
           onClick={() => setActiveTab('jades-meals')}
-          className={`px-4 py-3 font-medium border-b-2 transition whitespace-nowrap ${
+          className={`px-6 py-4 font-medium border-b-2 transition whitespace-nowrap min-h-[48px] ${
             activeTab === 'jades-meals' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'
           }`}
         >
@@ -341,7 +341,7 @@ export default function MealPlanning() {
         </button>
         <button
           onClick={() => setActiveTab('harveys-meals')}
-          className={`px-4 py-3 font-medium border-b-2 transition whitespace-nowrap ${
+          className={`px-6 py-4 font-medium border-b-2 transition whitespace-nowrap min-h-[48px] ${
             activeTab === 'harveys-meals' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'
           }`}
         >
@@ -349,7 +349,7 @@ export default function MealPlanning() {
         </button>
         <button
           onClick={() => setActiveTab('harveys-options')}
-          className={`px-4 py-3 font-medium border-b-2 transition whitespace-nowrap ${
+          className={`px-6 py-4 font-medium border-b-2 transition whitespace-nowrap min-h-[48px] ${
             activeTab === 'harveys-options' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'
           }`}
         >
@@ -357,7 +357,7 @@ export default function MealPlanning() {
         </button>
         <button
           onClick={() => setActiveTab('shopping')}
-          className={`px-4 py-3 font-medium border-b-2 transition whitespace-nowrap ${
+          className={`px-6 py-4 font-medium border-b-2 transition whitespace-nowrap min-h-[48px] ${
             activeTab === 'shopping' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'
           }`}
         >
@@ -367,22 +367,22 @@ export default function MealPlanning() {
 
       {/* Week tabs */}
       {(activeTab === 'jades-meals' || activeTab === 'harveys-meals' || activeTab === 'shopping') && (
-        <div className="flex gap-2 border-b border-gray-200">
+        <div className="flex gap-3 border-b border-gray-200">
           <button
             onClick={() => { setActiveWeekTab('this'); setSelectedArchivedWeekId(null); }}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition ${activeWeekTab === 'this' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'}`}
+            className={`px-6 py-3 text-sm font-medium border-b-2 transition min-h-[48px] ${activeWeekTab === 'this' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'}`}
           >
             This Week {currentWeek?.status === 'locked' && '🔒'}
           </button>
           <button
             onClick={() => { setActiveWeekTab('next'); setSelectedArchivedWeekId(null); }}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition ${activeWeekTab === 'next' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'}`}
+            className={`px-6 py-3 text-sm font-medium border-b-2 transition min-h-[48px] ${activeWeekTab === 'next' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'}`}
           >
             Next Week
           </button>
           <button
             onClick={() => { setActiveWeekTab('archive'); if (archivedWeeks.length > 0 && !selectedArchivedWeekId) setSelectedArchivedWeekId(archivedWeeks[0].weekId); }}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition ${activeWeekTab === 'archive' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'}`}
+            className={`px-6 py-3 text-sm font-medium border-b-2 transition min-h-[48px] ${activeWeekTab === 'archive' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'}`}
           >
             Archive ({archivedWeeks.length})
           </button>
@@ -585,23 +585,23 @@ function JadesMealsView({
             </p>
           </div>
           {!readOnly && (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => onOpenRecipeInput?.('Lunch')}
-                className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded text-sm font-medium transition whitespace-nowrap flex items-center gap-1"
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition whitespace-nowrap flex items-center gap-2 h-12"
               >
-                <Plus size={16} />
+                <Plus size={18} />
                 Add Recipe
               </button>
               <button
                 onClick={handleCopyPreviousWeek}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium transition whitespace-nowrap flex items-center gap-1"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg text-sm font-medium transition whitespace-nowrap flex items-center gap-2 h-12"
               >
                 📋 Copy Previous Week
               </button>
               <button
                 onClick={handleSetBreakfastToWeetbix}
-                className="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-2 rounded text-sm font-medium transition whitespace-nowrap"
+                className="bg-amber-100 hover:bg-amber-200 text-amber-800 px-4 py-3 rounded-lg text-sm font-medium transition whitespace-nowrap h-12"
               >
                 Set All Breakfasts to PB & J Overnight Weet-Bix
               </button>
@@ -705,7 +705,7 @@ function JadesDayCard({
         {!readOnly && day === 'Monday' && !dayMeals['dinner'] && (
           <button
             onClick={() => handleQuickAddMeal('Dinner', 'Asian Chicken Tacos (GF)')}
-            className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 py-1 rounded font-medium transition"
+            className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-2 rounded-lg font-medium transition min-h-[36px]"
           >
             + Asian Tacos
           </button>
@@ -729,22 +729,22 @@ function JadesDayCard({
       )}
       
       <MacrosDisplay actual={dayMacros} target={targets} showRemaining={true} />
-      <div className="space-y-2">
+      <div className="space-y-3">
         {jadesMealTypes.map(mealType => {
           const recipeKey = mealType.toLowerCase() as keyof typeof dayMeals;
           const recipeName = dayMeals[recipeKey];
           const dayOverride = week.jades.dayOverrides[day]?.[mealType.toLowerCase()];
 
           return (
-            <div key={mealType} className="flex items-center gap-2">
+            <div key={mealType} className="flex items-center gap-3">
               <label className="text-sm font-semibold text-gray-700 w-20">{mealType}</label>
               {!recipeName ? (
-                <div className="flex-1 text-gray-400 italic text-sm py-2 px-3">Empty</div>
+                <div className="flex-1 text-gray-400 italic text-sm py-3 px-4 min-h-[44px] flex items-center">Empty</div>
               ) : (
                 <>
                   <div
                     onClick={() => onOpenModal(week.weekId, day, mealType, recipeName)}
-                    className="flex-1 px-3 py-2 bg-jade-light/30 rounded hover:bg-jade-light/50 cursor-pointer transition"
+                    className="flex-1 px-4 py-3 bg-jade-light/30 rounded-lg hover:bg-jade-light/50 cursor-pointer transition min-h-[44px] flex items-center"
                   >
                     <span className="font-medium text-gray-800">{recipeName}</span>
                     {dayOverride && <span className="text-xs text-amber-600 ml-2">(modified)</span>}
@@ -753,13 +753,13 @@ function JadesDayCard({
                     <>
                       <button 
                         onClick={() => onOpenBatchAssignment?.(recipeName)} 
-                        className="text-blue-500 hover:text-blue-700 transition p-1 text-xs font-medium"
+                        className="text-blue-500 hover:text-blue-700 transition p-3 text-lg font-medium min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-blue-50"
                         title="Assign to multiple days"
                       >
                         📋
                       </button>
-                      <button onClick={() => onRemove(week.weekId, day, mealType)} className="text-red-500 hover:text-red-700 transition p-1">
-                        <X size={18} />
+                      <button onClick={() => onRemove(week.weekId, day, mealType)} className="text-red-500 hover:text-red-700 transition p-3 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-red-50">
+                        <X size={20} />
                       </button>
                     </>
                   )}
@@ -1190,17 +1190,17 @@ function ShoppingListView({
       {!readOnly && (
         <div className="bg-white border border-gray-200 rounded-lg p-4">
           <h3 className="font-semibold text-jade-purple mb-3">Add Item</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div className="md:col-span-1">
               <input
                 type="text"
                 value={newItemName}
                 onChange={(e) => setNewItemName(e.target.value)}
                 placeholder="Item name"
-                className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-jade-light w-full"
+                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-jade-light w-full h-12"
               />
               {newItemName.trim() && purchaseHistory.getSuggestion(newItemName) && (
-                <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded text-xs text-amber-900">
+                <div className="mt-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900">
                   💡 {purchaseHistory.getSuggestionString(newItemName)}
                 </div>
               )}
@@ -1210,20 +1210,20 @@ function ShoppingListView({
               value={newItemQty}
               onChange={(e) => setNewItemQty(e.target.value)}
               placeholder="Qty"
-              className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-jade-light"
+              className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-jade-light h-12"
             />
             <input
               type="text"
               value={newItemUnit}
               onChange={(e) => setNewItemUnit(e.target.value)}
               placeholder="Unit"
-              className="px-3 py-2 border border-gray-300 rounded focus:outline-none focus:border-jade-light"
+              className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-jade-light h-12"
             />
             <button
               onClick={handleAddItem}
-              className="bg-jade-purple text-white px-4 py-2 rounded hover:bg-jade-purple/90 transition flex items-center justify-center gap-1"
+              className="bg-jade-purple text-white px-4 py-3 rounded-lg hover:bg-jade-purple/90 transition flex items-center justify-center gap-2 h-12"
             >
-              <Plus size={16} /> Add
+              <Plus size={18} /> Add
             </button>
           </div>
         </div>
@@ -1281,9 +1281,9 @@ function ShoppingListView({
           <button
             onClick={onBuildCart}
             disabled={buildingCart || manualItems.length === 0}
-            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2"
+            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-6 py-4 rounded-lg font-semibold transition flex items-center justify-center gap-2 h-14"
           >
-            <ShoppingCart size={20} />
+            <ShoppingCart size={22} />
             {buildingCart ? 'Building cart...' : 'Build Woolworths Cart & Lock Week'}
           </button>
 
