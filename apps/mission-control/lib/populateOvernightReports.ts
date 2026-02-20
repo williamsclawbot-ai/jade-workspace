@@ -1,6 +1,6 @@
 /**
- * Populate Overnight Reports (Feb 19, 2026 11pm run)
- * Adds all 7 research reports to the overnight review system
+ * Populate Overnight Reports (Feb 19-20, 2026 11pm run)
+ * Adds all research reports to the overnight review system
  */
 
 import { overnightReviewStore } from './overnightReviewStore';
@@ -12,45 +12,33 @@ export function populateOvernightReports() {
   overnightReviewStore.logWork({
     completedAt: baseTimestamp,
     taskName: 'Trending Baby Sleep Topics Research',
-    summary: 'Researched current trends in baby/toddler sleep across Instagram, TikTok, Reddit, and Google. Identified 6 major trending topics (all-nighter trend, shift-splitting, butter myth debunked, etc.), compiled popular hashtags with engagement levels, and provided 8 content ideas + 7 underserved gaps HLS could fill.',
+    summary: 'Researched current trends in baby/toddler sleep across Instagram, TikTok, Reddit, and Google. Identified 7 major trending topics (all-nighter trend, split-shift parenting, screen-free bedtimes, 6-hour sleep celebrations, etc.), compiled popular hashtags with engagement levels, and provided detailed content ideas + 7 underserved gaps HLS could fill.',
     linkLabel: 'Read full trending topics report',
-    linkPath: '/Users/williams/.openclaw/workspace/reports/overnight-feb19-trending-topics.md',
+    linkPath: '/overnight-research/task1-trending-topics.md',
     status: 'needs-review',
     statusDetail: 'Review content ideas and gaps to fill',
     category: 'analysis',
   });
 
-  // TASK 2: GoHighLevel Workflow Audit
+  // TASK 2 & 3: GoHighLevel Workflow Audit + Weekly Activity
   overnightReviewStore.logWork({
     completedAt: baseTimestamp + 60000, // 1 minute later
-    taskName: 'GoHighLevel Workflow Audit',
-    summary: 'BLOCKED: GHL API token is invalid (401 error). Cannot audit workflows until you provide a valid token. Report includes instructions for getting a new token from GHL account and what the audit will deliver once unblocked.',
-    linkLabel: 'Read GHL audit report (instructions)',
-    linkPath: '/Users/williams/.openclaw/workspace/reports/overnight-feb19-ghl-workflow-audit.md',
+    taskName: 'GoHighLevel Workflow Audit + Weekly Activity',
+    summary: 'BLOCKED: GHL API token is invalid (401 error). Cannot audit workflows or pull weekly activity until you provide a valid token. Report includes step-by-step instructions for generating a new token from GHL account with correct scopes, and templates for what both reports will deliver once unblocked.',
+    linkLabel: 'Read GHL audit + activity report',
+    linkPath: '/overnight-research/task2-3-ghl-audit-weekly-activity.md',
     status: 'needs-decision',
     statusDetail: 'Need valid GHL API token to proceed',
     category: 'automation',
   });
 
-  // TASK 3: Weekly Activity Summary from GoHighLevel
-  overnightReviewStore.logWork({
-    completedAt: baseTimestamp + 120000, // 2 minutes later
-    taskName: 'Weekly Activity Summary from GoHighLevel',
-    summary: 'BLOCKED: GHL API token invalid. Cannot pull weekly activity (new leads, bookings, pipeline status, revenue) until token is fixed. Report includes template of what this summary will look like once unblocked.',
-    linkLabel: 'Read weekly summary report (template)',
-    linkPath: '/Users/williams/.openclaw/workspace/reports/overnight-feb19-weekly-activity-summary.md',
-    status: 'needs-decision',
-    statusDetail: 'Same GHL token issue',
-    category: 'analysis',
-  });
-
   // TASK 4: Latest Infant Sleep Research
   overnightReviewStore.logWork({
-    completedAt: baseTimestamp + 180000, // 3 minutes later
+    completedAt: baseTimestamp + 120000, // 2 minutes later
     taskName: 'Latest Infant Sleep Research',
-    summary: 'Analyzed 7 peer-reviewed studies from the last 6 months. Key findings: sleep shapes long-term development (not just today), bi-directional relationship between parenting stress & baby sleep (validates HLS approach), 4-month regression is neurodevelopment (not a problem), and more. Includes practical "How You Could Use It" applications for each study.',
+    summary: 'Analyzed 10 peer-reviewed studies from 2025-2026. Key findings: sleep as developmental process (not just rest), sleep training does NOT harm attachment (by age 6, no difference), screen-free bedtimes boost toddler sleep quality, infant sleep EEG at 4 months predicts development at 18 months. Includes practical "How You Could Use It" content angles for each study.',
     linkLabel: 'Read latest research report',
-    linkPath: '/Users/williams/.openclaw/workspace/reports/overnight-feb19-latest-sleep-research.md',
+    linkPath: '/overnight-research/task4-sleep-research.md',
     status: 'needs-review',
     statusDetail: 'High-value content & positioning insights',
     category: 'analysis',
@@ -58,11 +46,11 @@ export function populateOvernightReports() {
 
   // TASK 5: Competitor Content Research
   overnightReviewStore.logWork({
-    completedAt: baseTimestamp + 240000, // 4 minutes later
+    completedAt: baseTimestamp + 180000, // 3 minutes later
     taskName: 'Competitor Content Research',
-    summary: 'Deep-dived 10 major baby sleep Instagram accounts (Taking Cara Babies 3M followers, Peaceful Sleeper 464K, Cozy Baby Sleep 237K, etc.). Identified what content performs best (video demos, validation posts, myth-busting, testimonials), their unique positioning, and where HLS can stand out (parental wellbeing as PRIMARY, sister-founded relatability, flexible two-method approach).',
+    summary: 'Deep-dived 6 major baby sleep Instagram accounts (Taking Cara Babies 3M followers, Cozy Baby Sleep 237K, Modern Sleep Mama 129K, etc.). Identified what content performs best (relatable memes, quick tips, before/afters, anti-guilt messaging), their positioning gaps, and where HLS can dominate (parental wellbeing as PRIMARY, partner alignment, founder authenticity, solo parent content).',
     linkLabel: 'Read competitor research report',
-    linkPath: '/Users/williams/.openclaw/workspace/reports/overnight-feb19-competitor-research.md',
+    linkPath: '/overnight-research/task5-competitor-research.md',
     status: 'needs-review',
     statusDetail: 'Strategic positioning & content recommendations',
     category: 'analysis',
@@ -70,23 +58,23 @@ export function populateOvernightReports() {
 
   // TASK 6: Woolworths Grocery Integration Research
   overnightReviewStore.logWork({
-    completedAt: baseTimestamp + 300000, // 5 minutes later
+    completedAt: baseTimestamp + 240000, // 4 minutes later
     taskName: 'Woolworths Grocery Integration Research',
-    summary: 'Researched browser automation capabilities + existing Woolworths MCP servers. YES, I can automate grocery cart building from meal plans. Found pre-built MCP server (elijah-g/Woolworths-mcp) that handles product search, cart management via browser automation. Recommended hybrid approach: install MCP server → integrate with meal planning → auto-build weekly carts for Jade to review/submit. Expected time savings: 40-55 min/week.',
+    summary: 'Researched browser automation capabilities + existing Woolworths MCP servers. YES, fully doable! Found Coles & Woolworths MCP server (hung-ngm/coles-woolworths-mcp-server) that handles product search + price comparison. Recommended hybrid approach: MCP server for search → browser automation for cart building → Jade manually checks out. Expected time savings: 30-45 min/week.',
     linkLabel: 'Read Woolworths integration report',
-    linkPath: '/Users/williams/.openclaw/workspace/reports/overnight-feb19-woolworths-integration.md',
+    linkPath: '/overnight-research/task6-woolworths-integration.md',
     status: 'needs-decision',
-    statusDetail: 'Approve approach + install MCP server',
+    statusDetail: 'Approve approach + install MCP server?',
     category: 'automation',
   });
 
   // TASK 7: What Else Can I Do For You?
   overnightReviewStore.logWork({
-    completedAt: baseTimestamp + 360000, // 6 minutes later
+    completedAt: baseTimestamp + 300000, // 5 minutes later
     taskName: 'What Else Can I Do For You?',
-    summary: 'Generated TOP 10 recommendations based on everything I know about your business + personal life. Ranked by impact: (1) Automated Instagram content pipeline, (2) Lead follow-up system, (3) Harvey routine tracker, (4) Testimonial automation, (5) John dashboard, (6) Email optimization, (7) Meal planning intelligence, (8) Competitor monitoring, (9) Financial dashboard, (10) Daily morning briefing. Includes time savings, ROI estimates, and implementation roadmap.',
+    summary: 'Generated TOP 10 strategic recommendations based on everything I know about your business + personal life. Ranked by impact: (1) Automated weekly content generation (5-7h/week saved), (2) Customer journey automation (10-15% conversion increase), (3) Harvey\'s schedule manager, (4) John\'s task coordination, (5) Revenue tracking dashboard, and more. Includes time savings, ROI estimates, and why you haven\'t asked yet.',
     linkLabel: 'Read "What Else Can I Do?" report',
-    linkPath: '/Users/williams/.openclaw/workspace/reports/overnight-feb19-what-else-can-you-do.md',
+    linkPath: '/overnight-research/task7-what-else-can-i-do.md',
     status: 'needs-decision',
     statusDetail: 'Pick top 3 to implement next',
     category: 'analysis',
