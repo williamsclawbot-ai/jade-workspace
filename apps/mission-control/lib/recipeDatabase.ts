@@ -263,6 +263,27 @@ class RecipeDatabase {
         instructions: '1. Add YoPro yoghurt to a bowl. 2. Top with frozen raspberries, cacao nibs, and pistachios. 3. Drizzle with honey. 4. Stir together and enjoy immediately, or let sit for 2-3 minutes for a softer texture.',
         notes: 'Quick, high-protein breakfast bowl. Great for busy mornings.',
       },
+      {
+        name: 'Skim Milk & Popcorn Snack',
+        category: 'Snack',
+        ingredients: [
+          { id: 'ing-62', name: 'Skim Milk', qty: '350', unit: 'ml' },
+          { id: 'ing-63', name: 'Popcorn (Lightly Salted & Slightly Sweet) - Cobs', qty: '14', unit: 'g' },
+        ],
+        macros: { calories: 197, protein: 15, fats: 3, carbs: 27 },
+        instructions: '1. Pour 350ml of skim milk into a glass. 2. Serve with 14g of Cobs popcorn on the side. 3. Enjoy together as a light, crunchy snack.',
+        notes: 'Perfect afternoon snack. High protein, satisfying combo of milk and popcorn.',
+      },
+      {
+        name: 'Caramello Koala - Cadbury',
+        category: 'Dessert',
+        ingredients: [
+          { id: 'ing-64', name: 'Caramello Koala - Cadbury (15g)', qty: '1', unit: 'whole' },
+        ],
+        macros: { calories: 75, protein: 1, fats: 3, carbs: 11 },
+        instructions: '1. Unwrap the Caramello Koala chocolate. 2. Enjoy as is or break into pieces. 3. Perfect after-meal treat.',
+        notes: 'Single chocolate treat. Sweet dessert fix.',
+      },
     ];
 
     defaults.forEach(recipe => this.addRecipe(recipe));
@@ -357,6 +378,27 @@ if (typeof window !== 'undefined') {
       macros: { calories: 218, protein: 21, fats: 9, carbs: 20 },
       instructions: '1. Add YoPro yoghurt to a bowl. 2. Top with frozen raspberries, cacao nibs, and pistachios. 3. Drizzle with honey. 4. Stir together and enjoy immediately, or let sit for 2-3 minutes for a softer texture.',
       notes: 'Quick, high-protein breakfast bowl. Great for busy mornings.',
+    },
+    {
+      name: 'Skim Milk & Popcorn Snack',
+      category: 'Snack',
+      ingredients: [
+        { id: 'ing-62', name: 'Skim Milk', qty: '350', unit: 'ml' },
+        { id: 'ing-63', name: 'Popcorn (Lightly Salted & Slightly Sweet) - Cobs', qty: '14', unit: 'g' },
+      ],
+      macros: { calories: 197, protein: 15, fats: 3, carbs: 27 },
+      instructions: '1. Pour 350ml of skim milk into a glass. 2. Serve with 14g of Cobs popcorn on the side. 3. Enjoy together as a light, crunchy snack.',
+      notes: 'Perfect afternoon snack. High protein, satisfying combo of milk and popcorn.',
+    },
+    {
+      name: 'Caramello Koala - Cadbury',
+      category: 'Dessert',
+      ingredients: [
+        { id: 'ing-64', name: 'Caramello Koala - Cadbury (15g)', qty: '1', unit: 'whole' },
+      ],
+      macros: { calories: 75, protein: 1, fats: 3, carbs: 11 },
+      instructions: '1. Unwrap the Caramello Koala chocolate. 2. Enjoy as is or break into pieces. 3. Perfect after-meal treat.',
+      notes: 'Single chocolate treat. Sweet dessert fix.',
     },
   ];
   
