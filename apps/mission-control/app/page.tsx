@@ -37,6 +37,7 @@ import MorningBriefing from '@/components/MorningBriefing';
 import weeklyContentData from '@/lib/weeklyContentData.json';
 import { initializeWeeklyContent } from '@/lib/initializeContentData';
 import { initOvernightReports } from '@/lib/initOvernightReports';
+import { runMealTests } from '@/lib/mealIntegrationTest';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -47,6 +48,12 @@ export default function Home() {
     initializeWeeklyContent(weeklyContentData);
     // Initialize overnight research reports (Feb 19, 2026)
     initOvernightReports();
+    
+    // Make test available in browser console
+    if (typeof window !== 'undefined') {
+      (window as any).runMealTests = runMealTests;
+    }
+    
     const timer = setTimeout(() => setIsLoading(false), 500);
     return () => clearTimeout(timer);
   }, []);

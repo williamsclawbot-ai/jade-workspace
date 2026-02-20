@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, ShoppingCart, X } from 'lucide-react';
 import { weeklyMealPlanStorage, WeeklyMealPlan, ShoppingItem } from '../lib/weeklyMealPlanStorage';
+import JadesPersonalMealsView from './JadesPersonalMealsView';
 import { recipeDatabase } from '../lib/recipeDatabase';
 import { 
   calculateDayMacros,
@@ -74,7 +75,7 @@ const initializeAssignedMeals = () => {
 };
 
 export default function MealPlanning() {
-  const [activeTab, setActiveTab] = useState<'jades-meals' | 'harveys-meals' | 'shopping' | 'harveys-options'>('jades-meals');
+  const [activeTab, setActiveTab] = useState<'jades-meals' | 'harveys-meals' | 'shopping' | 'harveys-options' | 'personal-meals'>('jades-meals');
   const [activeWeekTab, setActiveWeekTab] = useState<'this' | 'next' | 'archive'>('this');
   const [selectedArchivedWeekId, setSelectedArchivedWeekId] = useState<string | null>(null);
 
@@ -332,12 +333,20 @@ export default function MealPlanning() {
       {/* Main tabs */}
       <div className="flex gap-4 border-b border-gray-200 overflow-x-auto">
         <button
+          onClick={() => setActiveTab('personal-meals')}
+          className={`px-6 py-4 font-medium border-b-2 transition whitespace-nowrap min-h-[48px] ${
+            activeTab === 'personal-meals' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'
+          }`}
+        >
+          👩 My Meals
+        </button>
+        <button
           onClick={() => setActiveTab('jades-meals')}
           className={`px-6 py-4 font-medium border-b-2 transition whitespace-nowrap min-h-[48px] ${
             activeTab === 'jades-meals' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'
           }`}
         >
-          👩 Jade's Meals
+          📅 Weekly Plan
         </button>
         <button
           onClick={() => setActiveTab('harveys-meals')}
@@ -353,7 +362,7 @@ export default function MealPlanning() {
             activeTab === 'harveys-options' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'
           }`}
         >
-          ✏️ Harvey's Options
+          ✏️ Options
         </button>
         <button
           onClick={() => setActiveTab('shopping')}
@@ -387,6 +396,11 @@ export default function MealPlanning() {
             Archive ({archivedWeeks.length})
           </button>
         </div>
+      )}
+
+      {/* PERSONAL MEALS (NEW) */}
+      {activeTab === 'personal-meals' && (
+        <JadesPersonalMealsView />
       )}
 
       {/* JADE'S MEALS */}
