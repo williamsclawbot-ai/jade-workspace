@@ -1,119 +1,131 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ShoppingCart as ShoppingCartIcon, LogIn, Zap, Check, AlertCircle, Loader, RefreshCw, Eye } from 'lucide-react';
-import { mealsStore } from '@/lib/mealsStore';
+import { ShoppingCart as ShoppingCartIcon, Loader, Check, AlertCircle, Eye, Zap } from 'lucide-react';
 
-interface SessionToken {
-  capturedAt: number;
-  expiresAt: number;
-  isValid: boolean;
-}
-
-interface CartItem {
-  name: string;
-  price: number;
-  stockcode: string;
-}
-
-interface CartState {
-  items: CartItem[];
-  total: number;
-  status: 'idle' | 'loading' | 'success' | 'error';
-  message: string;
+interface WorkflowStatus {
+  status: 'starting' | 'waiting_for_login' | 'searching' | 'adding_to_cart' | 'complete' | 'error';
+  logs: string[];
+  ingredients: string[];
+  cartItems: any[];
+  cartTotal: number;
 }
 
 export default function ShoppingCart() {
-  const [sessionToken, setSessionToken] = useState<SessionToken | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [cartState, setCartState] = useState<CartState>({
-    items: [],
-    total: 0,
-    status: 'idle',
-    message: '',
-  });
-  const [showCartPreview, setShowCartPreview] = useState(false);
-  const [workflowRunning, setWorkflowRunning] = useState(false);
+  const [isBuilding, setIsBuilding] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [workflowStatus, setWorkflowStatus] = useState<WorkflowStatus | null>(null);
+  const [showLogs, setShowLogs] = useState(false);
 
-  // Load session token from localStorage on mount
+  // Poll for workflow status when active
   useEffect(() => {
-    const stored = localStorage.getItem('woolworths-session');
-    if (stored) {
+    if (!sessionId) return;
+
+    const pollInterval = setInterval(async () => {
       try {
-        const token = JSON.parse(stored);
-        const now = Date.now();
-        token.isValid = now < token.expiresAt;
-        setSessionToken(token);
-      } catch (e) {
-        console.error('Failed to load session token');
+        const response = await fetch(`/api/woolworths/build-cart?sessionId=${sessionId}`);
+        const data = await response.json();
+
+        if (data.success) {
+          setWorkflowStatus(data);
+
+          // Stop polling when complete or error
+          if (data.status === 'complete' || data.status === 'error') {
+            setIsBuilding(false);
+            clearInterval(pollInterval);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to poll workflow status:', error);
       }
-    }
-  }, []);
+    }, 2000); // Poll every 2 seconds
 
-  const handleLoginAndCapture = async () => {
-    setIsLoading(true);
-    setCartState({
-      items: [],
-      total: 0,
-      status: 'loading',
-      message: '📝 Instructions: Run this command in terminal to log in:\n\nnode /Users/williams/.openclaw/workspace/weekly-shopping-workflow.js\n\nThen come back and click "I\'ve Logged In" below.',
-    });
-
-    // For now, just mark as ready-to-use
-    setTimeout(() => {
-      const token: SessionToken = {
-        capturedAt: Date.now(),
-        expiresAt: Date.now() + 60 * 60 * 1000, // 1 hour
-        isValid: true,
-      };
-      localStorage.setItem('woolworths-session', JSON.stringify(token));
-      setSessionToken(token);
-
-      setCartState({
-        items: [],
-        total: 0,
-        status: 'success',
-        message: '✅ Session ready! You can now build your cart.',
-      });
-      setIsLoading(false);
-    }, 1500);
-  };
+    return () => clearInterval(pollInterval);
+  }, [sessionId]);
 
   const handleBuildCart = async () => {
-    if (!sessionToken?.isValid) {
-      setCartState({
-        items: [],
-        total: 0,
-        status: 'error',
-        message: '❌ Session expired or not available. Please log in again.',
+    setIsBuilding(true);
+    setWorkflowStatus(null);
+    setSessionId(null);
+
+    try {
+      const response = await fetch('/api/woolworths/build-cart', {
+        method: 'POST',
       });
-      return;
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSessionId(data.sessionId);
+        setWorkflowStatus({
+          status: 'starting',
+          logs: [data.message],
+          ingredients: [],
+          cartItems: [],
+          cartTotal: 0,
+        });
+      } else {
+        setWorkflowStatus({
+          status: 'error',
+          logs: [data.error || 'Failed to start workflow'],
+          ingredients: [],
+          cartItems: [],
+          cartTotal: 0,
+        });
+        setIsBuilding(false);
+      }
+    } catch (error: any) {
+      setWorkflowStatus({
+        status: 'error',
+        logs: [error.message || 'Failed to start workflow'],
+        ingredients: [],
+        cartItems: [],
+        cartTotal: 0,
+      });
+      setIsBuilding(false);
     }
-
-    setCartState({
-      items: [],
-      total: 0,
-      status: 'success',
-      message: '✅ Your cart has been built! Visit Woolworths to review and checkout.',
-    });
-
-    // Open Woolworths cart
-    setTimeout(() => {
-      window.open('https://www.woolworths.com.au/shop/cart', '_blank');
-    }, 1000);
   };
 
-  const handleRefreshSession = async () => {
-    await handleLoginAndCapture();
+  const getStatusMessage = () => {
+    if (!workflowStatus) return 'Ready to build your cart';
+
+    switch (workflowStatus.status) {
+      case 'starting':
+        return '🚀 Starting workflow...';
+      case 'waiting_for_login':
+        return '🔐 Browser opened - Please log into Woolworths now!';
+      case 'searching':
+        return '🔍 Searching for ingredients...';
+      case 'adding_to_cart':
+        return '🛒 Adding items to your cart...';
+      case 'complete':
+        return '✅ Cart built successfully!';
+      case 'error':
+        return '❌ An error occurred';
+      default:
+        return 'Processing...';
+    }
   };
 
-  const handleGoToCart = () => {
-    window.open('https://www.woolworths.com.au/shop/cart', '_blank');
+  const getStatusColor = () => {
+    if (!workflowStatus) return 'gray';
+
+    switch (workflowStatus.status) {
+      case 'starting':
+      case 'waiting_for_login':
+      case 'searching':
+      case 'adding_to_cart':
+        return 'blue';
+      case 'complete':
+        return 'green';
+      case 'error':
+        return 'red';
+      default:
+        return 'gray';
+    }
   };
 
-  const meals = mealsStore.getMeals();
-  const sessionValid = sessionToken?.isValid ?? false;
-  const sessionExpired = sessionToken && !sessionToken.isValid;
+  const statusColor = getStatusColor();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-jade-cream via-white to-jade-light p-8">
@@ -131,183 +143,226 @@ export default function ShoppingCart() {
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Session Status Card */}
+          {/* Status Card */}
           <div
             className={`rounded-xl p-6 border-2 ${
-              sessionValid
+              statusColor === 'green'
                 ? 'border-green-200 bg-green-50'
-                : sessionExpired
-                  ? 'border-yellow-200 bg-yellow-50'
-                  : 'border-gray-200 bg-gray-50'
+                : statusColor === 'red'
+                  ? 'border-red-200 bg-red-50'
+                  : statusColor === 'blue'
+                    ? 'border-blue-200 bg-blue-50'
+                    : 'border-gray-200 bg-gray-50'
             }`}
           >
             <div className="flex items-start justify-between">
-              <div>
-                <h3 className="font-semibold text-lg mb-2">
-                  {sessionValid
-                    ? '✅ Woolworths Session Active'
-                    : sessionExpired
-                      ? '⏰ Session Expired'
-                      : '🔐 No Active Session'}
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg mb-2 flex items-center space-x-2">
+                  {isBuilding && <Loader className="w-5 h-5 animate-spin" />}
+                  {workflowStatus?.status === 'complete' && <Check className="w-5 h-5 text-green-600" />}
+                  {workflowStatus?.status === 'error' && <AlertCircle className="w-5 h-5 text-red-600" />}
+                  <span>{getStatusMessage()}</span>
                 </h3>
                 <p className="text-sm text-gray-600">
-                  {sessionValid
-                    ? `Session captured at ${new Date(sessionToken!.capturedAt).toLocaleTimeString()}`
-                    : sessionExpired
-                      ? 'Your session has expired. Please refresh to continue.'
-                      : 'You need to log in to Woolworths to build your cart.'}
+                  {!isBuilding && !workflowStatus && 'Click the button below to start building your Woolworths cart'}
+                  {workflowStatus?.status === 'waiting_for_login' &&
+                    'A browser window has opened. Please log into your Woolworths account. The workflow will continue automatically after login.'}
+                  {workflowStatus?.status === 'searching' &&
+                    `Searching Woolworths for ingredients from your meal plan...`}
+                  {workflowStatus?.status === 'adding_to_cart' &&
+                    'Adding items to your Woolworths cart...'}
+                  {workflowStatus?.status === 'complete' &&
+                    `${workflowStatus.cartItems.length} items added to your cart (Total: $${workflowStatus.cartTotal.toFixed(2)})`}
                 </p>
               </div>
-              {(sessionExpired || !sessionValid) && (
-                <button
-                  onClick={handleRefreshSession}
-                  disabled={isLoading}
-                  className="flex items-center space-x-2 px-4 py-2 bg-jade-purple text-white rounded-lg hover:bg-jade-dark disabled:opacity-50 transition-colors"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  <span>{sessionExpired ? 'Refresh Session' : 'Log In'}</span>
-                </button>
-              )}
             </div>
           </div>
 
-          {/* Quick Start Guide */}
-          <div className="bg-white rounded-xl p-6 border border-jade-light">
-            <h3 className="text-lg font-semibold text-jade-purple mb-4">🛒 Build Your Shopping Cart</h3>
-            
-            <div className="space-y-4">
-              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                <h4 className="font-semibold text-blue-900 mb-2">Quick Start</h4>
-                <ol className="text-sm text-blue-900 space-y-2">
-                  <li><strong>1.</strong> Open a Terminal window</li>
-                  <li><strong>2.</strong> Copy this command (click button below):</li>
-                  <li className="font-mono bg-blue-100 p-2 rounded text-xs break-all">
-                    node /Users/williams/.openclaw/workspace/weekly-shopping-workflow.js
-                  </li>
-                  <li><strong>3.</strong> Paste & press Enter</li>
-                  <li><strong>4.</strong> Browser opens → Log into Woolworths → Press ENTER in Terminal</li>
-                  <li><strong>5.</strong> Cart builds automatically!</li>
-                </ol>
-              </div>
-
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText('node /Users/williams/.openclaw/workspace/weekly-shopping-workflow.js');
-                  setCartState({
-                    items: [],
-                    total: 0,
-                    status: 'success',
-                    message: '✅ Command copied! Open Terminal and paste it.',
-                  });
-                  setTimeout(() => {
-                    setCartState({
-                      items: [],
-                      total: 0,
-                      status: 'idle',
-                      message: '',
-                    });
-                  }, 3000);
-                }}
-                className="w-full px-6 py-4 bg-jade-purple text-white font-bold text-lg rounded-lg hover:bg-jade-dark transition-colors flex items-center justify-center space-x-2"
-              >
-                <span>📋</span>
-                <span>Copy Command</span>
-              </button>
-
-              {cartState.message && cartState.status === 'success' && (
-                <div className="bg-green-50 border border-green-300 rounded-lg p-3 text-green-800 text-sm font-medium">
-                  {cartState.message}
+          {/* Build Cart Button */}
+          {!isBuilding && workflowStatus?.status !== 'complete' && (
+            <div className="bg-white rounded-xl p-6 border border-jade-light">
+              <h3 className="text-lg font-semibold text-jade-purple mb-4">🛒 Build Your Shopping Cart</h3>
+              
+              <div className="space-y-4">
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                  <h4 className="font-semibold text-blue-900 mb-2">How it works</h4>
+                  <ol className="text-sm text-blue-900 space-y-2">
+                    <li><strong>1.</strong> Click "Build Cart" below</li>
+                    <li><strong>2.</strong> Browser opens → Log into Woolworths</li>
+                    <li><strong>3.</strong> Workflow automatically builds your cart!</li>
+                  </ol>
                 </div>
-              )}
 
-              <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
-                <p className="text-xs text-amber-900">
-                  <strong>💡 Pro Tip:</strong> The workflow will:
-                </p>
-                <ul className="text-xs text-amber-900 mt-2 space-y-1">
-                  <li>✅ Read your meals from the Meals tab</li>
-                  <li>✅ Extract 19 ingredients automatically</li>
-                  <li>✅ Find each item on Woolworths with pricing</li>
-                  <li>✅ Add them all to your real cart</li>
-                  <li>✅ Show you the total (~$140)</li>
-                </ul>
+                <button
+                  onClick={handleBuildCart}
+                  disabled={isBuilding}
+                  className="w-full px-6 py-4 bg-jade-purple text-white font-bold text-lg rounded-lg hover:bg-jade-dark transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Zap className="w-5 h-5" />
+                  <span>Build Cart Automatically</span>
+                </button>
+
+                <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+                  <p className="text-xs text-amber-900">
+                    <strong>💡 What happens next:</strong>
+                  </p>
+                  <ul className="text-xs text-amber-900 mt-2 space-y-1">
+                    <li>✅ Reads meals from your Meals tab</li>
+                    <li>✅ Extracts ingredients automatically</li>
+                    <li>✅ Finds each item on Woolworths with pricing</li>
+                    <li>✅ Adds them all to your cart</li>
+                    <li>✅ Opens your cart when done</li>
+                  </ul>
+                </div>
               </div>
+            </div>
+          )}
+
+          {/* Success Actions */}
+          {workflowStatus?.status === 'complete' && (
+            <div className="bg-white rounded-xl p-6 border border-jade-light space-y-4">
+              <div className="flex items-center space-x-2 text-green-600">
+                <Check className="w-6 h-6" />
+                <h3 className="text-lg font-semibold">Cart Ready!</h3>
+              </div>
+              
+              <p className="text-gray-700">
+                Your Woolworths cart has been built with {workflowStatus.cartItems.length} items.
+                Total: <strong>${workflowStatus.cartTotal.toFixed(2)}</strong>
+              </p>
 
               <button
                 onClick={() => window.open('https://www.woolworths.com.au/shop/cart', '_blank')}
                 className="w-full px-4 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors"
               >
-                🔗 View Your Woolworths Cart
+                🔗 View & Checkout on Woolworths
+              </button>
+
+              <button
+                onClick={handleBuildCart}
+                className="w-full px-4 py-2 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                🔄 Build Cart Again
               </button>
             </div>
-          </div>
+          )}
+
+          {/* Workflow Logs */}
+          {workflowStatus && workflowStatus.logs.length > 0 && (
+            <div className="bg-white rounded-xl p-6 border border-jade-light">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-jade-purple">📋 Workflow Log</h3>
+                <button
+                  onClick={() => setShowLogs(!showLogs)}
+                  className="text-jade-purple hover:text-jade-dark flex items-center space-x-1"
+                >
+                  <Eye className="w-4 h-4" />
+                  <span className="text-sm">{showLogs ? 'Hide' : 'Show'}</span>
+                </button>
+              </div>
+
+              {showLogs && (
+                <div className="max-h-64 overflow-y-auto bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-xs">
+                  {workflowStatus.logs.map((log, idx) => (
+                    <div key={idx} className="mb-1">{log}</div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Status Message */}
-          {cartState.message && (
-            <div
-              className={`rounded-xl p-4 border-l-4 ${
-                cartState.status === 'success'
-                  ? 'border-green-400 bg-green-50 text-green-800'
-                  : cartState.status === 'error'
-                    ? 'border-red-400 bg-red-50 text-red-800'
-                    : 'border-blue-400 bg-blue-50 text-blue-800'
-              }`}
-            >
-              <p className="text-sm font-medium">{cartState.message}</p>
-            </div>
-          )}
-
-          {/* Cart Summary */}
-          {cartState.items.length > 0 && (
-            <div className="bg-white rounded-xl p-6 border border-jade-light">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-jade-purple">🛒 Cart Preview</h3>
-                <button
-                  onClick={() => setShowCartPreview(!showCartPreview)}
-                  className="text-jade-purple hover:text-jade-dark"
-                >
-                  <Eye className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="space-y-3">
-                <div className="text-3xl font-bold text-jade-purple">${cartState.total.toFixed(2)}</div>
-                <div className="text-sm text-gray-600">{cartState.items.length} items ready</div>
-
-                {showCartPreview && (
-                  <div className="border-t pt-3 max-h-64 overflow-y-auto">
-                    {cartState.items.map((item, idx) => (
-                      <div key={idx} className="text-xs py-2 border-b last:border-b-0">
-                        <p className="font-medium text-gray-800">{item.name}</p>
-                        <p className="text-gray-500">${item.price.toFixed(2)}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <button
-                  onClick={handleGoToCart}
-                  className="w-full mt-4 px-4 py-3 bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition-colors"
-                >
-                  🔗 View on Woolworths
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* Quick Tips */}
           <div className="bg-jade-cream rounded-xl p-4">
             <h4 className="font-semibold text-jade-purple text-sm mb-3">💡 Quick Tips</h4>
             <ul className="text-xs text-gray-700 space-y-2">
-              <li>✅ Session lasts 1 hour after login</li>
-              <li>✅ Cart items are added automatically</li>
-              <li>✅ You can adjust quantities on Woolworths</li>
-              <li>✅ Session expires? Just refresh and log in again</li>
+              <li>✅ Make sure you have meals in your Meals tab</li>
+              <li>✅ Browser will open automatically for login</li>
+              <li>✅ Workflow runs in the background</li>
+              <li>✅ You can adjust quantities on Woolworths after</li>
+              <li>✅ Cart stays active for checkout</li>
             </ul>
           </div>
+
+          {/* Progress Indicator */}
+          {isBuilding && (
+            <div className="bg-white rounded-xl p-6 border border-jade-light">
+              <h3 className="font-semibold text-jade-purple mb-4">🔄 Progress</h3>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      workflowStatus?.status ? 'bg-green-500' : 'bg-gray-300'
+                    }`}
+                  />
+                  <span className="text-sm">Workflow started</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      workflowStatus?.status === 'waiting_for_login' ||
+                      workflowStatus?.status === 'searching' ||
+                      workflowStatus?.status === 'adding_to_cart' ||
+                      workflowStatus?.status === 'complete'
+                        ? 'bg-green-500'
+                        : 'bg-gray-300'
+                    }`}
+                  />
+                  <span className="text-sm">Browser opened</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      workflowStatus?.status === 'searching' ||
+                      workflowStatus?.status === 'adding_to_cart' ||
+                      workflowStatus?.status === 'complete'
+                        ? 'bg-green-500'
+                        : workflowStatus?.status === 'waiting_for_login'
+                          ? 'bg-yellow-500 animate-pulse'
+                          : 'bg-gray-300'
+                    }`}
+                  />
+                  <span className="text-sm">
+                    {workflowStatus?.status === 'waiting_for_login' ? 'Waiting for login...' : 'Logged in'}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      workflowStatus?.status === 'adding_to_cart' || workflowStatus?.status === 'complete'
+                        ? 'bg-green-500'
+                        : workflowStatus?.status === 'searching'
+                          ? 'bg-yellow-500 animate-pulse'
+                          : 'bg-gray-300'
+                    }`}
+                  />
+                  <span className="text-sm">
+                    {workflowStatus?.status === 'searching' ? 'Searching...' : 'Search complete'}
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      workflowStatus?.status === 'complete'
+                        ? 'bg-green-500'
+                        : workflowStatus?.status === 'adding_to_cart'
+                          ? 'bg-yellow-500 animate-pulse'
+                          : 'bg-gray-300'
+                    }`}
+                  />
+                  <span className="text-sm">
+                    {workflowStatus?.status === 'adding_to_cart'
+                      ? 'Adding to cart...'
+                      : workflowStatus?.status === 'complete'
+                        ? 'Cart built!'
+                        : 'Pending'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

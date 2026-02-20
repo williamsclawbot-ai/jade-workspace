@@ -1,171 +1,143 @@
-/**
- * Woolworths Cart Builder API
- * Extracts ingredients from meal plans and auto-adds to Woolworths cart
- */
-
-import { spawn } from 'child_process';
 import { NextRequest, NextResponse } from 'next/server';
+import { spawn } from 'child_process';
 
-export const runtime = 'nodejs';
+// Store active workflow sessions
+const activeWorkflows = new Map<string, {
+  process: ReturnType<typeof spawn>;
+  status: string;
+  logs: string[];
+  ingredients: string[];
+  cartItems: any[];
+  cartTotal: number;
+}>();
 
-interface CartItem {
-  name: string;
-  price: number;
-  stockcode: string;
-}
-
-interface WorkflowResult {
-  success: boolean;
-  items: CartItem[];
-  total: number;
-  error?: string;
-}
-
-async function runCartWorkflow(): Promise<WorkflowResult> {
-  return new Promise((resolve) => {
-    const server = spawn('node', ['/Users/williams/.openclaw/workspace/weekly-shopping-workflow.js']);
-    let allOutput = '';
-    let foundCart = false;
-
-    server.stdout.on('data', (data) => {
-      allOutput += data.toString();
-
-      // Look for cart completion in output
-      if (allOutput.includes('CART READY') && !foundCart) {
-        foundCart = true;
-
-        // Parse the output to extract items and total
-        const items: CartItem[] = [];
-        let total = 0;
-
-        try {
-          // Extract lines with item info (format: "N. Item Name" and "Qty: 1 × $Price")
-          const lines = allOutput.split('\n');
-          let currentItem = '';
-          let currentPrice = 0;
-
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim();
-
-            // Match item lines (e.g., "1. Item Name")
-            const itemMatch = line.match(/^\d+\.\s+(.+)$/);
-            if (itemMatch && !line.includes('×') && !line.includes('Qty:')) {
-              currentItem = itemMatch[1];
-            }
-
-            // Match price lines (e.g., "Qty: 1 × $6.7")
-            const priceMatch = line.match(/\$([0-9.]+)/);
-            if (priceMatch && currentItem) {
-              currentPrice = parseFloat(priceMatch[1]);
-              items.push({
-                name: currentItem,
-                price: currentPrice,
-                stockcode: '', // We don't extract stockcode here, just for UI
-              });
-              currentItem = '';
-            }
-          }
-
-          // Extract total from "💰 Cart total: $XXX.XX"
-          const totalMatch = allOutput.match(/💰 Cart total: \$([0-9.]+)/);
-          if (totalMatch) {
-            total = parseFloat(totalMatch[1]);
-          }
-
-          resolve({
-            success: true,
-            items,
-            total,
-          });
-        } catch (e) {
-          resolve({
-            success: true, // Workflow succeeded even if parsing is partial
-            items,
-            total,
-          });
-        }
+export async function POST(request: NextRequest) {
+  const sessionId = crypto.randomUUID();
+  
+  try {
+    // Start the workflow process
+    const workflowProcess = spawn('node', ['/Users/williams/.openclaw/workspace/weekly-shopping-workflow.js']);
+    
+    const workflow = {
+      process: workflowProcess,
+      status: 'starting',
+      logs: ['🚀 Starting Woolworths cart builder...'],
+      ingredients: [],
+      cartItems: [],
+      cartTotal: 0,
+    };
+    
+    activeWorkflows.set(sessionId, workflow);
+    
+    // Capture stdout
+    workflowProcess.stdout.on('data', (data) => {
+      const output = data.toString();
+      workflow.logs.push(output);
+      
+      // Parse status from output
+      if (output.includes('Browser opened')) {
+        workflow.status = 'waiting_for_login';
+      } else if (output.includes('Session captured')) {
+        workflow.status = 'searching';
+      } else if (output.includes('ADDING TO CART')) {
+        workflow.status = 'adding_to_cart';
+      } else if (output.includes('CART READY')) {
+        workflow.status = 'complete';
+      }
+      
+      // Extract ingredients
+      const ingredientMatch = output.match(/Ingredients identified: (\d+)/);
+      if (ingredientMatch) {
+        // We'd need to parse the ingredient list from the output
+        // For now, just store the count
+      }
+      
+      // Extract cart total
+      const totalMatch = output.match(/Cart total: \$(\d+\.\d+)/);
+      if (totalMatch) {
+        workflow.cartTotal = parseFloat(totalMatch[1]);
       }
     });
-
-    server.stderr.on('data', (data) => {
-      console.error('Workflow error:', data.toString());
-    });
-
-    server.on('close', (code) => {
-      if (!foundCart) {
-        // Try to extract any items from output anyway
-        const items: CartItem[] = [];
-        const totalMatch = allOutput.match(/💰 Cart total: \$([0-9.]+)/);
-        const total = totalMatch ? parseFloat(totalMatch[1]) : 0;
-
-        // If we got here but didn't find cart ready, check for items
-        const itemMatches = allOutput.match(/✅ (.+?) \(\$([0-9.]+)\)/g) || [];
-        itemMatches.forEach((match) => {
-          const parsed = match.match(/✅ (.+?) \(\$([0-9.]+)\)/);
-          if (parsed) {
-            items.push({
-              name: parsed[1],
-              price: parseFloat(parsed[2]),
-              stockcode: '',
-            });
-          }
-        });
-
-        if (code === 0) {
-          resolve({
-            success: true,
-            items,
-            total,
-          });
-        } else {
-          resolve({
-            success: false,
-            items: [],
-            total: 0,
-            error: 'Workflow exited with error',
-          });
-        }
+    
+    // Capture stderr
+    workflowProcess.stderr.on('data', (data) => {
+      const error = data.toString();
+      if (!error.includes('running on stdio')) {
+        workflow.logs.push(`❌ Error: ${error}`);
+        workflow.status = 'error';
       }
     });
-
-    // Timeout after 120 seconds
+    
+    // Handle process exit
+    workflowProcess.on('close', (code) => {
+      if (code === 0) {
+        workflow.status = 'complete';
+        workflow.logs.push('✅ Workflow completed successfully!');
+      } else {
+        workflow.status = 'error';
+        workflow.logs.push(`❌ Workflow exited with code ${code}`);
+      }
+    });
+    
+    // Auto-confirm after 5 seconds when waiting for login
+    // (gives user time to log in)
     setTimeout(() => {
-      server.kill();
-      resolve({
-        success: false,
-        items: [],
-        total: 0,
-        error: 'Cart building timeout (>120 seconds)',
-      });
-    }, 120000);
+      if (workflow.status === 'waiting_for_login') {
+        // Send ENTER to the process stdin to continue
+        workflowProcess.stdin.write('\n');
+      }
+    }, 60000); // 60 seconds to log in
+    
+    return NextResponse.json({
+      success: true,
+      sessionId,
+      message: 'Workflow started. Browser will open shortly for Woolworths login.',
+    });
+  } catch (error: any) {
+    return NextResponse.json({
+      success: false,
+      error: error.message,
+    }, { status: 500 });
+  }
+}
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const sessionId = searchParams.get('sessionId');
+  
+  if (!sessionId) {
+    return NextResponse.json({
+      success: false,
+      error: 'Session ID required',
+    }, { status: 400 });
+  }
+  
+  const workflow = activeWorkflows.get(sessionId);
+  
+  if (!workflow) {
+    return NextResponse.json({
+      success: false,
+      error: 'Workflow not found',
+    }, { status: 404 });
+  }
+  
+  return NextResponse.json({
+    success: true,
+    status: workflow.status,
+    logs: workflow.logs,
+    ingredients: workflow.ingredients,
+    cartItems: workflow.cartItems,
+    cartTotal: workflow.cartTotal,
   });
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    // Run the cart building workflow
-    const result = await runCartWorkflow();
-
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        items: result.items,
-        total: result.total,
-        message: `✅ Cart built! ${result.items.length} items added.`,
-      });
-    } else {
-      return NextResponse.json({
-        success: false,
-        error: result.error || 'Failed to build cart',
-      });
+// Cleanup old workflows
+setInterval(() => {
+  const now = Date.now();
+  for (const [sessionId, workflow] of activeWorkflows.entries()) {
+    // Remove completed/errored workflows after 5 minutes
+    if (['complete', 'error'].includes(workflow.status)) {
+      activeWorkflows.delete(sessionId);
     }
-  } catch (error) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    );
   }
-}
+}, 5 * 60 * 1000);
