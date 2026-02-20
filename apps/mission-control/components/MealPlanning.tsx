@@ -413,6 +413,10 @@ export default function MealPlanning() {
               }}
               macroTargets={macroTargets}
               onOpenBatchAssignment={handleOpenBatchAssignment}
+              onOpenRecipeBrowser={(day, mealType) => {
+                setRecipeBrowserTarget({ day, mealType });
+                setRecipeBrowserOpen(true);
+              }}
             />
           )}
         </>
@@ -534,6 +538,7 @@ function JadesMealsView({
   onOpenRecipeInput,
   macroTargets,
   onOpenBatchAssignment,
+  onOpenRecipeBrowser,
 }: {
   week: WeeklyMealPlan;
   readOnly: boolean;
@@ -543,6 +548,7 @@ function JadesMealsView({
   onOpenRecipeInput?: (category: 'Breakfast' | 'Lunch' | 'Snack' | 'Dinner' | 'Dessert') => void;
   macroTargets?: { calories: number; protein: number; fats: number; carbs: number };
   onOpenBatchAssignment?: (recipeName: string) => void;
+  onOpenRecipeBrowser?: (day: string, mealType: string) => void;
 }) {
   const handleSetBreakfastToWeetbix = () => {
     const updated = assignRecipeToAllDays(week.weekId, 'Breakfast', 'PB & J Overnight Weet-Bix (GF)');
@@ -625,6 +631,7 @@ function JadesMealsView({
             onMealsUpdated={onMealsUpdated}
             macroTargets={macroTargets}
             onOpenBatchAssignment={onOpenBatchAssignment}
+            onOpenRecipeBrowser={onOpenRecipeBrowser}
           />
         ))}
       </div>
@@ -641,6 +648,7 @@ function JadesDayCard({
   onMealsUpdated,
   macroTargets,
   onOpenBatchAssignment,
+  onOpenRecipeBrowser,
 }: {
   week: WeeklyMealPlan;
   day: string;
@@ -650,6 +658,7 @@ function JadesDayCard({
   onMealsUpdated?: () => void;
   macroTargets?: { calories: number; protein: number; fats: number; carbs: number };
   onOpenBatchAssignment?: (recipeName: string) => void;
+  onOpenRecipeBrowser?: (day: string, mealType: string) => void;
 }) {
   const dayMeals = week.jades.meals[day] || {};
   const dayMacros = calculateDayMacros(week.weekId, day);
@@ -740,10 +749,7 @@ function JadesDayCard({
               <label className="text-sm font-semibold text-gray-700 w-20">{mealType}</label>
               {!recipeName ? (
                 <button
-                  onClick={() => {
-                    setRecipeBrowserTarget({ day, mealType });
-                    setRecipeBrowserOpen(true);
-                  }}
+                  onClick={() => onOpenRecipeBrowser?.(day, mealType)}
                   className="flex-1 text-blue-600 hover:text-blue-700 italic text-sm py-3 px-4 min-h-[44px] flex items-center gap-2 border-2 border-dashed border-blue-300 rounded-lg hover:bg-blue-50 transition cursor-pointer"
                   title="Click to browse saved recipes"
                 >
@@ -1360,6 +1366,7 @@ function ArchiveView({
                 readOnly={true}
                 onOpenModal={() => {}}
                 onRemove={() => {}}
+                onOpenRecipeBrowser={() => {}}
               />
             ))}
           </div>
