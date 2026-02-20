@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const GHL_API_TOKEN = process.env.GOHIGHLEVEL_API_TOKEN;
+const GHL_API_TOKEN = process.env.OHIGHLEVEL_API_TOKEN;
 const GHL_API_BASE = 'https://api.gohighlevel.com/v1';
 
 interface MetricsResponse {

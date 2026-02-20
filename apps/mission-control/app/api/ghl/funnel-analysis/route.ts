@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const GHL_API_TOKEN = process.env.GOHIGHLEVEL_API_TOKEN;
+const GHL_API_TOKEN = process.env.OHIGHLEVEL_API_TOKEN;
 const GHL_API_BASE = 'https://api.gohighlevel.com/v1';
 
 interface FunnelStage {
@@ -68,6 +68,7 @@ async function fetchGHLData(endpoint: string, params?: Record<string, string>) {
 
 export async function GET() {
   try {
+    console.log('[Funnel Analysis] DEBUG: GHL_API_TOKEN =', GHL_API_TOKEN ? 'SET' : 'NOT SET', 'from env:', process.env.OHIGHLEVEL_API_TOKEN ? 'SET' : 'NOT SET');
     if (!GHL_API_TOKEN) {
       return NextResponse.json(
         { error: 'GHL API token not configured' },
