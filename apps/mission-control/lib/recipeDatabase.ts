@@ -249,6 +249,20 @@ class RecipeDatabase {
         instructions: '1. Preheat oven to 180 degrees celsius. 2. In a baking container, combine rice, chicken stock, and diced vegetables (mushroom, tomato, garlic). 3. Season chicken breast and place on top of rice mixture. 4. Mix pesto with Greek yogurt and spread over chicken. 5. Top with shredded cheese. 6. Bake covered for 25-30 minutes until chicken is cooked through and rice is tender. 7. Serve directly from the container.',
         notes: 'One-container meal. Easy preparation and cleanup.',
       },
+      {
+        name: 'Cacao Pistachio Yogurt Bowl',
+        category: 'Breakfast',
+        ingredients: [
+          { id: 'ing-57', name: 'Cacao Nibs (Generic)', qty: '5', unit: 'g' },
+          { id: 'ing-58', name: 'Frozen Raspberries', qty: '40', unit: 'g' },
+          { id: 'ing-59', name: 'Honey', qty: '8', unit: 'g' },
+          { id: 'ing-60', name: 'Salted Caramel High Protein Yoghurt - YoPro', qty: '150', unit: 'g' },
+          { id: 'ing-61', name: 'Pistachios - Woolworths', qty: '10', unit: 'g' },
+        ],
+        macros: { calories: 218, protein: 21, fats: 9, carbs: 20 },
+        instructions: '1. Add YoPro yoghurt to a bowl. 2. Top with frozen raspberries, cacao nibs, and pistachios. 3. Drizzle with honey. 4. Stir together and enjoy immediately, or let sit for 2-3 minutes for a softer texture.',
+        notes: 'Quick, high-protein breakfast bowl. Great for busy mornings.',
+      },
     ];
 
     defaults.forEach(recipe => this.addRecipe(recipe));
@@ -329,6 +343,20 @@ if (typeof window !== 'undefined') {
       macros: { calories: 456, protein: 38, fats: 16, carbs: 40 },
       instructions: '1. Preheat oven to 180 degrees celsius. 2. In a baking container, combine rice, chicken stock, and diced vegetables (mushroom, tomato, garlic). 3. Season chicken breast and place on top of rice mixture. 4. Mix pesto with Greek yogurt and spread over chicken. 5. Top with shredded cheese. 6. Bake covered for 25-30 minutes until chicken is cooked through and rice is tender. 7. Serve directly from the container.',
       notes: 'One-container meal. Easy preparation and cleanup.',
+    },
+    {
+      name: 'Cacao Pistachio Yogurt Bowl',
+      category: 'Breakfast',
+      ingredients: [
+        { id: 'ing-57', name: 'Cacao Nibs (Generic)', qty: '5', unit: 'g' },
+        { id: 'ing-58', name: 'Frozen Raspberries', qty: '40', unit: 'g' },
+        { id: 'ing-59', name: 'Honey', qty: '8', unit: 'g' },
+        { id: 'ing-60', name: 'Salted Caramel High Protein Yoghurt - YoPro', qty: '150', unit: 'g' },
+        { id: 'ing-61', name: 'Pistachios - Woolworths', qty: '10', unit: 'g' },
+      ],
+      macros: { calories: 218, protein: 21, fats: 9, carbs: 20 },
+      instructions: '1. Add YoPro yoghurt to a bowl. 2. Top with frozen raspberries, cacao nibs, and pistachios. 3. Drizzle with honey. 4. Stir together and enjoy immediately, or let sit for 2-3 minutes for a softer texture.',
+      notes: 'Quick, high-protein breakfast bowl. Great for busy mornings.',
     },
   ];
   
