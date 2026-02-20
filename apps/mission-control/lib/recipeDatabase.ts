@@ -342,6 +342,24 @@ class RecipeDatabase {
         instructions: '1. Preheat oven to 180°C and grease a muffin tin with butter. 2. Melt butter and mix with milk. 3. In a bowl, whisk eggs with vanilla extract. 4. Combine eggs with milk mixture. 5. In another bowl, sift together flour, baking powder, salt, and caster sugar. 6. Fold wet ingredients into dry ingredients until just combined. 7. Gently fold in dark chocolate pieces. 8. Divide batter into muffin cups. 9. Bake for 20-25 minutes until golden and a skewer comes out clean. 10. Cool in tin before turning out.',
         notes: 'Classic Cookidoo chocolate chip muffins. Rich, moist, and indulgent. Perfect for breakfast or special treat. Recipe from Cookidoo®.',
       },
+      {
+        name: 'Banana Pancakes',
+        category: 'Breakfast',
+        ingredients: [
+          { id: 'ing-96', name: 'Milk', qty: '240', unit: 'ml' },
+          { id: 'ing-97', name: 'Banana (large)', qty: '1', unit: 'whole' },
+          { id: 'ing-98', name: 'Vanilla extract', qty: '2', unit: 'tsp' },
+          { id: 'ing-99', name: 'Butter (melted)', qty: '14', unit: 'g' },
+          { id: 'ing-100', name: 'Egg', qty: '1', unit: 'whole' },
+          { id: 'ing-101', name: 'Cinnamon', qty: '2', unit: 'tsp' },
+          { id: 'ing-102', name: 'Self-raising flour', qty: '120', unit: 'g' },
+          { id: 'ing-103', name: 'Baking powder (if not using SR flour)', qty: '1.5', unit: 'tsp' },
+          { id: 'ing-104', name: 'Salt', qty: '0.25', unit: 'tsp' },
+        ],
+        macros: { calories: 178, protein: 5, fats: 5, carbs: 28 },
+        instructions: '1. In a blender or bowl, mash banana thoroughly. 2. Add milk, vanilla extract, melted butter, and egg. Blend or mix well. 3. In another bowl, combine self-raising flour (or flour + baking powder + salt) and cinnamon. 4. Fold wet ingredients into dry ingredients until just combined. 5. Heat a non-stick frying pan or griddle over medium heat. 6. Lightly butter or spray the pan. 7. Pour ¼ cup batter for each pancake onto the hot pan. 8. Cook for 1-2 minutes until edges look set, then flip. 9. Cook another 1-2 minutes until golden. 10. Serve warm with your choice of toppings (yogurt, berries, maple syrup, etc).',
+        notes: 'Quick and easy banana pancakes. Naturally sweetened from the banana. Great for toddlers and the whole family. Can be made with or without baking powder depending on flour type.',
+      },
     ];
 
     defaults.forEach(recipe => this.addRecipe(recipe));
@@ -515,6 +533,24 @@ if (typeof window !== 'undefined') {
       macros: { calories: 324, protein: 6, fats: 17, carbs: 40 },
       instructions: '1. Preheat oven to 180°C and grease a muffin tin with butter. 2. Melt butter and mix with milk. 3. In a bowl, whisk eggs with vanilla extract. 4. Combine eggs with milk mixture. 5. In another bowl, sift together flour, baking powder, salt, and caster sugar. 6. Fold wet ingredients into dry ingredients until just combined. 7. Gently fold in dark chocolate pieces. 8. Divide batter into muffin cups. 9. Bake for 20-25 minutes until golden and a skewer comes out clean. 10. Cool in tin before turning out.',
       notes: 'Classic Cookidoo chocolate chip muffins. Rich, moist, and indulgent. Perfect for breakfast or special treat. Recipe from Cookidoo®.',
+    },
+    {
+      name: 'Banana Pancakes',
+      category: 'Breakfast',
+      ingredients: [
+        { id: 'ing-96', name: 'Milk', qty: '240', unit: 'ml' },
+        { id: 'ing-97', name: 'Banana (large)', qty: '1', unit: 'whole' },
+        { id: 'ing-98', name: 'Vanilla extract', qty: '2', unit: 'tsp' },
+        { id: 'ing-99', name: 'Butter (melted)', qty: '14', unit: 'g' },
+        { id: 'ing-100', name: 'Egg', qty: '1', unit: 'whole' },
+        { id: 'ing-101', name: 'Cinnamon', qty: '2', unit: 'tsp' },
+        { id: 'ing-102', name: 'Self-raising flour', qty: '120', unit: 'g' },
+        { id: 'ing-103', name: 'Baking powder (if not using SR flour)', qty: '1.5', unit: 'tsp' },
+        { id: 'ing-104', name: 'Salt', qty: '0.25', unit: 'tsp' },
+      ],
+      macros: { calories: 178, protein: 5, fats: 5, carbs: 28 },
+      instructions: '1. In a blender or bowl, mash banana thoroughly. 2. Add milk, vanilla extract, melted butter, and egg. Blend or mix well. 3. In another bowl, combine self-raising flour (or flour + baking powder + salt) and cinnamon. 4. Fold wet ingredients into dry ingredients until just combined. 5. Heat a non-stick frying pan or griddle over medium heat. 6. Lightly butter or spray the pan. 7. Pour ¼ cup batter for each pancake onto the hot pan. 8. Cook for 1-2 minutes until edges look set, then flip. 9. Cook another 1-2 minutes until golden. 10. Serve warm with your choice of toppings (yogurt, berries, maple syrup, etc).',
+      notes: 'Quick and easy banana pancakes. Naturally sweetened from the banana. Great for toddlers and the whole family. Can be made with or without baking powder depending on flour type.',
     },
   ];
   
