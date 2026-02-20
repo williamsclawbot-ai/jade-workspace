@@ -324,6 +324,24 @@ class RecipeDatabase {
         instructions: '1. Preheat oven to 180°C and line a muffin tin with paper cases. 2. In a food processor, blend carrot, apple, and banana until roughly chopped. 3. In a large bowl, combine self-raising flour and rolled oats. 4. In another bowl, whisk together eggs, maple syrup, yoghurt, olive oil, and vanilla extract. 5. Fold the fruit mixture into the wet ingredients. 6. Gently fold in the flour and oats until just combined. 7. Divide batter into muffin cases. 8. Top with granola. 9. Bake for 20-25 minutes until golden and a skewer comes out clean. 10. Cool in tin for 5 minutes, then transfer to wire rack.',
         notes: 'ABC Muffins = Apple, Banana, Carrot! Perfect toddler-friendly breakfast. Make-ahead friendly, store in airtight container up to 4 days.',
       },
+      {
+        name: 'Chocolate Chip Muffins',
+        category: 'Breakfast',
+        ingredients: [
+          { id: 'ing-87', name: 'Butter (cut into pieces, plus extra for greasing)', qty: '100', unit: 'g' },
+          { id: 'ing-88', name: 'Full cream milk', qty: '250', unit: 'g' },
+          { id: 'ing-89', name: 'Eggs', qty: '2', unit: 'whole' },
+          { id: 'ing-90', name: 'Natural vanilla extract', qty: '1', unit: 'tbsp' },
+          { id: 'ing-91', name: 'Plain flour', qty: '300', unit: 'g' },
+          { id: 'ing-92', name: 'Baking powder', qty: '1', unit: 'tbsp' },
+          { id: 'ing-93', name: 'Salt', qty: '1', unit: 'pinch' },
+          { id: 'ing-94', name: 'Caster sugar', qty: '150', unit: 'g' },
+          { id: 'ing-95', name: 'Dark chocolate (cut into 1cm pieces)', qty: '200', unit: 'g' },
+        ],
+        macros: { calories: 324, protein: 6, fats: 17, carbs: 40 },
+        instructions: '1. Preheat oven to 180°C and grease a muffin tin with butter. 2. Melt butter and mix with milk. 3. In a bowl, whisk eggs with vanilla extract. 4. Combine eggs with milk mixture. 5. In another bowl, sift together flour, baking powder, salt, and caster sugar. 6. Fold wet ingredients into dry ingredients until just combined. 7. Gently fold in dark chocolate pieces. 8. Divide batter into muffin cups. 9. Bake for 20-25 minutes until golden and a skewer comes out clean. 10. Cool in tin before turning out.',
+        notes: 'Classic Cookidoo chocolate chip muffins. Rich, moist, and indulgent. Perfect for breakfast or special treat. Recipe from Cookidoo®.',
+      },
     ];
 
     defaults.forEach(recipe => this.addRecipe(recipe));
@@ -479,6 +497,24 @@ if (typeof window !== 'undefined') {
       macros: { calories: 204, protein: 5, fats: 10, carbs: 28 },
       instructions: '1. Preheat oven to 180°C and line a muffin tin with paper cases. 2. In a food processor, blend carrot, apple, and banana until roughly chopped. 3. In a large bowl, combine self-raising flour and rolled oats. 4. In another bowl, whisk together eggs, maple syrup, yoghurt, olive oil, and vanilla extract. 5. Fold the fruit mixture into the wet ingredients. 6. Gently fold in the flour and oats until just combined. 7. Divide batter into muffin cases. 8. Top with granola. 9. Bake for 20-25 minutes until golden and a skewer comes out clean. 10. Cool in tin for 5 minutes, then transfer to wire rack.',
       notes: 'ABC Muffins = Apple, Banana, Carrot! Perfect toddler-friendly breakfast. Make-ahead friendly, store in airtight container up to 4 days.',
+    },
+    {
+      name: 'Chocolate Chip Muffins',
+      category: 'Breakfast',
+      ingredients: [
+        { id: 'ing-87', name: 'Butter (cut into pieces, plus extra for greasing)', qty: '100', unit: 'g' },
+        { id: 'ing-88', name: 'Full cream milk', qty: '250', unit: 'g' },
+        { id: 'ing-89', name: 'Eggs', qty: '2', unit: 'whole' },
+        { id: 'ing-90', name: 'Natural vanilla extract', qty: '1', unit: 'tbsp' },
+        { id: 'ing-91', name: 'Plain flour', qty: '300', unit: 'g' },
+        { id: 'ing-92', name: 'Baking powder', qty: '1', unit: 'tbsp' },
+        { id: 'ing-93', name: 'Salt', qty: '1', unit: 'pinch' },
+        { id: 'ing-94', name: 'Caster sugar', qty: '150', unit: 'g' },
+        { id: 'ing-95', name: 'Dark chocolate (cut into 1cm pieces)', qty: '200', unit: 'g' },
+      ],
+      macros: { calories: 324, protein: 6, fats: 17, carbs: 40 },
+      instructions: '1. Preheat oven to 180°C and grease a muffin tin with butter. 2. Melt butter and mix with milk. 3. In a bowl, whisk eggs with vanilla extract. 4. Combine eggs with milk mixture. 5. In another bowl, sift together flour, baking powder, salt, and caster sugar. 6. Fold wet ingredients into dry ingredients until just combined. 7. Gently fold in dark chocolate pieces. 8. Divide batter into muffin cups. 9. Bake for 20-25 minutes until golden and a skewer comes out clean. 10. Cool in tin before turning out.',
+      notes: 'Classic Cookidoo chocolate chip muffins. Rich, moist, and indulgent. Perfect for breakfast or special treat. Recipe from Cookidoo®.',
     },
   ];
   
