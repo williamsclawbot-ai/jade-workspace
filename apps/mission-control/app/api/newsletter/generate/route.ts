@@ -23,13 +23,42 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get Anthropic API key
+    // Get Anthropic API key with enhanced debugging
     const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
     
+    // Enhanced logging for debugging
+    console.log('[Newsletter API] Environment check:', {
+      hasKey: !!ANTHROPIC_API_KEY,
+      keyLength: ANTHROPIC_API_KEY?.length || 0,
+      keyPrefix: ANTHROPIC_API_KEY?.substring(0, 10) || 'none',
+      allEnvKeys: Object.keys(process.env).filter(k => k.includes('ANTHROPIC')),
+      nodeEnv: process.env.NODE_ENV,
+      vercelEnv: process.env.VERCEL_ENV,
+    });
+    
     if (!ANTHROPIC_API_KEY) {
-      console.error('ANTHROPIC_API_KEY not found in environment');
+      console.error('[Newsletter API] CRITICAL: ANTHROPIC_API_KEY not found in environment');
+      console.error('[Newsletter API] Available env vars:', Object.keys(process.env).sort());
       return NextResponse.json(
-        { error: 'API key not configured' },
+        { 
+          error: 'API key not configured',
+          debug: {
+            message: 'ANTHROPIC_API_KEY environment variable is not set',
+            env: process.env.VERCEL_ENV || process.env.NODE_ENV,
+            availableKeys: Object.keys(process.env).filter(k => !k.includes('SECRET')).sort()
+          }
+        },
+        { status: 500 }
+      );
+    }
+    
+    if (ANTHROPIC_API_KEY.length < 20) {
+      console.error('[Newsletter API] CRITICAL: ANTHROPIC_API_KEY appears invalid (too short)');
+      return NextResponse.json(
+        { 
+          error: 'API key appears invalid',
+          debug: { keyLength: ANTHROPIC_API_KEY.length }
+        },
         { status: 500 }
       );
     }
