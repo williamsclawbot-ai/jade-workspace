@@ -231,6 +231,24 @@ class RecipeDatabase {
         instructions: '1. Heat a large pan over medium-high heat. 2. Stir-fry chicken with minced garlic and onion until cooked through. 3. Add carrot and cook until tender-crisp. 4. Season with honey and soy sauce. 5. Warm taco shells and assemble with lettuce, chicken mixture, fried shallots, and vegan aioli. 6. Serve with lemon wedge.',
         notes: 'Gluten-free and dairy-free friendly. Vegan aioli version.',
       },
+      {
+        name: 'One Container Pesto Chicken Bake',
+        category: 'Dinner',
+        ingredients: [
+          { id: 'ing-48', name: '50% Less Fat Cheese Shredded - Bega/Woolworths/Coles', qty: '25', unit: 'g' },
+          { id: 'ing-49', name: 'Basil Pecorino & Pine Nuts Pesto - Providore', qty: '20', unit: 'g' },
+          { id: 'ing-50', name: 'Chicken Breast (Weighed Raw)', qty: '100', unit: 'g' },
+          { id: 'ing-51', name: 'Chicken Stock (Generic)', qty: '60', unit: 'ml' },
+          { id: 'ing-52', name: 'Fresh Garlic', qty: '5', unit: 'g' },
+          { id: 'ing-53', name: 'Light Plain Greek Yogurt - Chobani', qty: '30', unit: 'g' },
+          { id: 'ing-54', name: 'Mushroom', qty: '50', unit: 'g' },
+          { id: 'ing-55', name: 'Rice Raw (Any)', qty: '40', unit: 'g' },
+          { id: 'ing-56', name: 'Tomato', qty: '50', unit: 'g' },
+        ],
+        macros: { calories: 456, protein: 38, fats: 16, carbs: 40 },
+        instructions: '1. Preheat oven to 180 degrees celsius. 2. In a baking container, combine rice, chicken stock, and diced vegetables (mushroom, tomato, garlic). 3. Season chicken breast and place on top of rice mixture. 4. Mix pesto with Greek yogurt and spread over chicken. 5. Top with shredded cheese. 6. Bake covered for 25-30 minutes until chicken is cooked through and rice is tender. 7. Serve directly from the container.',
+        notes: 'One-container meal. Easy preparation and cleanup.',
+      },
     ];
 
     defaults.forEach(recipe => this.addRecipe(recipe));
@@ -293,6 +311,24 @@ if (typeof window !== 'undefined') {
       macros: { calories: 531, protein: 38, fats: 19, carbs: 42 },
       instructions: '1. Heat a large pan over medium-high heat. 2. Stir-fry chicken with minced garlic and onion until cooked through. 3. Add carrot and cook until tender-crisp. 4. Season with honey and soy sauce. 5. Warm taco shells and assemble with lettuce, chicken mixture, fried shallots, and vegan aioli. 6. Serve with lemon wedge.',
       notes: 'Gluten-free and dairy-free friendly. Vegan aioli version.',
+    },
+    {
+      name: 'One Container Pesto Chicken Bake',
+      category: 'Dinner',
+      ingredients: [
+        { id: 'ing-48', name: '50% Less Fat Cheese Shredded - Bega/Woolworths/Coles', qty: '25', unit: 'g' },
+        { id: 'ing-49', name: 'Basil Pecorino & Pine Nuts Pesto - Providore', qty: '20', unit: 'g' },
+        { id: 'ing-50', name: 'Chicken Breast (Weighed Raw)', qty: '100', unit: 'g' },
+        { id: 'ing-51', name: 'Chicken Stock (Generic)', qty: '60', unit: 'ml' },
+        { id: 'ing-52', name: 'Fresh Garlic', qty: '5', unit: 'g' },
+        { id: 'ing-53', name: 'Light Plain Greek Yogurt - Chobani', qty: '30', unit: 'g' },
+        { id: 'ing-54', name: 'Mushroom', qty: '50', unit: 'g' },
+        { id: 'ing-55', name: 'Rice Raw (Any)', qty: '40', unit: 'g' },
+        { id: 'ing-56', name: 'Tomato', qty: '50', unit: 'g' },
+      ],
+      macros: { calories: 456, protein: 38, fats: 16, carbs: 40 },
+      instructions: '1. Preheat oven to 180 degrees celsius. 2. In a baking container, combine rice, chicken stock, and diced vegetables (mushroom, tomato, garlic). 3. Season chicken breast and place on top of rice mixture. 4. Mix pesto with Greek yogurt and spread over chicken. 5. Top with shredded cheese. 6. Bake covered for 25-30 minutes until chicken is cooked through and rice is tender. 7. Serve directly from the container.',
+      notes: 'One-container meal. Easy preparation and cleanup.',
     },
   ];
   
