@@ -51,6 +51,12 @@ class RecipeDatabase {
     }
   }
 
+  // Force reload from localStorage (useful when recipes are added externally)
+  reload() {
+    this.recipes.clear();
+    this.load();
+  }
+
   private save() {
     if (typeof window === 'undefined') return;
 

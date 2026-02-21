@@ -59,6 +59,8 @@ export default function RecipeBrowserModal({
   }, [isOpen]);
 
   const loadRecipes = () => {
+    // Force reload from localStorage in case recipes were added externally
+    recipeDatabase.reload();
     const allRecipes = recipeDatabase.getAllRecipes();
     setRecipes(allRecipes);
   };
