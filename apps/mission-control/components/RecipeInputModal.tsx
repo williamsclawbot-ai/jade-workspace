@@ -268,7 +268,7 @@ export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCateg
                   value={recipeName}
                   onChange={(e) => setRecipeName(e.target.value)}
                   placeholder="e.g., Chicken Enchilada (GF)"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-3 min-h-[48px] border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
 
@@ -279,7 +279,7 @@ export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCateg
                 <select
                   value={recipeCategory}
                   onChange={(e) => setRecipeCategory(e.target.value as any)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-3 min-h-[48px] border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 >
                   <option value="Breakfast">Breakfast</option>
                   <option value="Lunch">Lunch</option>
@@ -328,7 +328,7 @@ export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCateg
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="e.g., Gluten-free friendly, Kid-approved"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-3 min-h-[48px] border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                 />
               </div>
             </div>
@@ -378,7 +378,7 @@ export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCateg
                           value={ing.qty}
                           onChange={(e) => updateParsedIngredient(idx, 'qty', e.target.value)}
                           placeholder="1.5"
-                          className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                          className="w-full px-3 py-3 min-h-[48px] text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                         />
                       </div>
                       <div>
@@ -388,7 +388,7 @@ export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCateg
                           value={ing.unit}
                           onChange={(e) => updateParsedIngredient(idx, 'unit', e.target.value)}
                           placeholder="cups, g, tbsp"
-                          className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                          className="w-full px-3 py-3 min-h-[48px] text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                         />
                       </div>
                       <div>
@@ -398,7 +398,7 @@ export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCateg
                           value={ing.name}
                           onChange={(e) => updateParsedIngredient(idx, 'name', e.target.value)}
                           placeholder="flour"
-                          className="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                          className="w-full px-3 py-3 min-h-[48px] text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                         />
                       </div>
                     </div>
@@ -438,7 +438,7 @@ export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCateg
                     value={calories}
                     onChange={(e) => setCalories(e.target.value)}
                     placeholder="543"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-3 min-h-[48px] border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
@@ -450,7 +450,7 @@ export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCateg
                     value={protein}
                     onChange={(e) => setProtein(e.target.value)}
                     placeholder="42"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-3 min-h-[48px] border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
@@ -462,7 +462,7 @@ export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCateg
                     value={fats}
                     onChange={(e) => setFats(e.target.value)}
                     placeholder="21"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-3 min-h-[48px] border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
                 <div>
@@ -474,7 +474,7 @@ export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCateg
                     value={carbs}
                     onChange={(e) => setCarbs(e.target.value)}
                     placeholder="44"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-3 min-h-[48px] border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
