@@ -15,8 +15,11 @@ export async function POST(request: NextRequest) {
   const sessionId = crypto.randomUUID();
   
   try {
-    // Start the workflow process
-    const workflowProcess = spawn('node', ['/Users/williams/.openclaw/workspace/weekly-shopping-workflow.js']);
+    // Start the workflow process with auto mode (no terminal interaction needed)
+    const workflowProcess = spawn('node', [
+      '/Users/williams/.openclaw/workspace/weekly-shopping-workflow.js',
+      '--auto'
+    ]);
     
     const workflow = {
       process: workflowProcess,
@@ -79,14 +82,7 @@ export async function POST(request: NextRequest) {
       }
     });
     
-    // Auto-confirm after 5 seconds when waiting for login
-    // (gives user time to log in)
-    setTimeout(() => {
-      if (workflow.status === 'waiting_for_login') {
-        // Send ENTER to the process stdin to continue
-        workflowProcess.stdin.write('\n');
-      }
-    }, 60000); // 60 seconds to log in
+    // No need to send ENTER - workflow runs in auto mode
     
     return NextResponse.json({
       success: true,

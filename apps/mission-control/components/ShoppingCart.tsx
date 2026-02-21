@@ -166,7 +166,7 @@ export default function ShoppingCart() {
                 <p className="text-sm text-gray-600">
                   {!isBuilding && !workflowStatus && 'Click the button below to start building your Woolworths cart'}
                   {workflowStatus?.status === 'waiting_for_login' &&
-                    'A browser window has opened. Please log into your Woolworths account. The workflow will continue automatically after login.'}
+                    'A browser window has opened. Log in to Woolworths within 45 seconds. The workflow will auto-continue once you\'re logged in.'}
                   {workflowStatus?.status === 'searching' &&
                     `Searching Woolworths for ingredients from your meal plan...`}
                   {workflowStatus?.status === 'adding_to_cart' &&
@@ -185,12 +185,15 @@ export default function ShoppingCart() {
               
               <div className="space-y-4">
                 <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <h4 className="font-semibold text-blue-900 mb-2">How it works</h4>
+                  <h4 className="font-semibold text-blue-900 mb-2">How it works (2 steps!)</h4>
                   <ol className="text-sm text-blue-900 space-y-2">
                     <li><strong>1.</strong> Click "Build Cart" below</li>
-                    <li><strong>2.</strong> Browser opens → Log into Woolworths</li>
-                    <li><strong>3.</strong> Workflow automatically builds your cart!</li>
+                    <li><strong>2.</strong> Browser opens → Log into Woolworths within 45 seconds</li>
+                    <li><strong>3.</strong> ✨ That's it! Workflow auto-builds your cart</li>
                   </ol>
+                  <p className="text-xs text-blue-700 mt-3">
+                    🎯 No terminal interaction needed! Just log in and wait.
+                  </p>
                 </div>
 
                 <button
