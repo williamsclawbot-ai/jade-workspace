@@ -318,21 +318,49 @@ export default function JadesPersonalMealsView() {
         {shoppingList.length > 0 && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h3 className="font-semibold text-blue-900 mb-2">🛒 Shopping List ({shoppingList.length} items)</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
-              {shoppingList.map((item, idx) => (
-                <div key={item.id} className="bg-white p-2 rounded border border-blue-100 flex items-center justify-between">
-                  <span className="truncate">{item.ingredient}</span>
-                  <button
-                    onClick={() => {
-                      shoppingListStore.remove(item.id);
-                      const updated = shoppingListStore.getAll();
-                      setShoppingList(updated);
-                    }}
-                    className="text-red-500 hover:text-red-700 ml-2"
-                    title="Remove from shopping list"
-                  >
-                    <X size={14} />
-                  </button>
+            <div className="space-y-2">
+              {shoppingList.map((item) => (
+                <div key={item.id} className="bg-white p-3 rounded border border-blue-100">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-800">{item.ingredient}</p>
+                      <div className="flex gap-2 mt-2">
+                        <input
+                          type="text"
+                          value={item.quantity || ''}
+                          onChange={(e) => {
+                            shoppingListStore.update(item.id, { quantity: e.target.value });
+                            const updated = shoppingListStore.getAll();
+                            setShoppingList(updated);
+                          }}
+                          className="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                          placeholder="Qty"
+                        />
+                        <input
+                          type="text"
+                          value={item.unit || ''}
+                          onChange={(e) => {
+                            shoppingListStore.update(item.id, { unit: e.target.value });
+                            const updated = shoppingListStore.getAll();
+                            setShoppingList(updated);
+                          }}
+                          className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500"
+                          placeholder="Unit (g, ml, etc)"
+                        />
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        shoppingListStore.remove(item.id);
+                        const updated = shoppingListStore.getAll();
+                        setShoppingList(updated);
+                      }}
+                      className="text-red-500 hover:text-red-700 flex-shrink-0"
+                      title="Remove from shopping list"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

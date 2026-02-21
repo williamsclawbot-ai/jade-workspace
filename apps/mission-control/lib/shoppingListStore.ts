@@ -59,6 +59,15 @@ class ShoppingListStoreClass {
     this.save(items);
   }
 
+  update(id: string, updates: Partial<ShoppingListItem>): void {
+    const items = this.getAll();
+    const item = items.find(i => i.id === id);
+    if (item) {
+      Object.assign(item, updates);
+      this.save(items);
+    }
+  }
+
   moveToCart(id: string): void {
     const items = this.getAll();
     const item = items.find(i => i.id === id);
