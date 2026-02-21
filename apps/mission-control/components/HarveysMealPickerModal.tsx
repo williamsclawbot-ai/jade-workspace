@@ -97,13 +97,10 @@ export default function HarveysMealPickerModal({
 
   const getFilteredItems = () => {
     if (filterHarveysOnly) {
-      // When Harvey's Options is active, show his curated items + matching recipes
+      // When Harvey's Options is active, show ALL his curated items PLUS any matching recipes
       const harveysList = getAllHarveysOptions();
       
-      // Get recipes that are in Harvey's Options
-      const matchingRecipes = allRecipes.filter(r => harveysList.includes(r.name));
-      
-      // Add individual food items as "virtual recipes"
+      // Start with ALL Harvey's items as "virtual recipes"
       const harveyItems = harveysList.map((item, idx) => ({
         id: `harvey-${idx}`,
         name: item,
@@ -112,20 +109,19 @@ export default function HarveysMealPickerModal({
         macros: { calories: 0, protein: 0, fats: 0, carbs: 0 },
       }));
       
-      let combined = [...matchingRecipes, ...harveyItems];
+      // Get recipes from database that are ALSO in Harvey's Options
+      const matchingRecipes = allRecipes.filter(r => harveysList.includes(r.name));
       
-      // Remove duplicates by name
-      const seen = new Set<string>();
-      combined = combined.filter(item => {
-        if (seen.has(item.name)) return false;
-        seen.add(item.name);
-        return true;
-      });
+      // Combine: Harvey items first, then add any db recipes not already in the list
+      const combined = [
+        ...harveyItems,
+        ...matchingRecipes.filter(r => !harveysList.includes(r.name))
+      ];
       
-      // Apply search
+      // Apply search to both Harvey items AND recipes
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        combined = combined.filter(r => r.name.toLowerCase().includes(query));
+        return combined.filter(r => r.name.toLowerCase().includes(query));
       }
       
       return combined;
