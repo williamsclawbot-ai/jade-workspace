@@ -33,9 +33,45 @@
 
 ---
 
-## 🔧 CRITICAL BUG #2: Woolworths Cart Workflow (IN PROGRESS)
+## ✅ CRITICAL BUG #2: Woolworths Cart Workflow Fixed
 
-**Status:** Next up...
+**Problem:** Workflow required 7 manual steps (copy terminal command, paste, run, wait, login, press ENTER)
+
+**Root Cause:** Script was designed for terminal interaction with readline stdin prompt
+
+**Solution:**
+- Added `--auto` / `--no-interaction` flag to workflow script
+- When run in auto mode, skips stdin prompt and auto-continues after 45-second login window
+- API route now spawns process with `--auto` flag
+- UI updated to show "2 steps" instead of 7
+- Clearer messaging: "Log in within 45 seconds, then auto-continues"
+
+**Changes:**
+- File: `/Users/williams/.openclaw/workspace/weekly-shopping-workflow.js`
+  - Added auto-mode detection via CLI flags
+  - Removed readline stdin requirement when in auto mode
+  - Uses 45-second timeout for login instead of waiting for ENTER
+- File: `apps/mission-control/app/api/woolworths/build-cart/route.ts`
+  - Spawns process with `--auto` flag
+  - Removed stdin.write('\n') hack
+- File: `apps/mission-control/components/ShoppingCart.tsx`
+  - Updated UI instructions: "2 steps!"
+  - Clearer status messages about auto-continue
+
+**New Workflow:**
+1. Click "Build Cart" button (1 click)
+2. Browser opens → Log in to Woolworths (user action, ~30 seconds)
+3. Workflow auto-continues after login (no ENTER needed!)
+4. Cart built automatically
+
+**Reduced from 7 steps to 2 user interactions!**
+
+**Testing Notes:**
+- ✅ Code changes committed
+- ✅ Pushed to GitHub (commit 2529922)
+- ⏳ Needs testing: Click "Build Cart" → Browser opens → Log in → Should auto-continue without terminal interaction
+
+**Commit:** `2529922` - "🛒 Woolworths auto-mode - reduced from 7 steps to 2 clicks"
 
 ---
 

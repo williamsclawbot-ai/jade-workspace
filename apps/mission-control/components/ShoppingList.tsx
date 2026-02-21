@@ -13,6 +13,53 @@ interface AggregatedItem {
   sources: Array<{ source: 'jade' | 'harvey'; mealName?: string; day?: string }>;
 }
 
+// Normalize unit for comparison
+function normalizeUnit(unit: string): string {
+  const normalized = unit.toLowerCase().trim();
+  
+  // Map common unit variations to standard forms
+  const unitMap: Record<string, string> = {
+    // Weight
+    'g': 'g',
+    'gram': 'g',
+    'grams': 'g',
+    'kg': 'kg',
+    'kilogram': 'kg',
+    'kilograms': 'kg',
+    'oz': 'oz',
+    'ounce': 'oz',
+    'ounces': 'oz',
+    'lb': 'lb',
+    'pound': 'lb',
+    'pounds': 'lb',
+    
+    // Volume
+    'ml': 'ml',
+    'milliliter': 'ml',
+    'milliliters': 'ml',
+    'l': 'l',
+    'liter': 'l',
+    'liters': 'l',
+    'cup': 'cup',
+    'cups': 'cup',
+    'tsp': 'tsp',
+    'teaspoon': 'tsp',
+    'teaspoons': 'tsp',
+    'tbsp': 'tbsp',
+    'tablespoon': 'tbsp',
+    'tablespoons': 'tbsp',
+    
+    // Count
+    '': '',
+    'piece': '',
+    'pieces': '',
+    'item': '',
+    'items': '',
+  };
+  
+  return unitMap[normalized] || normalized;
+}
+
 // Parse quantity string to number and unit
 function parseQuantity(qty: string): { amount: number; unit: string } | null {
   if (!qty) return null;
@@ -24,7 +71,7 @@ function parseQuantity(qty: string): { amount: number; unit: string } | null {
   
   let amount = 0;
   const amountStr = match[1];
-  const unit = (match[2] || '').toLowerCase();
+  const rawUnit = match[2] || '';
   
   // Handle fractions like "1/2"
   if (amountStr.includes('/')) {
@@ -34,6 +81,9 @@ function parseQuantity(qty: string): { amount: number; unit: string } | null {
     amount = parseFloat(amountStr);
   }
   
+  // Normalize the unit
+  const unit = normalizeUnit(rawUnit);
+  
   return { amount, unit };
 }
 
@@ -41,7 +91,11 @@ function parseQuantity(qty: string): { amount: number; unit: string } | null {
 function normalizeIngredientName(name: string): string {
   let normalized = name.toLowerCase().trim();
   
-  // Remove common plurals
+  // Remove common plurals (more comprehensive)
+  // Handle "es" endings first (tomatoes → tomato, potatoes → potato)
+  normalized = normalized.replace(/([^aeiou])es$/, '$1e');
+  normalized = normalized.replace(/([aeiou])es$/, '$1');
+  // Handle simple "s" endings (eggs → egg, chickens → chicken)
   normalized = normalized.replace(/s$/, '');
   
   // Remove extra whitespace
