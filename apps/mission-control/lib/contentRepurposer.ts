@@ -9,7 +9,7 @@ export interface ContentVariation {
   content: string;
   characterCount: number;
   hashtags?: string[];
-  cta?: string; // Call-to-action
+  cta?: string | undefined; // Call-to-action
 }
 
 export interface RepurposeRequest {
@@ -199,7 +199,7 @@ function extractHashtags(content: string, platform: string): string[] {
 /**
  * Extract CTA from content
  */
-function extractCTA(content: string): string {
+function extractCTA(content: string): string | undefined {
   const ctaPatterns = [
     /(?:DM|message) (?:us|me) for .+/i,
     /(?:link in bio|check out).+/i,
