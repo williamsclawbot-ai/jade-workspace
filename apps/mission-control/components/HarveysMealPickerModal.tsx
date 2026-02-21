@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { X, Search, Calendar, Utensils, Trash2, Clock } from 'lucide-react';
 import { harveysMealVarietyStore } from '../lib/harveysMealVarietyStore';
+import { recipeDatabase, Recipe } from '../lib/recipeDatabase';
 
 interface HarveysMealPickerModalProps {
   isOpen: boolean;
@@ -29,57 +30,106 @@ export default function HarveysMealPickerModal({
   const [selectedMealType, setSelectedMealType] = useState<'breakfast' | 'lunch' | 'snack' | 'dinner'>('breakfast');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [filterHarveysOnly, setFilterHarveysOnly] = useState(true);
+  const [filterHarveysOnly, setFilterHarveysOnly] = useState(false); // Default to showing ALL recipes
   const [mealVariety, setMealVariety] = useState<Record<string, number | null>>({});
+  const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
 
-  // Load meal variety data
+  // Harvey's Options (from original mealOptions)
+  const harveysMealOptions: Record<string, string[]> = {
+    '🥣 Carb/Protein': [
+      'ABC Muffins', 'Banana Muffins', 'Muesli Bar', 'Carmans Oat Bar',
+      'Rice Bubble Bars (homemade)', 'Ham & Cheese Scroll', 'Pizza Scroll',
+      'Cheese & Vegemite (+backup)', 'Ham & Cheese Sandwich', 'Nut Butter & Honey (+backup)',
+      'Pasta & Boiled Egg (+backup)', 'Avo & Cream Cheese (+backup)', 'Sweet Potato & Chicken',
+      'Choc Chip Muffins', 'Weekly New Muffin', 'Weekly New Bar',
+    ],
+    '🍎 Fruit': [
+      'Apple (introduce)', 'Pear', 'Oranges', 'Banana', 'Grapes',
+      'Strawberries', 'Raspberries', 'Blueberries', 'Kiwi Fruit', 'Plum', 'Nectarine',
+    ],
+    '🥦 Vegetable': [
+      'Mixed Frozen Veg ⭐ LOVES', 'Cucumber (keep trying)', 'Tomato (keep trying)',
+      'Capsicum', 'Broccoli (new)', 'Green Beans (new)', 'Roasted Sweet Potato (new)',
+    ],
+    '🍪 Crunch': [
+      'Star Crackers', 'Rice Cakes', 'Pikelets/Pancakes', 'Veggie Chips',
+      'Soft Pretzels', 'Cheese Crackers', 'Breadsticks/Grissini',
+    ],
+    '🥤 Afternoon Snacks': [
+      'Smoothie (banana, berries, yogurt, milk)', 'Yogurt + Fruit',
+      'Crackers + Cheese', 'Toast + Nut Butter', 'Fruit Salad', 'Rice Cakes + Honey',
+    ],
+    '✅ Everyday': ['Yogurt (every lunch)'],
+  };
+
+  const getAllHarveysOptions = () => {
+    return Object.values(harveysMealOptions).flat();
+  };
+
+  // Load recipes from database
   useEffect(() => {
     if (isOpen) {
-      const allMeals: string[] = [];
-      Object.values(mealOptions).forEach(catMeals => {
-        allMeals.push(...catMeals);
-      });
+      recipeDatabase.reload();
+      const recipes = recipeDatabase.getAllRecipes();
+      setAllRecipes(recipes);
+      
+      // Load variety for all recipes
       const variety: Record<string, number | null> = {};
-      allMeals.forEach(meal => {
-        variety[meal] = harveysMealVarietyStore.getDaysSinceLastHad(meal);
+      recipes.forEach(recipe => {
+        variety[recipe.name] = harveysMealVarietyStore.getDaysSinceLastHad(recipe.name);
       });
+      
+      // Also load for Harvey's Options
+      getAllHarveysOptions().forEach(meal => {
+        if (!variety[meal]) {
+          variety[meal] = harveysMealVarietyStore.getDaysSinceLastHad(meal);
+        }
+      });
+      
       setMealVariety(variety);
     }
-  }, [isOpen, mealOptions]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const categories = Object.keys(mealOptions);
   const currentMeals = harveysAssignedMeals[selectedDay]?.[selectedMealType] || [];
+  const recipeCategories = Array.from(new Set(allRecipes.map(r => r.category).filter(Boolean))) as string[];
 
-  const getFilteredMeals = () => {
-    let meals: string[] = [];
+  const getFilteredRecipes = () => {
+    let recipes = [...allRecipes];
     
-    if (selectedCategory) {
-      meals = mealOptions[selectedCategory] || [];
-    } else {
-      // All meals from all categories
-      Object.values(mealOptions).forEach(catMeals => {
-        meals.push(...catMeals);
-      });
+    // Apply Harvey's Options filter
+    if (filterHarveysOnly) {
+      const harveysList = getAllHarveysOptions();
+      recipes = recipes.filter(r => harveysList.includes(r.name));
     }
     
+    // Apply category filter
+    if (selectedCategory && selectedCategory !== 'All') {
+      recipes = recipes.filter(r => r.category === selectedCategory);
+    }
+    
+    // Apply search
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      meals = meals.filter(m => m.toLowerCase().includes(query));
+      recipes = recipes.filter(r => 
+        r.name.toLowerCase().includes(query) ||
+        r.notes?.toLowerCase().includes(query) ||
+        r.ingredients.some(ing => ing.name.toLowerCase().includes(query))
+      );
     }
     
-    return meals;
+    return recipes;
   };
 
-  const filteredMeals = getFilteredMeals();
+  const filteredRecipes = getFilteredRecipes();
 
-  const handleAssignMeal = (mealName: string) => {
-    onAssignMeal(selectedDay, selectedMealType, mealName);
+  const handleAssignRecipe = (recipeName: string) => {
+    onAssignMeal(selectedDay, selectedMealType, recipeName);
     // Record that Harvey is having this meal
-    harveysMealVarietyStore.recordMeal(mealName);
+    harveysMealVarietyStore.recordMeal(recipeName);
     // Update local state
-    setMealVariety(prev => ({ ...prev, [mealName]: 0 }));
+    setMealVariety(prev => ({ ...prev, [recipeName]: 0 }));
   };
 
   const handleRemoveMeal = (mealName: string) => {
@@ -237,7 +287,7 @@ export default function HarveysMealPickerModal({
                 >
                   All
                 </button>
-                {categories.map(cat => (
+                {recipeCategories.map(cat => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
@@ -253,25 +303,25 @@ export default function HarveysMealPickerModal({
               </div>
             </div>
 
-            {/* Meal list */}
-            {filteredMeals.length === 0 ? (
+            {/* Recipe list */}
+            {filteredRecipes.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-500 dark:text-gray-400">No meals found</p>
+                <p className="text-gray-500 dark:text-gray-400">No recipes found</p>
                 <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
                   {searchQuery ? 'Try a different search term' : 'Select a different category'}
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-2">
-                {filteredMeals.map((meal, idx) => {
-                  const isAssigned = currentMeals.includes(meal);
-                  const daysSince = mealVariety[meal];
+              <div className="grid grid-cols-1 gap-2">
+                {filteredRecipes.map((recipe) => {
+                  const isAssigned = currentMeals.includes(recipe.name);
+                  const daysSince = mealVariety[recipe.name];
                   const notHadRecently = daysSince === null || daysSince >= 14;
                   
                   return (
                     <button
-                      key={idx}
-                      onClick={() => !isAssigned && handleAssignMeal(meal)}
+                      key={recipe.id}
+                      onClick={() => !isAssigned && handleAssignRecipe(recipe.name)}
                       disabled={isAssigned}
                       className={`text-left px-3 py-2 rounded-lg border transition ${
                         isAssigned
@@ -282,11 +332,27 @@ export default function HarveysMealPickerModal({
                       }`}
                     >
                       <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                          {isAssigned && <span className="text-xs">✓</span>}
-                          {notHadRecently && !isAssigned && <span className="text-xs">⭐</span>}
-                          <span className="text-sm flex-1 font-medium">{meal}</span>
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 flex-1">
+                            {isAssigned && <span className="text-xs">✓</span>}
+                            {notHadRecently && !isAssigned && <span className="text-xs">⭐</span>}
+                            <span className="text-sm flex-1 font-medium">{recipe.name}</span>
+                          </div>
+                          {recipe.category && (
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300">
+                              {recipe.category}
+                            </span>
+                          )}
                         </div>
+                        
+                        {/* Macros */}
+                        <div className="flex gap-2 text-xs text-gray-600 dark:text-gray-400 flex-wrap">
+                          <span>⚡ {recipe.macros.calories} cal</span>
+                          <span>💪 {recipe.macros.protein}g</span>
+                          <span>🥑 {recipe.macros.fats}g</span>
+                          <span>🍞 {recipe.macros.carbs}g</span>
+                        </div>
+                        
                         <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                           <Clock size={12} />
                           <span>
