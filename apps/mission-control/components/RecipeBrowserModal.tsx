@@ -54,6 +54,120 @@ export default function RecipeBrowserModal({
   const [filterHarveysOnly, setFilterHarveysOnly] = useState(false);
   const [showAddRecipeModal, setShowAddRecipeModal] = useState(false);
 
+  // Initialize new recipes on first load (guaranteed to run in browser)
+  useEffect(() => {
+    const STORAGE_KEY = 'jade-recipe-database-v1';
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const data = stored ? JSON.parse(stored) : {};
+    const existingNames = new Set(Object.values(data as any).map((r: any) => r.name));
+
+    const newRecipes = [
+      {
+        name: 'Snacks',
+        category: 'Snack',
+        ingredients: [
+          { id: '1', name: 'Harvest Pea Snaps (Original Salted) (18g) - Calbee', qty: '1', unit: 'pack' },
+          { id: '2', name: 'Kiwifruit', qty: '100', unit: 'g' },
+          { id: '3', name: 'Medium Coffee on Skim Milk', qty: '1', unit: 'serve' },
+        ],
+        macros: { calories: 264, protein: 16, fats: 4, carbs: 37 },
+      },
+      {
+        name: 'Rice Cakes with Peanut Butter and Banana (Mid Meal)',
+        category: 'Snack',
+        ingredients: [
+          { id: '1', name: 'Banana', qty: '50', unit: 'g' },
+          { id: '2', name: 'Peanut Butter - Bega', qty: '15', unit: 'g' },
+          { id: '3', name: 'Rice Cakes - Sunrise', qty: '2', unit: 'cakes' },
+        ],
+        macros: { calories: 186, protein: 5, fats: 8, carbs: 22 },
+      },
+      {
+        name: 'Caramelized Pineapple Burger (GF)',
+        category: 'Dinner',
+        ingredients: [
+          { id: '1', name: '50% Less Fat Cheese Slice - Bega', qty: '1', unit: 'slice' },
+          { id: '2', name: 'Brioche Bun Gluten free - Woolworths', qty: '1', unit: 'bun' },
+          { id: '3', name: 'Extra Lean Beef Mince (5 Star)', qty: '100', unit: 'g' },
+          { id: '4', name: 'Lettuce', qty: '30', unit: 'g' },
+          { id: '5', name: 'Natural Brown Sweetener - Natvia', qty: '10', unit: 'g' },
+          { id: '6', name: 'Onion', qty: '20', unit: 'g' },
+          { id: '7', name: 'Pineapple Canned - Golden Circle', qty: '50', unit: 'g' },
+        ],
+        macros: { calories: 424, protein: 33, fats: 11, carbs: 45 },
+      },
+      {
+        name: 'Rice Cakes with Honey and Banana (Mid Meal)',
+        category: 'Snack',
+        ingredients: [
+          { id: '1', name: 'Banana', qty: '100', unit: 'g' },
+          { id: '2', name: 'Honey', qty: '5', unit: 'g' },
+          { id: '3', name: 'Rice Cakes - Sunrise', qty: '2', unit: 'cakes' },
+        ],
+        macros: { calories: 153, protein: 2, fats: 1, carbs: 34 },
+      },
+      {
+        name: 'Chicken Gyros (GF)',
+        category: 'Dinner',
+        ingredients: [
+          { id: '1', name: 'Chicken Breast (Weighed Raw)', qty: '150', unit: 'g' },
+          { id: '2', name: 'Garlic & Herb Seasoning - Mingle', qty: '20', unit: 'g' },
+          { id: '3', name: 'Lettuce', qty: '20', unit: 'g' },
+          { id: '4', name: 'Low Carb Potato - Carisma/Spud Lite', qty: '200', unit: 'g' },
+          { id: '5', name: 'Onion', qty: '15', unit: 'g' },
+          { id: '6', name: 'Oregano', qty: '1', unit: 'g' },
+          { id: '7', name: 'Tomato', qty: '50', unit: 'g' },
+          { id: '8', name: 'Tzatziki - Willow Farm', qty: '20', unit: 'g' },
+          { id: '9', name: 'White Wraps Gluten Free - Woolworths', qty: '1', unit: 'wrap' },
+        ],
+        macros: { calories: 510, protein: 44, fats: 8, carbs: 64 },
+      },
+      {
+        name: 'Cantonese Chicken (GF)',
+        category: 'Dinner',
+        ingredients: [
+          { id: '1', name: 'Broccoli', qty: '100', unit: 'g' },
+          { id: '2', name: 'Cantonese Beef Stir Fry Sauce - Passage to Asia', qty: '70', unit: 'g' },
+          { id: '3', name: 'Chicken Breast (Weighed Raw)', qty: '120', unit: 'g' },
+          { id: '4', name: 'Fresh Garlic', qty: '0.05', unit: 'clove' },
+          { id: '5', name: 'Onion', qty: '30', unit: 'g' },
+          { id: '6', name: 'Rice Raw', qty: '35', unit: 'g' },
+          { id: '7', name: 'Zucchini', qty: '80', unit: 'g' },
+        ],
+        macros: { calories: 403, protein: 34, fats: 3, carbs: 60 },
+      },
+      {
+        name: 'Cheezel Crumbed Chicken & Veggies (GF)',
+        category: 'Dinner',
+        ingredients: [
+          { id: '1', name: 'Broccoli', qty: '80', unit: 'g' },
+          { id: '2', name: 'Butter (Light)', qty: '8', unit: 'g' },
+          { id: '3', name: 'Carrot', qty: '80', unit: 'g' },
+          { id: '4', name: 'Cheezels', qty: '1', unit: 'pack' },
+          { id: '5', name: 'Chicken Breast (Weighed Raw)', qty: '150', unit: 'g' },
+          { id: '6', name: 'Egg White', qty: '60', unit: 'g' },
+          { id: '7', name: 'Low Carb Potato - Carisma/Spud Lite', qty: '225', unit: 'g' },
+        ],
+        macros: { calories: 491, protein: 49, fats: 12, carbs: 42 },
+      },
+    ];
+
+    let added = 0;
+    newRecipes.forEach(recipe => {
+      if (!existingNames.has(recipe.name)) {
+        const id = `recipe-${Date.now()}-${Math.random().toString(36).substr(2,9)}`;
+        data[id] = { ...recipe, id, createdAt: Date.now(), updatedAt: Date.now() };
+        added++;
+      }
+    });
+
+    if (added > 0) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      recipeDatabase.reload();
+      console.log(`✅ Added ${added} recipes to database. Total now: ${Object.keys(data).length}`);
+    }
+  }, []); // Run once on mount
+
   useEffect(() => {
     if (isOpen) {
       loadRecipes();
