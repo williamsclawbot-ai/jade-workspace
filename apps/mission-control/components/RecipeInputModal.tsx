@@ -214,11 +214,18 @@ export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCateg
     else if (step === 'assign') setStep('macros');
   };
 
+  const handleAdvanceToMacros = () => {
+    console.log('handleAdvanceToMacros called, parsedIngredients:', parsedIngredients.length);
+    if (parsedIngredients.length > 0) {
+      setStep('macros');
+    }
+  };
+
   const handleNext = () => {
     if (step === 'paste' && recipeName && pastedText) {
       handleParse();
-    } else if (step === 'review' && parsedIngredients.length > 0) {
-      setStep('macros');
+    } else if (step === 'review') {
+      handleAdvanceToMacros();
     } else if (step === 'macros' && calories && protein && fats && carbs) {
       handleSaveRecipe();
     }
