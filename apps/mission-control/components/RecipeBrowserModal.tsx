@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Search } from 'lucide-react';
+import { X, Search, Plus } from 'lucide-react';
 import { recipeDatabase, Recipe } from '../lib/recipeDatabase';
+import AddRecipeModal from './AddRecipeModal';
 
 // Harvey's meal options for filtering
 const harveysMealOptions: Record<string, string[]> = {
@@ -51,6 +52,7 @@ export default function RecipeBrowserModal({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [filterHarveysOnly, setFilterHarveysOnly] = useState(false);
+  const [showAddRecipeModal, setShowAddRecipeModal] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -113,12 +115,21 @@ export default function RecipeBrowserModal({
               {filteredRecipes.length} recipes
             </span>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-          >
-            <X size={24} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowAddRecipeModal(true)}
+              className="flex items-center gap-1 px-3 py-1.5 bg-green-100 hover:bg-green-200 text-green-700 rounded-lg transition text-sm font-medium"
+            >
+              <Plus size={16} />
+              Add
+            </button>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            >
+              <X size={24} />
+            </button>
+          </div>
         </div>
 
         {/* Search + Category filter */}
@@ -239,6 +250,16 @@ export default function RecipeBrowserModal({
           </button>
         </div>
       </div>
+
+      {/* Add Recipe Modal */}
+      <AddRecipeModal
+        isOpen={showAddRecipeModal}
+        onClose={() => setShowAddRecipeModal(false)}
+        onRecipeAdded={() => {
+          loadRecipes();
+          setShowAddRecipeModal(false);
+        }}
+      />
     </div>
   );
 }
