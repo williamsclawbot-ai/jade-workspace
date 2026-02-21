@@ -95,34 +95,64 @@ export default function HarveysMealPickerModal({
   const currentMeals = harveysAssignedMeals[selectedDay]?.[selectedMealType] || [];
   const recipeCategories = Array.from(new Set(allRecipes.map(r => r.category).filter(Boolean))) as string[];
 
-  const getFilteredRecipes = () => {
-    let recipes = [...allRecipes];
-    
-    // Apply Harvey's Options filter
+  const getFilteredItems = () => {
     if (filterHarveysOnly) {
+      // When Harvey's Options is active, show his curated items + matching recipes
       const harveysList = getAllHarveysOptions();
-      recipes = recipes.filter(r => harveysList.includes(r.name));
+      
+      // Get recipes that are in Harvey's Options
+      const matchingRecipes = allRecipes.filter(r => harveysList.includes(r.name));
+      
+      // Add individual food items as "virtual recipes"
+      const harveyItems = harveysList.map((item, idx) => ({
+        id: `harvey-${idx}`,
+        name: item,
+        category: 'Harvey\'s Options' as any,
+        ingredients: [],
+        macros: { calories: 0, protein: 0, fats: 0, carbs: 0 },
+      }));
+      
+      let combined = [...matchingRecipes, ...harveyItems];
+      
+      // Remove duplicates by name
+      const seen = new Set<string>();
+      combined = combined.filter(item => {
+        if (seen.has(item.name)) return false;
+        seen.add(item.name);
+        return true;
+      });
+      
+      // Apply search
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        combined = combined.filter(r => r.name.toLowerCase().includes(query));
+      }
+      
+      return combined;
+    } else {
+      // Show all recipes from database
+      let recipes = [...allRecipes];
+      
+      // Apply category filter
+      if (selectedCategory && selectedCategory !== 'All') {
+        recipes = recipes.filter(r => r.category === selectedCategory);
+      }
+      
+      // Apply search
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        recipes = recipes.filter(r => 
+          r.name.toLowerCase().includes(query) ||
+          r.notes?.toLowerCase().includes(query) ||
+          r.ingredients.some(ing => ing.name.toLowerCase().includes(query))
+        );
+      }
+      
+      return recipes;
     }
-    
-    // Apply category filter
-    if (selectedCategory && selectedCategory !== 'All') {
-      recipes = recipes.filter(r => r.category === selectedCategory);
-    }
-    
-    // Apply search
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      recipes = recipes.filter(r => 
-        r.name.toLowerCase().includes(query) ||
-        r.notes?.toLowerCase().includes(query) ||
-        r.ingredients.some(ing => ing.name.toLowerCase().includes(query))
-      );
-    }
-    
-    return recipes;
   };
 
-  const filteredRecipes = getFilteredRecipes();
+  const filteredRecipes = getFilteredItems();
 
   const handleAssignRecipe = (recipeName: string) => {
     onAssignMeal(selectedDay, selectedMealType, recipeName);
@@ -275,32 +305,34 @@ export default function HarveysMealPickerModal({
                 👨‍👦 Harvey's Options
               </button>
 
-              {/* Category filter */}
-              <div className="flex gap-2 flex-wrap">
-                <button
-                  onClick={() => setSelectedCategory(null)}
-                  className={`px-3 py-1 text-sm rounded-full transition ${
-                    selectedCategory === null
-                      ? 'bg-pink-600 text-white'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                  }`}
-                >
-                  All
-                </button>
-                {recipeCategories.map(cat => (
+              {/* Category filter - only show when Harvey's Options is OFF */}
+              {!filterHarveysOnly && (
+                <div className="flex gap-2 flex-wrap">
                   <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
+                    onClick={() => setSelectedCategory(null)}
                     className={`px-3 py-1 text-sm rounded-full transition ${
-                      selectedCategory === cat
+                      selectedCategory === null
                         ? 'bg-pink-600 text-white'
                         : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
                     }`}
                   >
-                    {cat}
+                    All
                   </button>
-                ))}
-              </div>
+                  {recipeCategories.map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`px-3 py-1 text-sm rounded-full transition ${
+                        selectedCategory === cat
+                          ? 'bg-pink-600 text-white'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Recipe list */}
@@ -345,13 +377,15 @@ export default function HarveysMealPickerModal({
                           )}
                         </div>
                         
-                        {/* Macros */}
-                        <div className="flex gap-2 text-xs text-gray-600 dark:text-gray-400 flex-wrap">
-                          <span>⚡ {recipe.macros.calories} cal</span>
-                          <span>💪 {recipe.macros.protein}g</span>
-                          <span>🥑 {recipe.macros.fats}g</span>
-                          <span>🍞 {recipe.macros.carbs}g</span>
-                        </div>
+                        {/* Macros - only show if available */}
+                        {recipe.macros.calories > 0 && (
+                          <div className="flex gap-2 text-xs text-gray-600 dark:text-gray-400 flex-wrap">
+                            <span>⚡ {recipe.macros.calories} cal</span>
+                            <span>💪 {recipe.macros.protein}g</span>
+                            <span>🥑 {recipe.macros.fats}g</span>
+                            <span>🍞 {recipe.macros.carbs}g</span>
+                          </div>
+                        )}
                         
                         <div className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
                           <Clock size={12} />
