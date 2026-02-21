@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, ShoppingCart } from 'lucide-react';
+import { Plus, Trash2, ShoppingCart, X } from 'lucide-react';
 import { jadesMealsStorage, JadeMeal, populateWeeklyLunches } from '../lib/jadesMealsStorage';
-import { shoppingListStore } from '../lib/shoppingListStore';
+import { shoppingListStore, ShoppingListItem } from '../lib/shoppingListStore';
 
 /**
  * Jade's Personal Meals View
@@ -12,19 +12,27 @@ import { shoppingListStore } from '../lib/shoppingListStore';
  */
 export default function JadesPersonalMealsView() {
   const [meals, setMeals] = useState<JadeMeal[]>([]);
+  const [shoppingList, setShoppingList] = useState<ShoppingListItem[]>([]);
   const [selectedDay, setSelectedDay] = useState('Monday');
   const [newMealName, setNewMealName] = useState('');
   const [newMealType, setNewMealType] = useState('Lunch');
+  const [editingMealModal, setEditingMealModal] = useState<{ open: boolean; meal?: JadeMeal }>({ open: false });
+  const [ingredients, setIngredients] = useState<Array<{ name: string; qty: string; unit: string }>>([]);
+  const [newIngredient, setNewIngredient] = useState({ name: '', qty: '', unit: '' });
+  const [macros, setMacros] = useState({ calories: 0, protein: 0, fats: 0, carbs: 0 });
   const [addingToCart, setAddingToCart] = useState(false);
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
   const mealTypes = ['Breakfast', 'Lunch', 'Snack', 'Dinner', 'Dessert'];
 
-  // Load meals from storage on mount
+  // Load meals and shopping list from storage on mount
   useEffect(() => {
     const storedMeals = jadesMealsStorage.getAllMeals();
     setMeals(storedMeals);
+    const storedShoppingList = shoppingListStore.getAll();
+    setShoppingList(storedShoppingList);
     console.log('✅ Jade\'s personal meals loaded:', storedMeals.length, 'meals');
+    console.log('📝 Shopping list loaded:', storedShoppingList.length, 'items');
 
     // Listen for storage changes
     const handleStorageChange = (e: StorageEvent) => {
@@ -32,6 +40,11 @@ export default function JadesPersonalMealsView() {
         const updated = jadesMealsStorage.getAllMeals();
         setMeals(updated);
         console.log('📝 Jade\'s meals updated from storage:', updated.length, 'meals');
+      }
+      if (e.key === 'shopping-list-items') {
+        const updated = shoppingListStore.getAll();
+        setShoppingList(updated);
+        console.log('🛒 Shopping list updated from storage:', updated.length, 'items');
       }
     };
 
@@ -48,19 +61,75 @@ export default function JadesPersonalMealsView() {
       return;
     }
 
+    // Show modal to add ingredients
+    setEditingMealModal({ 
+      open: true, 
+      meal: undefined 
+    });
+  };
+
+  const handleSaveMeal = () => {
+    if (!newMealName.trim()) {
+      alert('Please enter a meal name');
+      return;
+    }
+
     const meal = jadesMealsStorage.addMeal(
       selectedDay,
       newMealType,
       newMealName,
-      {} // Empty macros for now
+      macros,
+      ingredients.length > 0 ? ingredients : undefined
     );
 
-    console.log(`✅ Added meal: ${newMealName} to ${selectedDay} ${newMealType}`);
+    console.log(`✅ Added meal: ${newMealName} to ${selectedDay} ${newMealType} with ${ingredients.length} ingredients`);
+    
+    // Auto-add ingredients to shopping list
+    if (ingredients.length > 0) {
+      const shoppingItems = ingredients.map(ing => ({
+        ingredient: ing.name,
+        quantity: ing.qty,
+        source: 'jade' as const,
+        sourceMetadata: {
+          mealName: newMealName,
+          day: selectedDay,
+          mealType: newMealType.toLowerCase() as 'breakfast' | 'lunch' | 'dinner' | 'snack',
+        },
+      }));
+      
+      shoppingListStore.addBulk(shoppingItems);
+      console.log(`✅ Added ${ingredients.length} ingredients to shopping list`);
+    }
     
     // Refresh local state
     const updated = jadesMealsStorage.getAllMeals();
+    const updatedShoppingList = shoppingListStore.getAll();
     setMeals(updated);
+    setShoppingList(updatedShoppingList);
     setNewMealName('');
+    setIngredients([]);
+    setMacros({ calories: 0, protein: 0, fats: 0, carbs: 0 });
+    setNewIngredient({ name: '', qty: '', unit: '' });
+    setEditingMealModal({ open: false });
+  };
+
+  const handleAddIngredient = () => {
+    if (!newIngredient.name.trim()) {
+      alert('Please enter ingredient name');
+      return;
+    }
+    
+    setIngredients([...ingredients, {
+      name: newIngredient.name,
+      qty: newIngredient.qty || '1',
+      unit: newIngredient.unit || 'unit',
+    }]);
+    
+    setNewIngredient({ name: '', qty: '', unit: '' });
+  };
+
+  const handleRemoveIngredient = (index: number) => {
+    setIngredients(ingredients.filter((_, i) => i !== index));
   };
 
   const handleRemoveMeal = (day: string, mealType: string) => {
@@ -244,6 +313,31 @@ export default function JadesPersonalMealsView() {
             </button>
           </div>
         </div>
+
+        {/* Shopping List Summary */}
+        {shoppingList.length > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <h3 className="font-semibold text-blue-900 mb-2">🛒 Shopping List ({shoppingList.length} items)</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
+              {shoppingList.map((item, idx) => (
+                <div key={item.id} className="bg-white p-2 rounded border border-blue-100 flex items-center justify-between">
+                  <span className="truncate">{item.ingredient}</span>
+                  <button
+                    onClick={() => {
+                      shoppingListStore.remove(item.id);
+                      const updated = shoppingListStore.getAll();
+                      setShoppingList(updated);
+                    }}
+                    className="text-red-500 hover:text-red-700 ml-2"
+                    title="Remove from shopping list"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Summary Stats */}
@@ -263,6 +357,173 @@ export default function JadesPersonalMealsView() {
               <p className="text-2xl font-bold text-green-600">
                 {meals.reduce((sum, m) => sum + (m.ingredients?.length || 0), 0)}
               </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Meal Detail Modal */}
+      {editingMealModal.open && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-jade-purple">Add Meal Details</h2>
+              <button
+                onClick={() => {
+                  setEditingMealModal({ open: false });
+                  setNewMealName('');
+                  setIngredients([]);
+                  setMacros({ calories: 0, protein: 0, fats: 0, carbs: 0 });
+                  setNewIngredient({ name: '', qty: '', unit: '' });
+                }}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              {/* Meal info summary */}
+              <div className="bg-jade-light/20 rounded-lg p-4 border border-jade-light">
+                <p className="text-sm text-gray-600">Creating meal</p>
+                <p className="font-bold text-lg text-jade-purple">{newMealName}</p>
+                <p className="text-sm text-gray-600">{selectedDay} • {newMealType}</p>
+              </div>
+
+              {/* Macros input */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-gray-900">📊 Macros (Optional)</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 block mb-1">Calories</label>
+                    <input
+                      type="number"
+                      value={macros.calories}
+                      onChange={(e) => setMacros({ ...macros, calories: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-jade-light"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 block mb-1">Protein (g)</label>
+                    <input
+                      type="number"
+                      value={macros.protein}
+                      onChange={(e) => setMacros({ ...macros, protein: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-jade-light"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 block mb-1">Fats (g)</label>
+                    <input
+                      type="number"
+                      value={macros.fats}
+                      onChange={(e) => setMacros({ ...macros, fats: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-jade-light"
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-gray-700 block mb-1">Carbs (g)</label>
+                    <input
+                      type="number"
+                      value={macros.carbs}
+                      onChange={(e) => setMacros({ ...macros, carbs: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-jade-light"
+                      placeholder="0"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Ingredients input */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-gray-900">🥘 Ingredients</h3>
+                
+                {/* Add ingredient form */}
+                <div className="border border-gray-200 rounded-lg p-3 space-y-2 bg-gray-50">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <input
+                      type="text"
+                      value={newIngredient.name}
+                      onChange={(e) => setNewIngredient({ ...newIngredient, name: e.target.value })}
+                      placeholder="Ingredient name"
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-jade-light"
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddIngredient()}
+                    />
+                    <input
+                      type="text"
+                      value={newIngredient.qty}
+                      onChange={(e) => setNewIngredient({ ...newIngredient, qty: e.target.value })}
+                      placeholder="Quantity"
+                      className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-jade-light"
+                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newIngredient.unit}
+                        onChange={(e) => setNewIngredient({ ...newIngredient, unit: e.target.value })}
+                        placeholder="Unit (g, ml, etc)"
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-jade-light"
+                      />
+                      <button
+                        onClick={handleAddIngredient}
+                        className="bg-jade-purple hover:bg-jade-purple/90 text-white px-3 py-2 rounded-lg font-medium transition flex items-center gap-1 min-w-fit"
+                      >
+                        <Plus size={16} />
+                        Add
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Ingredients list */}
+                {ingredients.length > 0 && (
+                  <div className="space-y-2">
+                    {ingredients.map((ing, idx) => (
+                      <div key={idx} className="bg-white border border-gray-200 rounded-lg p-3 flex items-center justify-between">
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-800">{ing.name}</p>
+                          <p className="text-xs text-gray-600">{ing.qty} {ing.unit}</p>
+                        </div>
+                        <button
+                          onClick={() => handleRemoveIngredient(idx)}
+                          className="text-red-500 hover:text-red-700 ml-2"
+                        >
+                          <X size={18} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {ingredients.length === 0 && (
+                  <p className="text-sm text-gray-500 italic">No ingredients added yet</p>
+                )}
+              </div>
+            </div>
+
+            <div className="sticky bottom-0 bg-gray-50 border-t border-gray-200 p-4 flex gap-3">
+              <button
+                onClick={() => {
+                  setEditingMealModal({ open: false });
+                  setNewMealName('');
+                  setIngredients([]);
+                  setMacros({ calories: 0, protein: 0, fats: 0, carbs: 0 });
+                  setNewIngredient({ name: '', qty: '', unit: '' });
+                }}
+                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-100 transition font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveMeal}
+                className="flex-1 bg-jade-purple hover:bg-jade-purple/90 text-white px-4 py-3 rounded-lg font-medium transition flex items-center justify-center gap-2"
+              >
+                <Plus size={18} />
+                Save Meal
+              </button>
             </div>
           </div>
         </div>
