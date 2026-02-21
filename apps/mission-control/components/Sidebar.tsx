@@ -71,6 +71,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       section: 'business',
       items: [
         { id: 'content', label: 'Content', icon: FileText },
+        { id: 'repurpose-content', label: 'Repurpose', icon: Zap },
         { id: 'calendar', label: 'Calendar', icon: Calendar },
         { id: 'weekly-newsletter', label: 'Newsletter', icon: Mail },
         { id: 'hls-tasks', label: 'Pipeline', icon: CheckSquare },

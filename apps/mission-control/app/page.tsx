@@ -34,6 +34,7 @@ import AwaitingReviewTab from '@/components/AwaitingReviewTab';
 import OvernightReviewTab from '@/components/OvernightReviewTab';
 import FunnelAnalysisView from '@/components/FunnelAnalysisView';
 import MorningBriefing from '@/components/MorningBriefing';
+import ContentRepurposerView from '@/components/ContentRepurposerView';
 import weeklyContentData from '@/lib/weeklyContentData.json';
 import { initializeWeeklyContent } from '@/lib/initializeContentData';
 import { initOvernightReports } from '@/lib/initOvernightReports';
@@ -66,6 +67,8 @@ export default function Home() {
         return <Guides />;
       case 'content':
         return <Content />;
+      case 'repurpose-content':
+        return <ContentRepurposerView />;
       case 'weekly-view':
         return <WeeklyContentView />;
       case 'weekly-newsletter':
