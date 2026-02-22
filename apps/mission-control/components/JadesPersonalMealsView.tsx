@@ -88,7 +88,8 @@ export default function JadesPersonalMealsView() {
     if (ingredients.length > 0) {
       const shoppingItems = ingredients.map(ing => ({
         ingredient: ing.name,
-        quantity: ing.qty,
+        // Combine qty + unit for proper parsing (e.g., "2 cups", "100g")
+        quantity: `${ing.qty}${ing.unit ? (ing.unit.match(/^[a-zA-Z]/) ? ` ${ing.unit}` : ing.unit) : ''}`,
         source: 'jade' as const,
         sourceMetadata: {
           mealName: newMealName,
@@ -149,7 +150,8 @@ export default function JadesPersonalMealsView() {
 
     const items = meal.ingredients.map(ing => ({
       ingredient: ing.name,
-      quantity: ing.qty,
+      // Combine qty + unit for proper parsing (e.g., "2 cups", "100g")
+      quantity: `${ing.qty}${ing.unit ? (ing.unit.match(/^[a-zA-Z]/) ? ` ${ing.unit}` : ing.unit) : ''}`,
       source: 'jade' as const,
       sourceMetadata: {
         mealName: meal.mealName,
