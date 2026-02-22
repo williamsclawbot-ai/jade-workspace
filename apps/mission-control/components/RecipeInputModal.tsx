@@ -215,19 +215,38 @@ export default function RecipeInputModal({ isOpen, onClose, onSave, defaultCateg
   };
 
   const handleAdvanceToMacros = () => {
-    console.log('handleAdvanceToMacros called, parsedIngredients:', parsedIngredients.length);
-    if (parsedIngredients.length > 0) {
-      setStep('macros');
-    }
+    console.log('🔧 handleAdvanceToMacros called', {
+      currentStep: step,
+      parsedCount: parsedIngredients.length,
+      ingredients: parsedIngredients
+    });
+    
+    // Always advance to macros step from review
+    // The button is already disabled if parsedIngredients.length === 0
+    setStep('macros');
+    console.log('✅ Step set to macros');
   };
 
   const handleNext = () => {
+    console.log('🔧 handleNext called', { step });
+    
     if (step === 'paste' && recipeName && pastedText) {
+      console.log('📝 Parsing ingredients...');
       handleParse();
     } else if (step === 'review') {
+      console.log('📋 Advancing to macros...');
       handleAdvanceToMacros();
     } else if (step === 'macros' && calories && protein && fats && carbs) {
+      console.log('💾 Saving recipe...');
       handleSaveRecipe();
+    } else {
+      console.warn('⚠️ handleNext called but no action taken', {
+        step,
+        recipeName,
+        pastedText,
+        ingredientsCount: parsedIngredients.length,
+        macros: { calories, protein, fats, carbs }
+      });
     }
   };
 
