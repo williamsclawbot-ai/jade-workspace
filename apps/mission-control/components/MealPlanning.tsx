@@ -750,7 +750,7 @@ function JadesDayCard({
               {!recipeName ? (
                 <button
                   onClick={() => onOpenRecipeBrowser?.(day, mealType)}
-                  className="flex-1 text-blue-600 hover:text-blue-700 italic text-sm py-3 px-4 min-h-[44px] flex items-center gap-2 border-2 border-dashed border-blue-300 rounded-lg hover:bg-blue-50 transition cursor-pointer"
+                  className="flex-1 text-blue-600 hover:text-blue-700 italic text-sm py-3 px-4 min-h-[48px] flex items-center gap-2 border-2 border-dashed border-blue-300 rounded-lg hover:bg-blue-50 transition cursor-pointer"
                   title="Click to browse saved recipes"
                 >
                   <Plus size={18} />
@@ -760,7 +760,7 @@ function JadesDayCard({
                 <>
                   <div
                     onClick={() => onOpenModal(week.weekId, day, mealType, recipeName)}
-                    className="flex-1 px-4 py-3 bg-jade-light/30 rounded-lg hover:bg-jade-light/50 cursor-pointer transition min-h-[44px] flex items-center"
+                    className="flex-1 px-4 py-3 bg-jade-light/30 rounded-lg hover:bg-jade-light/50 cursor-pointer transition min-h-[48px] flex items-center"
                   >
                     <span className="font-medium text-gray-800">{recipeName}</span>
                     {dayOverride && <span className="text-xs text-amber-600 ml-2">(modified)</span>}
@@ -769,12 +769,12 @@ function JadesDayCard({
                     <>
                       <button 
                         onClick={() => onOpenBatchAssignment?.(recipeName)} 
-                        className="text-blue-500 hover:text-blue-700 transition p-3 text-lg font-medium min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-blue-50"
+                        className="text-blue-500 hover:text-blue-700 transition p-3 text-lg font-medium min-h-[48px] min-w-[48px] flex items-center justify-center rounded-lg hover:bg-blue-50"
                         title="Assign to multiple days"
                       >
                         📋
                       </button>
-                      <button onClick={() => onRemove(week.weekId, day, mealType)} className="text-red-500 hover:text-red-700 transition p-3 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-red-50">
+                      <button onClick={() => onRemove(week.weekId, day, mealType)} className="text-red-500 hover:text-red-700 transition p-3 min-h-[48px] min-w-[48px] flex items-center justify-center rounded-lg hover:bg-red-50">
                         <X size={20} />
                       </button>
                     </>
