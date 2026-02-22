@@ -7,7 +7,7 @@
  */
 
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { estimateMacrosFromIngredients } from '../../../lib/macro-estimator';
+import { estimateMacrosFromIngredients } from '@/lib/macro-estimator';
 
 interface RecipeResponse {
   name: string;

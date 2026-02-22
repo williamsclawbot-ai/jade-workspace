@@ -335,19 +335,8 @@ export default function JadesPersonalMealsView() {
                             const updated = shoppingListStore.getAll();
                             setShoppingList(updated);
                           }}
-                          className="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-                          placeholder="Qty"
-                        />
-                        <input
-                          type="text"
-                          value={item.unit || ''}
-                          onChange={(e) => {
-                            shoppingListStore.update(item.id, { unit: e.target.value });
-                            const updated = shoppingListStore.getAll();
-                            setShoppingList(updated);
-                          }}
                           className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-                          placeholder="Unit (g, ml, etc)"
+                          placeholder="Quantity (e.g., 2 cups, 100g)"
                         />
                       </div>
                     </div>
