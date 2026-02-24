@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, ShoppingCart, X } from 'lucide-react';
+import { Plus, Trash2, ShoppingCart, X, ChefHat, Package, TrendingUp } from 'lucide-react';
 import { weeklyMealPlanStorage, WeeklyMealPlan, ShoppingItem } from '../lib/weeklyMealPlanStorage';
 import JadesPersonalMealsView from './JadesPersonalMealsView';
 import { recipeDatabase } from '../lib/recipeDatabase';
+import PantryTracker from './PantryTracker';
+import NutritionDashboard from './NutritionDashboard';
 import { 
   calculateDayMacros,
   getRecipeDetails,
@@ -75,7 +77,7 @@ const initializeAssignedMeals = () => {
 };
 
 export default function MealPlanning() {
-  const [activeTab, setActiveTab] = useState<'jades-meals' | 'harveys-meals' | 'shopping' | 'harveys-options' | 'personal-meals'>('jades-meals');
+  const [activeTab, setActiveTab] = useState<'jades-meals' | 'harveys-meals' | 'shopping' | 'harveys-options' | 'personal-meals' | 'pantry' | 'nutrition'>('jades-meals');
   const [activeWeekTab, setActiveWeekTab] = useState<'this' | 'next' | 'archive'>('this');
   const [selectedArchivedWeekId, setSelectedArchivedWeekId] = useState<string | null>(null);
 
@@ -372,6 +374,22 @@ export default function MealPlanning() {
         >
           🛒 Shopping List
         </button>
+        <button
+          onClick={() => setActiveTab('pantry')}
+          className={`px-6 py-4 font-medium border-b-2 transition whitespace-nowrap min-h-[48px] ${
+            activeTab === 'pantry' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'
+          }`}
+        >
+          📦 Pantry
+        </button>
+        <button
+          onClick={() => setActiveTab('nutrition')}
+          className={`px-6 py-4 font-medium border-b-2 transition whitespace-nowrap min-h-[48px] ${
+            activeTab === 'nutrition' ? 'border-jade-purple text-jade-purple' : 'border-transparent text-gray-600'
+          }`}
+        >
+          📊 Nutrition
+        </button>
       </div>
 
       {/* Week tabs */}
@@ -469,6 +487,16 @@ export default function MealPlanning() {
             <ShoppingListView week={displayedWeek} readOnly={readOnly} onBuildCart={handleBuildWoolworthsCart} buildingCart={buildingCart} cartResult={cartResult} harveysAssignedMeals={harveysAssignedMeals} />
           )}
         </>
+      )}
+
+      {/* PANTRY TRACKER */}
+      {activeTab === 'pantry' && (
+        <PantryTracker />
+      )}
+
+      {/* NUTRITION DASHBOARD */}
+      {activeTab === 'nutrition' && (
+        <NutritionDashboard />
       )}
 
       {/* Recipe modal */}
