@@ -129,27 +129,27 @@ export default function PantryTracker() {
       {/* Metrics */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <MetricCard
-          title="Total Items"
+          label="Total Items"
           value={totalItems}
           icon={Package}
-          color="purple"
+          color="plum"
         />
         <MetricCard
-          title="Low Stock"
+          label="Low Stock"
           value={lowStock}
           icon={AlertTriangle}
-          color="amber"
+          color="orange"
           trend={lowStock > 0 ? 'up' : 'neutral'}
           trendValue={lowStock > 0 ? 'Restock soon' : 'Good'}
         />
         <MetricCard
-          title="Out of Stock"
+          label="Out of Stock"
           value={outOfStock}
           icon={Package}
-          color="pink"
+          color="red"
         />
         <MetricCard
-          title="Expiring Soon"
+          label="Expiring Soon"
           value={expiringSoon}
           icon={AlertTriangle}
           color="green"

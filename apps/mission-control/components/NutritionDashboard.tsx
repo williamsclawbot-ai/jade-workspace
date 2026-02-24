@@ -52,7 +52,7 @@ export default function NutritionDashboard() {
     if (!weekData) return;
 
     const plans = JSON.parse(weekData);
-    const currentWeek = plans.current ? Object.values(plans.current)[0] : null;
+    const currentWeek: any = plans.current ? Object.values(plans.current)[0] : null;
     
     if (!currentWeek?.jades?.meals) return;
 
@@ -146,7 +146,7 @@ export default function NutritionDashboard() {
     if (!weekData) return;
 
     const plans = JSON.parse(weekData);
-    const currentWeek = plans.current ? Object.values(plans.current)[0] : null;
+    const currentWeek: any = plans.current ? Object.values(plans.current)[0] : null;
     
     if (!currentWeek?.harveys?.meals) return;
 
@@ -199,34 +199,34 @@ export default function NutritionDashboard() {
       {summary && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <MetricCard
-            title="Avg Calories"
+            label="Avg Calories"
             value={summary.avgCalories}
-            subtitle={`Target: ${TARGETS.calories}`}
+            target={TARGETS.calories}
+            actual={summary.avgCalories}
             icon={TrendingUp}
-            color={Math.abs(summary.avgCalories - TARGETS.calories) < 100 ? 'green' : 'amber'}
+            color={Math.abs(summary.avgCalories - TARGETS.calories) < 100 ? 'green' : 'orange'}
           />
           <MetricCard
-            title="Avg Protein"
+            label="Avg Protein"
             value={`${summary.avgProtein}g`}
-            subtitle={`Target: ${TARGETS.protein}g`}
+            target={TARGETS.protein}
+            actual={summary.avgProtein}
             icon={Award}
-            color={summary.avgProtein >= TARGETS.protein * 0.9 ? 'green' : 'amber'}
+            color={summary.avgProtein >= TARGETS.protein * 0.9 ? 'green' : 'orange'}
           />
           <MetricCard
-            title="Adherence Score"
+            label="Adherence Score"
             value={`${summary.adherenceScore}%`}
-            subtitle={`${summary.daysTracked} days tracked`}
             icon={Calendar}
-            color={summary.adherenceScore >= 80 ? 'green' : 'amber'}
+            color={summary.adherenceScore >= 80 ? 'green' : 'orange'}
           />
           <MetricCard
-            title="Most Eaten"
+            label="Most Eaten"
             value={summary.mostFrequentMeal.length > 15 
               ? summary.mostFrequentMeal.slice(0, 15) + '...' 
               : summary.mostFrequentMeal}
-            subtitle="This week"
             icon={Utensils}
-            color="purple"
+            color="plum"
           />
         </div>
       )}
