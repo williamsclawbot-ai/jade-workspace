@@ -23,6 +23,7 @@ export interface Recipe {
   };
   instructions?: string;
   notes?: string;
+  sourceUrl?: string;
   createdAt: number;
   updatedAt: number;
 }
@@ -139,7 +140,8 @@ const seedRecipesForWeekOf3March = [
     ],
     macros: { calories: 420, protein: 32, fats: 18, carbs: 28 },
     instructions: "TM6 Method:\n1. Place garlic, onion, ginger, coriander and oil into TM bowl → Chop 3 sec / Speed 5\n2. Scrape down and sauté → 5 min / Varoma / Speed 1 / MC off\n3. Add chicken, curry powder, stock and coconut cream → Cook 12 min / 100°C / Reverse / Speed 1\n4. Add carrots, celery and tomatoes → Cook 4 min / 100°C / Reverse / Speed 1\n5. Add snow peas → Cook 2 min / 100°C / Reverse / Speed 1\n6. Serve on rice",
-    notes: "Source: ThermoFun. Toddler-friendly mild curry. Batch freezes well. Harvey portion: ~½ adult serve."
+    notes: "Toddler-friendly mild curry. Batch freezes well. Harvey portion: ~½ adult serve.",
+    sourceUrl: "https://thermofun.com/thermomix-coconut-chicken-curry-recipe/"
   },
   {
     name: "Beef & Vegetable Rissoles",
@@ -160,7 +162,8 @@ const seedRecipesForWeekOf3March = [
     ],
     macros: { calories: 380, protein: 28, fats: 22, carbs: 14 },
     instructions: "TM6 Method:\n1. Place onion, garlic, zucchini and carrot in TM bowl → Chop 5 sec / Speed 5\n2. Add beef mince, egg, tomato sauce, Worcestershire, herbs, salt and pepper → Mix 10 sec / Reverse / Speed 4\n3. Scrape down, mix again → 5 sec / Reverse / Speed 4\n4. Shape mixture into 10 patties (approx 2 tbsp each)\n5. Coat each rissole in gluten-free flour\n6. Pan fry 3-4 minutes each side until golden and cooked through",
-    notes: "Source: Thermobliss. Hidden veggies! Makes 10 rissoles. Batch freezes cooked or uncooked. Serve with mash and veg or as burgers. Harvey: 1 small rissole, cut into pieces."
+    notes: "Hidden veggies! Makes 10 rissoles. Batch freezes cooked or uncooked. Serve with mash and veg or as burgers. Harvey: 1 small rissole, cut into pieces.",
+    sourceUrl: "https://thermobliss.com/thermomix-beef-and-vegetable-rissoles/"
   },
   {
     name: "Creamy Garlic Chicken",
@@ -182,7 +185,8 @@ const seedRecipesForWeekOf3March = [
     ],
     macros: { calories: 368, protein: 34, fats: 20, carbs: 8 },
     instructions: "TM6 Method:\n1. Place garlic in TM bowl → Chop 3 sec / Speed 7\n2. Add olive oil → Sauté 2 min / 100°C / Speed 1\n3. Add chicken, paprika, onion powder, herbs, salt and pepper → Cook 8 min / 100°C / Reverse / Speed 1\n4. Add cream and stock → Cook 5 min / 90°C / Reverse / Speed 1\n5. Mix cornflour with water, add to bowl → Cook 2 min / 90°C / Reverse / Speed 1 to thicken\n6. Check seasoning, serve with rice and vegetables",
-    notes: "Source: Skinnymixers (THMIV). 20 minute meal. Toddler-friendly creamy sauce. Omit chilli. Harvey: ~½ adult serve, diced or shredded."
+    notes: "20 minute meal. Toddler-friendly creamy sauce. Omit chilli. Harvey: ~½ adult serve, diced or shredded.",
+    sourceUrl: "https://skinnymixers.com.au/thmiv-creamy-garlic-chicken/"
   },
   {
     name: "Chicken Sausages with Mash & Broccolini",

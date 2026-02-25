@@ -257,6 +257,23 @@ export default function RecipeModal({ isOpen, recipe, onClose, onSave, readOnly 
               </p>
             </div>
           )}
+
+          {/* Source Link */}
+          {recipe.sourceUrl && (
+            <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded">
+              <p className="text-sm text-amber-800">
+                <span className="font-semibold">📖 Source:</span>{' '}
+                <a
+                  href={recipe.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-amber-700 underline hover:text-amber-900"
+                >
+                  {recipe.sourceUrl}
+                </a>
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
