@@ -403,21 +403,6 @@ export const weeklyMealPlanStorage = new WeeklyMealPlanStorage();
 // Olive Brief: Meal Prep - 25 Feb 2026
 // ======================
 
-function getMonday(date: Date): Date {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-  return new Date(d.setDate(diff));
-}
-
-function getISOWeekNumber(date: Date): number {
-  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-  const dayNum = d.getUTCDay() || 7;
-  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
-}
-
 // Week of 3 March 2026 is ISO week 10 of 2026
 const TARGET_WEEK_ID = '2026-w10';
 
