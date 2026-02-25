@@ -240,7 +240,15 @@ if (typeof window !== 'undefined') {
   
   seedRecipesForWeekOf3March.forEach(recipe => {
     if (!existingNames.has(recipe.name)) {
+      // Add new recipe
       recipeDatabase.addRecipe(recipe);
+    } else {
+      // Update existing recipe if missing sourceUrl
+      const existing = existingRecipes.find(r => r.name === recipe.name);
+      if (existing && recipe.sourceUrl && !existing.sourceUrl) {
+        recipeDatabase.updateRecipe(existing.id, { sourceUrl: recipe.sourceUrl });
+        console.log(`[Olive] Added sourceUrl to ${recipe.name}`);
+      }
     }
   });
 }
