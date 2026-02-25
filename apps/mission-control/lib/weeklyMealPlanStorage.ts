@@ -419,10 +419,16 @@ if (typeof window !== 'undefined') {
     // Only populate if empty (avoid overwriting user changes)
     if (!mondayDinner && !tuesdayDinner && !wednesdayDinner) {
       try {
-        // Add the 3 dinners
+        // Add Mon-Wed dinners (Jade cooking)
         weeklyMealPlanStorage.addMealToWeek(TARGET_WEEK_ID, 'Monday', 'dinner', 'Coconut Chicken Curry');
         weeklyMealPlanStorage.addMealToWeek(TARGET_WEEK_ID, 'Tuesday', 'dinner', 'Beef & Vegetable Rissoles');
         weeklyMealPlanStorage.addMealToWeek(TARGET_WEEK_ID, 'Wednesday', 'dinner', 'Creamy Garlic Chicken');
+        
+        // Add Thu-Sat dinners (John solo while Jade away)
+        weeklyMealPlanStorage.addMealToWeek(TARGET_WEEK_ID, 'Thursday', 'dinner', 'Chicken Sausages with Mash & Broccolini');
+        weeklyMealPlanStorage.addMealToWeek(TARGET_WEEK_ID, 'Friday', 'dinner', 'Takeaway Night');
+        weeklyMealPlanStorage.addMealToWeek(TARGET_WEEK_ID, 'Saturday', 'dinner', 'Steak & Veggies');
+        
         console.log('[Olive] Meal plan seeded for week of 3 March 2026');
       } catch (e) {
         console.error('[Olive] Failed to seed meal plan:', e);

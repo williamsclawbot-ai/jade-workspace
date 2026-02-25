@@ -183,6 +183,48 @@ const seedRecipesForWeekOf3March = [
     macros: { calories: 368, protein: 34, fats: 20, carbs: 8 },
     instructions: "TM6 Method:\n1. Place garlic in TM bowl → Chop 3 sec / Speed 7\n2. Add olive oil → Sauté 2 min / 100°C / Speed 1\n3. Add chicken, paprika, onion powder, herbs, salt and pepper → Cook 8 min / 100°C / Reverse / Speed 1\n4. Add cream and stock → Cook 5 min / 90°C / Reverse / Speed 1\n5. Mix cornflour with water, add to bowl → Cook 2 min / 90°C / Reverse / Speed 1 to thicken\n6. Check seasoning, serve with rice and vegetables",
     notes: "Source: Skinnymixers (THMIV). 20 minute meal. Toddler-friendly creamy sauce. Omit chilli. Harvey: ~½ adult serve, diced or shredded."
+  },
+  {
+    name: "Chicken Sausages with Mash & Broccolini",
+    category: "Dinner",
+    ingredients: [
+      { id: "1", name: "Woolworths chicken sausages", qty: 1, unit: "pack (approx 6)" },
+      { id: "2", name: "Spud Lite potatoes", qty: 800, unit: "g" },
+      { id: "3", name: "Broccolini", qty: 1, unit: "bunch" },
+      { id: "4", name: "Butter", qty: 30, unit: "g" },
+      { id: "5", name: "Milk", qty: 100, unit: "ml" },
+      { id: "6", name: "Salt and pepper", qty: 1, unit: "to taste" },
+      { id: "7", name: "Olive oil", qty: 1, unit: "tbsp" },
+    ],
+    macros: { calories: 450, protein: 25, fats: 18, carbs: 38 },
+    instructions: "Method:\n1. Peel and chop potatoes, boil in salted water until tender (15-20 min)\n2. While potatoes cook, pan-fry chicken sausages in olive oil over medium heat for 10-12 min, turning occasionally\n3. Steam or microwave broccolini for 3-4 min until tender-crisp\n4. Drain potatoes, add butter and milk, mash until smooth\n5. Season mash with salt and pepper\n6. Serve sausages on mash with broccolini on the side",
+    notes: "Simple weeknight dinner. John-friendly easy prep. Harvey: cut sausages into small pieces, mash can be finger food or spoon-fed."
+  },
+  {
+    name: "Takeaway Night",
+    category: "Dinner",
+    ingredients: [
+      { id: "1", name: "Whatever you're craving!", qty: 1, unit: "order" },
+    ],
+    macros: { calories: 0, protein: 0, fats: 0, carbs: 0 },
+    instructions: "Order your favourite takeaway and enjoy a night off cooking!",
+    notes: "No cooking required. Harvey: choose toddler-friendly options from menu."
+  },
+  {
+    name: "Steak & Veggies",
+    category: "Dinner",
+    ingredients: [
+      { id: "1", name: "Beef steak (scotch fillet or rump)", qty: 500, unit: "g" },
+      { id: "2", name: "Sweet potato", qty: 600, unit: "g" },
+      { id: "3", name: "Green beans", qty: 300, unit: "g" },
+      { id: "4", name: "Cherry tomatoes", qty: 250, unit: "g" },
+      { id: "5", name: "Olive oil", qty: 2, unit: "tbsp" },
+      { id: "6", name: "Garlic butter", qty: 30, unit: "g" },
+      { id: "7", name: "Salt and pepper", qty: 1, unit: "to taste" },
+    ],
+    macros: { calories: 420, protein: 38, fats: 20, carbs: 22 },
+    instructions: "Method:\n1. Preheat oven to 200°C. Chop sweet potato into chunks, toss with olive oil, salt and pepper\n2. Roast sweet potato for 25-30 min until golden\n3. Season steak with salt and pepper. Cook in hot pan 3-4 min each side for medium (adjust for preference)\n4. Rest steak for 5 min under foil\n5. Steam green beans for 4-5 min until tender\n6. Slice steak against the grain, serve with roasted sweet potato, beans and cherry tomatoes",
+    notes: "Classic easy dinner. John-friendly. Resting steak is key for juiciness. Harvey: cut steak into very small pieces, soft roasted sweet potato perfect for little hands."
   }
 ];
 
