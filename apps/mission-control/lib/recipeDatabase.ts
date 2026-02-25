@@ -113,8 +113,88 @@ class RecipeDatabase {
 export const recipeDatabase = new RecipeDatabase();
 
 // ======================
-// RECIPE DATABASE STARTS EMPTY
-// Jade will populate via Discord submissions
+// SEED RECIPES - Week of 3 March 2026
+// Added for Olive Brief: Meal Prep - 25 Feb 2026
 // ======================
-// No seed recipes - recipe library starts fresh
-// Use recipeDatabase.addRecipe() to add new recipes
+
+const seedRecipesForWeekOf3March = [
+  {
+    name: "Coconut Chicken Curry",
+    category: "Dinner",
+    ingredients: [
+      { id: "1", name: "Mild curry powder", qty: 1.5, unit: "tbsp" },
+      { id: "2", name: "Coconut cream", qty: 400, unit: "ml" },
+      { id: "3", name: "Garlic cloves", qty: 6, unit: "" },
+      { id: "4", name: "Brown onion", qty: 1, unit: "" },
+      { id: "5", name: "Fresh ginger", qty: 1, unit: "cm" },
+      { id: "6", name: "Fresh coriander", qty: 1, unit: "handful" },
+      { id: "7", name: "Olive oil", qty: 1, unit: "tbsp" },
+      { id: "8", name: "Chicken thighs", qty: 1000, unit: "g" },
+      { id: "9", name: "TM vegetable stock concentrate", qty: 20, unit: "g" },
+      { id: "10", name: "Carrots", qty: 2, unit: "medium" },
+      { id: "11", name: "Celery", qty: 1, unit: "cup" },
+      { id: "12", name: "Tomatoes", qty: 2, unit: "" },
+      { id: "13", name: "Snow peas", qty: 1, unit: "handful" },
+      { id: "14", name: "Rice (to serve)", qty: 1, unit: "batch" },
+    ],
+    macros: { calories: 420, protein: 32, fats: 18, carbs: 28 },
+    instructions: "TM6 Method:\n1. Place garlic, onion, ginger, coriander and oil into TM bowl → Chop 3 sec / Speed 5\n2. Scrape down and sauté → 5 min / Varoma / Speed 1 / MC off\n3. Add chicken, curry powder, stock and coconut cream → Cook 12 min / 100°C / Reverse / Speed 1\n4. Add carrots, celery and tomatoes → Cook 4 min / 100°C / Reverse / Speed 1\n5. Add snow peas → Cook 2 min / 100°C / Reverse / Speed 1\n6. Serve on rice",
+    notes: "Source: ThermoFun. Toddler-friendly mild curry. Batch freezes well. Harvey portion: ~½ adult serve."
+  },
+  {
+    name: "Beef & Vegetable Rissoles",
+    category: "Dinner",
+    ingredients: [
+      { id: "1", name: "Beef mince", qty: 500, unit: "g" },
+      { id: "2", name: "Brown onion", qty: 1, unit: "medium" },
+      { id: "3", name: "Garlic cloves", qty: 2, unit: "" },
+      { id: "4", name: "Zucchini", qty: 1, unit: "medium" },
+      { id: "5", name: "Carrot", qty: 1, unit: "medium" },
+      { id: "6", name: "Egg", qty: 1, unit: "" },
+      { id: "7", name: "Tomato sauce (ketchup)", qty: 2, unit: "tbsp" },
+      { id: "8", name: "Worcestershire sauce", qty: 2, unit: "tbsp" },
+      { id: "9", name: "Mixed dried herbs", qty: 1, unit: "tsp" },
+      { id: "10", name: "Salt and pepper", qty: 1, unit: "to taste" },
+      { id: "11", name: "Gluten-free flour (for coating)", qty: 0.5, unit: "cup" },
+      { id: "12", name: "Oil for frying", qty: 1, unit: "" },
+    ],
+    macros: { calories: 380, protein: 28, fats: 22, carbs: 14 },
+    instructions: "TM6 Method:\n1. Place onion, garlic, zucchini and carrot in TM bowl → Chop 5 sec / Speed 5\n2. Add beef mince, egg, tomato sauce, Worcestershire, herbs, salt and pepper → Mix 10 sec / Reverse / Speed 4\n3. Scrape down, mix again → 5 sec / Reverse / Speed 4\n4. Shape mixture into 10 patties (approx 2 tbsp each)\n5. Coat each rissole in gluten-free flour\n6. Pan fry 3-4 minutes each side until golden and cooked through",
+    notes: "Source: Thermobliss. Hidden veggies! Makes 10 rissoles. Batch freezes cooked or uncooked. Serve with mash and veg or as burgers. Harvey: 1 small rissole, cut into pieces."
+  },
+  {
+    name: "Creamy Garlic Chicken",
+    category: "Dinner",
+    ingredients: [
+      { id: "1", name: "Chicken thighs or breast", qty: 700, unit: "g" },
+      { id: "2", name: "Garlic cloves", qty: 4, unit: "" },
+      { id: "3", name: "Onion powder", qty: 1, unit: "tsp" },
+      { id: "4", name: "Cream (or light coconut milk)", qty: 200, unit: "ml" },
+      { id: "5", name: "Chicken stock concentrate", qty: 100, unit: "g" },
+      { id: "6", name: "Sweet paprika", qty: 1, unit: "tsp" },
+      { id: "7", name: "Dried parsley", qty: 1, unit: "tsp" },
+      { id: "8", name: "Dried oregano", qty: 1, unit: "tsp" },
+      { id: "9", name: "Cornflour", qty: 1, unit: "tbsp" },
+      { id: "10", name: "Water (for slurry)", qty: 2, unit: "tbsp" },
+      { id: "11", name: "Salt and pepper", qty: 1, unit: "to taste" },
+      { id: "12", name: "Olive oil", qty: 1, unit: "tbsp" },
+      { id: "13", name: "Rice or vegetables to serve", qty: 1, unit: "batch" },
+    ],
+    macros: { calories: 368, protein: 34, fats: 20, carbs: 8 },
+    instructions: "TM6 Method:\n1. Place garlic in TM bowl → Chop 3 sec / Speed 7\n2. Add olive oil → Sauté 2 min / 100°C / Speed 1\n3. Add chicken, paprika, onion powder, herbs, salt and pepper → Cook 8 min / 100°C / Reverse / Speed 1\n4. Add cream and stock → Cook 5 min / 90°C / Reverse / Speed 1\n5. Mix cornflour with water, add to bowl → Cook 2 min / 90°C / Reverse / Speed 1 to thicken\n6. Check seasoning, serve with rice and vegetables",
+    notes: "Source: Skinnymixers (THMIV). 20 minute meal. Toddler-friendly creamy sauce. Omit chilli. Harvey: ~½ adult serve, diced or shredded."
+  }
+];
+
+// Auto-seed on client-side only
+if (typeof window !== 'undefined') {
+  // Check if recipes already exist
+  const existingRecipes = recipeDatabase.getAllRecipes();
+  const existingNames = new Set(existingRecipes.map(r => r.name));
+  
+  seedRecipesForWeekOf3March.forEach(recipe => {
+    if (!existingNames.has(recipe.name)) {
+      recipeDatabase.addRecipe(recipe);
+    }
+  });
+}

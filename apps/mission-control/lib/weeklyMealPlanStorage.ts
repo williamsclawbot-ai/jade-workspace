@@ -397,3 +397,51 @@ class WeeklyMealPlanStorage {
 }
 
 export const weeklyMealPlanStorage = new WeeklyMealPlanStorage();
+
+// ======================
+// SEED MEAL PLAN - Week of 3 March 2026
+// Olive Brief: Meal Prep - 25 Feb 2026
+// ======================
+
+function getMonday(date: Date): Date {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  return new Date(d.setDate(diff));
+}
+
+function getISOWeekNumber(date: Date): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+}
+
+// Week of 3 March 2026 is ISO week 10 of 2026
+const TARGET_WEEK_ID = '2026-w10';
+
+// Seed the meal plan for week of 3 March (if not already populated)
+if (typeof window !== 'undefined') {
+  const weekOf3March = weeklyMealPlanStorage.getWeekById(TARGET_WEEK_ID);
+  
+  if (weekOf3March && weekOf3March.status === 'planning') {
+    // Check if Monday-Wednesday dinners are already set
+    const mondayDinner = weekOf3March.jades.meals['Monday']?.dinner;
+    const tuesdayDinner = weekOf3March.jades.meals['Tuesday']?.dinner;
+    const wednesdayDinner = weekOf3March.jades.meals['Wednesday']?.dinner;
+    
+    // Only populate if empty (avoid overwriting user changes)
+    if (!mondayDinner && !tuesdayDinner && !wednesdayDinner) {
+      try {
+        // Add the 3 dinners
+        weeklyMealPlanStorage.addMealToWeek(TARGET_WEEK_ID, 'Monday', 'dinner', 'Coconut Chicken Curry');
+        weeklyMealPlanStorage.addMealToWeek(TARGET_WEEK_ID, 'Tuesday', 'dinner', 'Beef & Vegetable Rissoles');
+        weeklyMealPlanStorage.addMealToWeek(TARGET_WEEK_ID, 'Wednesday', 'dinner', 'Creamy Garlic Chicken');
+        console.log('[Olive] Meal plan seeded for week of 3 March 2026');
+      } catch (e) {
+        console.error('[Olive] Failed to seed meal plan:', e);
+      }
+    }
+  }
+}
