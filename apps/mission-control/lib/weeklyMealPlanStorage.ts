@@ -436,3 +436,39 @@ if (typeof window !== 'undefined') {
     }
   }
 }
+
+// ======================
+// SEED MEAL PLAN - Next Week (10 March 2026)
+// ======================
+
+// Week of 10 March 2026 is ISO week 11 of 2026
+const NEXT_WEEK_ID = '2026-w11';
+
+// Seed the meal plan for next week
+if (typeof window !== 'undefined') {
+  const nextWeek = weeklyMealPlanStorage.getWeekById(NEXT_WEEK_ID);
+  
+  if (nextWeek && nextWeek.status === 'planning') {
+    // Check if Monday dinners are already set
+    const mondayDinner = nextWeek.jades.meals['Monday']?.dinner;
+    
+    // Only populate if empty
+    if (!mondayDinner) {
+      try {
+        // Add Mon-Wed dinners (Jade cooking) - Wednesday is Bolognese!
+        weeklyMealPlanStorage.addMealToWeek(NEXT_WEEK_ID, 'Monday', 'dinner', 'Coconut Chicken Curry');
+        weeklyMealPlanStorage.addMealToWeek(NEXT_WEEK_ID, 'Tuesday', 'dinner', 'Beef & Vegetable Rissoles');
+        weeklyMealPlanStorage.addMealToWeek(NEXT_WEEK_ID, 'Wednesday', 'dinner', 'Chunky Spaghetti Bolognese with Hidden Veg');
+        
+        // Add Thu-Sat dinners (John solo)
+        weeklyMealPlanStorage.addMealToWeek(NEXT_WEEK_ID, 'Thursday', 'dinner', 'Chicken Sausages with Mash & Broccolini');
+        weeklyMealPlanStorage.addMealToWeek(NEXT_WEEK_ID, 'Friday', 'dinner', 'Takeaway Night');
+        weeklyMealPlanStorage.addMealToWeek(NEXT_WEEK_ID, 'Saturday', 'dinner', 'Steak & Veggies');
+        
+        console.log('[Olive] Meal plan seeded for next week (week of 10 March 2026)');
+      } catch (e) {
+        console.error('[Olive] Failed to seed meal plan for next week:', e);
+      }
+    }
+  }
+}

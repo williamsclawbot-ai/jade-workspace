@@ -229,6 +229,30 @@ const seedRecipesForWeekOf3March = [
     macros: { calories: 420, protein: 38, fats: 20, carbs: 22 },
     instructions: "Method:\n1. Preheat oven to 200°C. Chop sweet potato into chunks, toss with olive oil, salt and pepper\n2. Roast sweet potato for 25-30 min until golden\n3. Season steak with salt and pepper. Cook in hot pan 3-4 min each side for medium (adjust for preference)\n4. Rest steak for 5 min under foil\n5. Steam green beans for 4-5 min until tender\n6. Slice steak against the grain, serve with roasted sweet potato, beans and cherry tomatoes",
     notes: "Classic easy dinner. John-friendly. Resting steak is key for juiciness. Harvey: cut steak into very small pieces, soft roasted sweet potato perfect for little hands."
+  },
+  {
+    name: "Chunky Spaghetti Bolognese with Hidden Veg",
+    category: "Dinner",
+    ingredients: [
+      { id: "1", name: "Beef mince", qty: 500, unit: "g" },
+      { id: "2", name: "Brown onion", qty: 1, unit: "" },
+      { id: "3", name: "Garlic cloves", qty: 3, unit: "" },
+      { id: "4", name: "Carrot", qty: 1, unit: "" },
+      { id: "5", name: "Zucchini", qty: 1, unit: "" },
+      { id: "6", name: "Celery", qty: 2, unit: "sticks" },
+      { id: "7", name: "Canned diced tomatoes", qty: 800, unit: "g" },
+      { id: "8", name: "Tomato paste", qty: 2, unit: "tbsp" },
+      { id: "9", name: "TM vegetable stock concentrate", qty: 1, unit: "tbsp" },
+      { id: "10", name: "Dried oregano", qty: 1, unit: "tsp" },
+      { id: "11", name: "Dried basil", qty: 1, unit: "tsp" },
+      { id: "12", name: "Olive oil", qty: 1, unit: "tbsp" },
+      { id: "13", name: "Gluten-free spaghetti", qty: 500, unit: "g" },
+      { id: "14", name: "Parmesan cheese (to serve)", qty: 1, unit: "" },
+    ],
+    macros: { calories: 425, protein: 28, fats: 15, carbs: 42 },
+    instructions: "TM6 Method:\n1. Place onion, garlic, carrot, zucchini and celery in TM bowl → Chop 5 sec / Speed 5\n2. Add olive oil → Sauté 5 min / 100°C / Speed 1\n3. Add beef mince → Cook 5 min / 100°C / Reverse / Speed 1\n4. Add diced tomatoes, tomato paste, stock, oregano and basil → Cook 20 min / 100°C / Reverse / Speed 1 with simmering basket on lid\n5. Meanwhile, cook gluten-free spaghetti according to packet instructions\n6. Serve bolognese sauce over spaghetti with parmesan",
+    notes: "Massive Thermomix community favourite! Packed with hidden vegetables. Batch freezes beautifully. Harvey: sauce is soft and spoonable, cut spaghetti into small lengths.",
+    sourceUrl: "https://skinnymixers.com.au/thmii-family-chunky-bolognese-hidden-veg/"
   }
 ];
 
