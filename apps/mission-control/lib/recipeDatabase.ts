@@ -119,6 +119,36 @@ export const recipeDatabase = new RecipeDatabase();
 // ======================
 
 const seedRecipesForWeekOf3March = [
+  // NEW RECIPE - Added 26 Feb 2026
+  {
+    name: "Tim Tam Gluten Free",
+    category: "Dessert",
+    ingredients: [
+      { id: "1", name: "Tim Tam Gluten Free (Arnott's)", qty: 1, unit: "biscuit (21g)" },
+    ],
+    macros: { calories: 114, protein: 0.7, fats: 6.1, carbs: 14.1 },
+    instructions: "Enjoy straight from the packet! No cooking required.",
+    notes: "Gluten-free treat. 114 calories per biscuit. Store-bought Arnott's Tim Tam.",
+  },
+  // NEW RECIPE - Added 26 Feb 2026
+  {
+    name: "Chicken with Peanut Sauce, Cucumber & Rice",
+    category: "Lunch",
+    ingredients: [
+      { id: "1", name: "Roasted Carved Chicken Breast (Mt. Barker)", qty: 100, unit: "g" },
+      { id: "2", name: "Rice, cooked", qty: 40, unit: "g" },
+      { id: "3", name: "Cucumber", qty: 150, unit: "g" },
+      { id: "4", name: "Peanut Butter (Bega)", qty: 12, unit: "g" },
+      { id: "5", name: "Light Soy Sauce (Ayam)", qty: 10, unit: "g" },
+      { id: "6", name: "Sesame Oil (Yeo's)", qty: 2, unit: "g" },
+      { id: "7", name: "Chilli Oil (Laoganma)", qty: 2, unit: "g" },
+      { id: "8", name: "Minced Garlic", qty: 2, unit: "g" },
+      { id: "9", name: "Caster sugar", qty: 1, unit: "g" },
+    ],
+    macros: { calories: 293, protein: 26, fats: 11, carbs: 24 },
+    instructions: "Cook rice. Slice chicken and cucumber. Mix peanut butter, soy sauce, sesame oil, chilli oil, garlic and sugar to make sauce. Combine all ingredients in a bowl.",
+    notes: "Satay-style lunch bowl. Contains peanuts, sesame, soy. ~293 cal.",
+  },
   // NEW RECIPES - Added 26 Feb 2026
   {
     name: "Salted Caramel Yogurt Bowl",

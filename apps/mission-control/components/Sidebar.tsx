@@ -29,6 +29,7 @@ import {
   TrendingUp,
   ShoppingBag,
   Coffee,
+  DollarSign,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -70,6 +71,7 @@ export default function Sidebar({ activeTab, onTabChange }: SidebarProps) {
       subtext: 'Hello Little Sleepers',
       section: 'business',
       items: [
+        { id: 'revenue-dashboard', label: 'Revenue Dashboard', icon: DollarSign },
         { id: 'content', label: 'Content', icon: FileText },
         { id: 'repurpose-content', label: 'Repurpose', icon: Zap },
         { id: 'calendar', label: 'Calendar', icon: Calendar },

@@ -25,6 +25,7 @@ import HouseholdTodos from '@/components/HouseholdTodos';
 import GoHighLevelMetrics from '@/components/GoHighLevelMetrics';
 import StripeRevenue from '@/components/StripeRevenue';
 import CombinedMetrics from '@/components/CombinedMetrics';
+import RevenueDashboard from '@/components/RevenueDashboard';
 import PersonalTasks from '@/components/PersonalTasks';
 import Notes from '@/components/Notes';
 import TodayCommandCenter from '@/components/TodayCommandCenter';
@@ -63,6 +64,8 @@ export default function Home() {
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard />;
+      case 'revenue-dashboard':
+        return <RevenueDashboard />;
       case 'guides':
         return <Guides />;
       case 'content':
