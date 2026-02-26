@@ -317,6 +317,23 @@ const seedRecipesForWeekOf3March = [
     instructions: "TM6 Method:\n1. Place onion, garlic, carrot, zucchini and celery in TM bowl → Chop 5 sec / Speed 5\n2. Add olive oil → Sauté 5 min / 100°C / Speed 1\n3. Add beef mince → Cook 5 min / 100°C / Reverse / Speed 1\n4. Add diced tomatoes, tomato paste, stock, oregano and basil → Cook 20 min / 100°C / Reverse / Speed 1 with simmering basket on lid\n5. Meanwhile, cook gluten-free spaghetti according to packet instructions\n6. Serve bolognese sauce over spaghetti with parmesan",
     notes: "Massive Thermomix community favourite! Packed with hidden vegetables. Batch freezes beautifully. Harvey: sauce is soft and spoonable, cut spaghetti into small lengths.",
     sourceUrl: "https://skinnymixers.com.au/thmii-family-chunky-bolognese-hidden-veg/"
+  },
+  {
+    name: "Gluten Free Tim Tams",
+    category: "Snack",
+    ingredients: [
+      { id: "1", name: "Gluten-free plain flour", qty: 150, unit: "g" },
+      { id: "2", name: "Cocoa powder", qty: 40, unit: "g" },
+      { id: "3", name: "Butter (softened)", qty: 150, unit: "g" },
+      { id: "4", name: "Caster sugar", qty: 100, unit: "g" },
+      { id: "5", name: "Egg", qty: 1, unit: "" },
+      { id: "6", name: "Vanilla extract", qty: 1, unit: "tsp" },
+      { id: "7", name: "Milk chocolate (for coating)", qty: 300, unit: "g" },
+      { id: "8", name: "Vegetable oil", qty: 1, unit: "tbsp" },
+    ],
+    macros: { calories: 180, protein: 2, fats: 10, carbs: 20 },
+    instructions: "TM6 Method:\n1. Preheat oven to 160°C fan forced. Line baking trays with paper\n2. Place butter and sugar in TM bowl → Cream 20 sec / Speed 4\n3. Add egg and vanilla → Mix 10 sec / Speed 4\n4. Add flour and cocoa → Mix 15 sec / Speed 4, scrape down, repeat until dough forms\n5. Roll dough into 24 small balls, flatten slightly, place on trays\n6. Bake 12-15 min until firm. Cool completely\n7. Melt chocolate + oil → 5 min / 50°C / Speed 2\n8. Dip cooled biscuits in chocolate, place on rack to set",
+    notes: "Aussie classic made gluten-free! Makes 24 biscuits. Store in fridge. Harvey: occasional treat, supervise for mess!"
   }
 ];
 
