@@ -119,6 +119,40 @@ export const recipeDatabase = new RecipeDatabase();
 // ======================
 
 const seedRecipesForWeekOf3March = [
+  // NEW RECIPES - Added 26 Feb 2026
+  {
+    name: "Salted Caramel Yogurt Bowl",
+    category: "Breakfast",
+    ingredients: [
+      { id: "1", name: "Salted Caramel High Protein Yoghurt (YoPro)", qty: 150, unit: "g" },
+      { id: "2", name: "Frozen raspberries", qty: 40, unit: "g" },
+      { id: "3", name: "Cacao nibs", qty: 5, unit: "g" },
+      { id: "4", name: "Honey", qty: 8, unit: "g" },
+      { id: "5", name: "Pistachios", qty: 10, unit: "g" },
+    ],
+    macros: { calories: 218, protein: 18, fats: 6, carbs: 22 },
+    instructions: "Mix yoghurt with toppings in a bowl. Enjoy as a high-protein breakfast.",
+    notes: "218 calories. High protein breakfast bowl.",
+  },
+  {
+    name: "Asian Chicken Tacos (GF & DF)",
+    category: "Dinner",
+    ingredients: [
+      { id: "1", name: "Chicken breast (raw)", qty: 150, unit: "g" },
+      { id: "2", name: "Carrot", qty: 60, unit: "g" },
+      { id: "3", name: "Taco shells (Old El Paso)", qty: 3, unit: "shells (39g total)" },
+      { id: "4", name: "Lettuce", qty: 40, unit: "g" },
+      { id: "5", name: "Onion", qty: 20, unit: "g" },
+      { id: "6", name: "Minced garlic", qty: 10, unit: "g" },
+      { id: "7", name: "Light soy sauce (Ayam)", qty: 20, unit: "g" },
+      { id: "8", name: "Honey", qty: 10, unit: "g" },
+      { id: "9", name: "Fried shallots (Doree)", qty: 5, unit: "g" },
+      { id: "10", name: "Vegan aioli (Praise)", qty: 15, unit: "g" },
+    ],
+    macros: { calories: 531, protein: 38, fats: 19, carbs: 42 },
+    instructions: "Cook chicken with garlic, onion, carrot and soy sauce. Fill taco shells with lettuce, chicken mixture, fried shallots and drizzle with vegan aioli.",
+    notes: "Gluten-free and dairy-free. 531 cal, 38g protein.",
+  },
   {
     name: "Coconut Chicken Curry",
     category: "Dinner",
