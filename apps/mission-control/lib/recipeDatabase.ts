@@ -334,6 +334,109 @@ const seedRecipesForWeekOf3March = [
     macros: { calories: 180, protein: 2, fats: 10, carbs: 20 },
     instructions: "TM6 Method:\n1. Preheat oven to 160°C fan forced. Line baking trays with paper\n2. Place butter and sugar in TM bowl → Cream 20 sec / Speed 4\n3. Add egg and vanilla → Mix 10 sec / Speed 4\n4. Add flour and cocoa → Mix 15 sec / Speed 4, scrape down, repeat until dough forms\n5. Roll dough into 24 small balls, flatten slightly, place on trays\n6. Bake 12-15 min until firm. Cool completely\n7. Melt chocolate + oil → 5 min / 50°C / Speed 2\n8. Dip cooled biscuits in chocolate, place on rack to set",
     notes: "Aussie classic made gluten-free! Makes 24 biscuits. Store in fridge. Harvey: occasional treat, supervise for mess!"
+  },
+  // NEW RECIPES - Added 28 Feb 2026
+  {
+    name: "Cheezel Crumbed Chicken & Veggies (GF)",
+    category: "Dinner",
+    ingredients: [
+      { id: "1", name: "Broccoli", qty: 80, unit: "g" },
+      { id: "2", name: "Butter (Light)", qty: 8, unit: "g" },
+      { id: "3", name: "Carrot", qty: 80, unit: "g" },
+      { id: "4", name: "Cheezels", qty: 1, unit: "pack" },
+      { id: "5", name: "Chicken Breast (Weighed Raw)", qty: 150, unit: "g" },
+      { id: "6", name: "Egg White", qty: 60, unit: "g" },
+      { id: "7", name: "Low Carb Potato - Carisma/Spud Lite", qty: 225, unit: "g" }
+    ],
+    macros: { calories: 491, protein: 49, fats: 12, carbs: 42 },
+    instructions: "Crush Cheezels into crumbs. Dip chicken in egg white, then coat with Cheezel crumbs. Bake or pan-fry chicken until cooked through. Steam or roast broccoli, carrot and potato with light butter.",
+    notes: "GF option. Fun kid-friendly dinner using Cheezels as crispy coating!"
+  },
+  {
+    name: "Cantonese Chicken (GF)",
+    category: "Dinner",
+    ingredients: [
+      { id: "1", name: "Broccoli", qty: 100, unit: "g" },
+      { id: "2", name: "Cantonese Beef Stir Fry Sauce - Passage to Asia", qty: 70, unit: "g" },
+      { id: "3", name: "Chicken Breast (Weighed Raw)", qty: 120, unit: "g" },
+      { id: "4", name: "Fresh Garlic", qty: 0.05, unit: "clove" },
+      { id: "5", name: "Onion", qty: 30, unit: "g" },
+      { id: "6", name: "Rice Raw", qty: 35, unit: "g" },
+      { id: "7", name: "Zucchini", qty: 80, unit: "g" }
+    ],
+    macros: { calories: 403, protein: 34, fats: 3, carbs: 60 },
+    instructions: "Cook rice per package instructions. Stir-fry chicken with garlic and onion. Add broccoli, zucchini and Cantonese sauce. Cook until vegetables are tender and chicken is cooked through. Serve over rice.",
+    notes: "GF option, cook rice per package instructions. Quick Asian-style dinner."
+  },
+  {
+    name: "Chicken Gyros (GF)",
+    category: "Dinner",
+    ingredients: [
+      { id: "1", name: "Chicken Breast (Weighed Raw)", qty: 150, unit: "g" },
+      { id: "2", name: "Garlic & Herb All Natural Seasoning - Mingle", qty: 20, unit: "g" },
+      { id: "3", name: "Lettuce", qty: 20, unit: "g" },
+      { id: "4", name: "Low Carb Potato - Carisma/Spud Lite", qty: 200, unit: "g" },
+      { id: "5", name: "Onion", qty: 15, unit: "g" },
+      { id: "6", name: "Oregano", qty: 1, unit: "g" },
+      { id: "7", name: "Tomato", qty: 50, unit: "g" },
+      { id: "8", name: "Tzatziki - Willow Farm", qty: 20, unit: "g" },
+      { id: "9", name: "White Wraps (50g) - Free From Gluten (Woolworths Only)", qty: 1, unit: "pack" }
+    ],
+    macros: { calories: 510, protein: 44, fats: 8, carbs: 64 },
+    instructions: "Season chicken with garlic & herb seasoning and oregano. Cook chicken and slice. Roast or boil potatoes. Warm wrap, fill with lettuce, tomato, onion, chicken and top with tzatziki. Serve potatoes on side.",
+    notes: "GF option. Greek-inspired family favourite."
+  },
+  {
+    name: "Rice Cakes with Honey and Banana",
+    category: "Snack",
+    ingredients: [
+      { id: "1", name: "Banana", qty: 100, unit: "g" },
+      { id: "2", name: "Honey", qty: 5, unit: "g" },
+      { id: "3", name: "Rice Cakes - Sunrise", qty: 2, unit: "cakes" }
+    ],
+    macros: { calories: 153, protein: 2, fats: 1, carbs: 34 },
+    instructions: "Top rice cakes with sliced banana and drizzle with honey.",
+    notes: "Mid meal snack. Quick energy boost."
+  },
+  {
+    name: "Caramelized Pineapple Burger (GF)",
+    category: "Dinner",
+    ingredients: [
+      { id: "1", name: "50% Less Fat Cheese Slice - Bega", qty: 1, unit: "slice" },
+      { id: "2", name: "Brioche Bun Gluten free (80g) - Woolworths Brand", qty: 1, unit: "bun" },
+      { id: "3", name: "Extra Lean Beef Mince (5 Star) (Weighed Raw)", qty: 100, unit: "g" },
+      { id: "4", name: "Lettuce", qty: 30, unit: "g" },
+      { id: "5", name: "Natural Brown Sweetener - Natvia", qty: 10, unit: "g" },
+      { id: "6", name: "Onion", qty: 20, unit: "g" },
+      { id: "7", name: "Pineapple Canned - Golden Circle", qty: 50, unit: "g" }
+    ],
+    macros: { calories: 424, protein: 33, fats: 11, carbs: 45 },
+    instructions: "Marinate pineapple ring in sweetener and caramelize in non-stick pan on medium-low heat. Form beef mince into patty and cook. Assemble burger with bun, lettuce, cheese, beef patty and caramelized pineapple.",
+    notes: "GF option. Sweet and savoury combo that kids love!"
+  },
+  {
+    name: "Rice Cakes with Peanut Butter and Banana",
+    category: "Snack",
+    ingredients: [
+      { id: "1", name: "Banana", qty: 50, unit: "g" },
+      { id: "2", name: "Peanut Butter - Bega", qty: 15, unit: "g" },
+      { id: "3", name: "Rice Cakes - Sunrise", qty: 2, unit: "cakes" }
+    ],
+    macros: { calories: 186, protein: 5, fats: 8, carbs: 22 },
+    instructions: "Spread peanut butter over rice cakes. Cut banana into thin slices and arrange on top.",
+    notes: "Mid meal snack. Good protein and healthy fats."
+  },
+  {
+    name: "Snacks Mix",
+    category: "Snack",
+    ingredients: [
+      { id: "1", name: "Harvest Pea Snaps (Original Salted) (18g) - Calbee", qty: 1, unit: "pack" },
+      { id: "2", name: "Kiwifruit", qty: 100, unit: "g" },
+      { id: "3", name: "Medium Coffee on Skim Milk", qty: 1, unit: "serve" }
+    ],
+    macros: { calories: 264, protein: 16, fats: 4, carbs: 37 },
+    instructions: "Enjoy Pea Snaps and kiwifruit with your coffee for a balanced snack.",
+    notes: "Quick snack combo with protein from the Pea Snaps."
   }
 ];
 
